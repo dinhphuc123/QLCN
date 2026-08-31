@@ -329,6 +329,7 @@ export default function App() {
         <Header
           activeTab={activeTab}
           isTeacher={isTeacher}
+          onLoginClick={() => setShowAuth(true)}
         />
         <main style={{ padding: '1.5rem', minHeight: 'calc(100vh - 64px)' }}>
           {renderPage()}

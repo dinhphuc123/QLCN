@@ -20,7 +20,7 @@ const TAB_LABELS = {
   cms_admin:     'Quản trị CMS',
 };
 
-export default function Header({ activeTab, onMenuClick }) {
+export default function Header({ activeTab, onMenuClick, onLoginClick }) {
   const { user, isTeacher } = useAuth();
   const { settings } = useClassSettings();
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -98,7 +98,7 @@ export default function Header({ activeTab, onMenuClick }) {
           </div>
         ) : (
           <button
-            onClick={onMenuClick}
+            onClick={onLoginClick || onMenuClick}
             style={{
               fontSize: '0.75rem', background: '#7c3aed', color: 'white',
               padding: '0.3rem 0.85rem', borderRadius: '9999px', fontWeight: 700,
