@@ -4,9 +4,12 @@ import * as XLSX from 'xlsx';
 import ConfirmModal from '../ui/ConfirmModal';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
+import { useClassSettings } from '../../context/ClassSettingsContext';
+import AdminDocExporter from './AdminDocExporter';
 
 export default function Reports({ students = [], attendance = {}, dormAttendance = {}, finance = [], onRefresh }) {
   const { isTeacher } = useAuth();
+  const { settings } = useClassSettings();
   const [showResetModal, setShowResetModal] = useState(false);
   const [bulkText, setBulkText] = useState('');
   const [showBulkModal, setShowBulkModal] = useState(false);
@@ -155,6 +158,9 @@ export default function Reports({ students = [], attendance = {}, dormAttendance
           <StatCard label="Quỹ Lớp Hiện Tại" value={(stats.balance / 1000).toFixed(0)} unit="k" icon="💰" color="#16a34a" />
         </div>
       </div>
+
+      {/* Administrative Document Exporter */}
+      <AdminDocExporter students={students} settings={settings} />
 
       {/* Confirm Reset Modal */}
       <ConfirmModal

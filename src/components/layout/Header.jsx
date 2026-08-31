@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useClassSettings } from '../../context/ClassSettingsContext';
+import ClassSettingsModal from './ClassSettingsModal';
 
 const TAB_LABELS = {
   dashboard:     'Trang chủ Lớp 12.7',
@@ -19,6 +21,8 @@ const TAB_LABELS = {
 
 export default function Header({ activeTab, onMenuClick }) {
   const { user, isTeacher } = useAuth();
+  const { settings } = useClassSettings();
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   return (
     <header style={{
@@ -53,16 +57,31 @@ export default function Header({ activeTab, onMenuClick }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
         <h2 style={{
           fontFamily: 'var(--font-serif)',
-          fontSize: 'clamp(1rem, 2.5vw, 1.3rem)',
+          fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
           color: 'var(--color-primary-dark)',
           margin: 0,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {TAB_LABELS[activeTab] || activeTab}
         </h2>
+        <span style={{ fontSize: '0.75rem', background: '#dbeafe', color: '#1e40af', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: 700, whiteSpace: 'nowrap' }}>
+          Lớp {settings.className} • {settings.currentWeek}
+        </span>
       </div>
 
-      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexShrink: 0 }}>
+      <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexShrink: 0 }}>
+        {isTeacher && (
+          <button
+            onClick={() => setShowSettingsModal(true)}
+            style={{
+              padding: '0.3rem 0.75rem', borderRadius: '9999px',
+              background: '#f3f4f6', border: '1px solid #d1d5db',
+              fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', color: '#374151'
+            }}
+          >
+            ⚙️ Cấu hình lớp
+          </button>
+        )}
         {user ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{
@@ -73,12 +92,12 @@ export default function Header({ activeTab, onMenuClick }) {
               border: `1px solid ${isTeacher ? '#86efac' : user.role === 'group_leader' ? '#7dd3fc' : '#86efac'}`,
               whiteSpace: 'nowrap',
             }}>
-              {isTeacher ? '👑 GVCN Đỗ Kim Tuyền' : user.role === 'group_leader' ? `⭐ Tổ Trưởng ${user.group} (${user.name})` : `👨‍🎓 ${user.name} (${user.group})`}
+              {isTeacher ? `👑 GVCN ${settings.teacherName}` : user.role === 'group_leader' ? `⭐ Tổ Trưởng ${user.group}` : `👨‍🎓 ${user.name}`}
             </span>
           </div>
         ) : (
           <span style={{ fontSize: '0.75rem', background: '#f3f4f6', color: '#6b7280', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontWeight: 600 }}>
-            👁️ Chế độ Xem Khách
+            👁️ Xem Khách
           </span>
         )}
       </div>
@@ -88,6 +107,7 @@ export default function Header({ activeTab, onMenuClick }) {
           .mobile-menu-btn { display: flex !important; }
         }
       `}</style>
+      {showSettingsModal && <ClassSettingsModal onClose={() => setShowSettingsModal(false)} />}
     </header>
   );
 }
