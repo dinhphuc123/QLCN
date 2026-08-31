@@ -27,66 +27,97 @@ export default function LoginGate() {
   const officers = INITIAL_STUDENTS.filter(s => s.role === 'group_leader' || s.role === 'monitor');
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      width: '100vw',
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #31104b 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justify: 'center',
-      padding: '1.5rem',
-      fontFamily: 'var(--font-sans, "Be Vietnam Pro", sans-serif)',
-      color: '#f8fafc',
-    }}>
-      <div style={{
-        maxWidth: '560px',
-        width: '100%',
-        background: 'rgba(255, 255, 255, 0.05)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.15)',
-        borderRadius: '1.5rem',
-        padding: '2.5rem 2rem',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1.5rem',
-      }}>
+    <div className="login-gate-wrapper">
+      <style>{`
+        .login-gate-wrapper {
+          min-height: 100dvh;
+          width: 100vw;
+          background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #31104b 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 1.5rem 1rem;
+          font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+          color: #f8fafc;
+          box-sizing: border-box;
+        }
+        .login-card {
+          max-width: 520px;
+          width: 100%;
+          margin: auto;
+          background: rgba(255, 255, 255, 0.06);
+          backdrop-filter: blur(24px);
+          -webkit-backdrop-filter: blur(24px);
+          border: 1px solid rgba(255, 255, 255, 0.16);
+          border-radius: 1.5rem;
+          padding: 2.25rem 1.75rem;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+          display: flex;
+          flex-direction: column;
+          gap: 1.35rem;
+          box-sizing: border-box;
+        }
+        .brand-title {
+          font-size: 2.5rem;
+          background: linear-gradient(135deg, #a7f3d0, #38bdf8);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          font-weight: 900;
+          margin-bottom: 0.2rem;
+          line-height: 1.2;
+        }
+        .fast-login-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 0.5rem;
+        }
+        @media (max-width: 640px) {
+          .login-gate-wrapper {
+            padding: 1rem 0.75rem;
+          }
+          .login-card {
+            padding: 1.5rem 1.1rem;
+            border-radius: 1.25rem;
+            gap: 1.1rem;
+          }
+          .brand-title {
+            font-size: 2rem;
+          }
+          .fast-login-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+
+      <div className="login-card">
         {/* Brand Header */}
         <div style={{ textAlign: 'center' }}>
-          <div style={{
-            fontSize: '3rem',
-            background: 'linear-gradient(135deg, #a7f3d0, #38bdf8)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            fontWeight: 900,
-            marginBottom: '0.2rem'
-          }}>
-            ClassMate Pro
+          <div className="brand-title">
+            Sổ Chủ Nhiệm Số 4.0
           </div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: '#e2e8f0' }}>
+          <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: '#e2e8f0' }}>
             Hệ Thống Quản Lý Lớp {settings.className} ({settings.schoolYear})
           </h2>
-          <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginTop: '0.4rem' }}>
+          <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.35rem' }}>
             Vui lòng đăng nhập theo phân quyền để truy cập cổng thông tin lớp học
           </p>
         </div>
 
-        {/* Fast 1-Click Login Demo Bar */}
+        {/* Fast 1-Click Login Bar */}
         <div style={{
           background: 'rgba(255, 255, 255, 0.07)',
           border: '1px solid rgba(255, 255, 255, 0.12)',
           borderRadius: '1rem',
-          padding: '1rem',
+          padding: '0.875rem',
         }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#cbd5e1', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            ⚡ Đăng nhập nhanh (Dành cho Demo & Thử nghiệm):
+          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#cbd5e1', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            ⚡ ĐĂNG NHẬP NHANH (DÙNG THỬ TRỰC TIẾP):
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+          <div className="fast-login-grid">
             <button
               onClick={() => loginTeacher('gvcn2027')}
               style={{
-                padding: '0.55rem', borderRadius: '0.6rem',
+                padding: '0.55rem 0.4rem', borderRadius: '0.6rem',
                 background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
                 color: 'white', border: 'none', fontWeight: 800, fontSize: '0.78rem',
                 cursor: 'pointer', boxShadow: '0 4px 12px rgba(124, 58, 237, 0.4)'
@@ -97,7 +128,7 @@ export default function LoginGate() {
             <button
               onClick={() => loginStudent('1', '01')}
               style={{
-                padding: '0.55rem', borderRadius: '0.6rem',
+                padding: '0.55rem 0.4rem', borderRadius: '0.6rem',
                 background: 'linear-gradient(135deg, #0284c7, #0369a1)',
                 color: 'white', border: 'none', fontWeight: 800, fontSize: '0.78rem',
                 cursor: 'pointer', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.4)'
@@ -108,7 +139,7 @@ export default function LoginGate() {
             <button
               onClick={() => loginStudent('3', '03')}
               style={{
-                padding: '0.55rem', borderRadius: '0.6rem',
+                padding: '0.55rem 0.4rem', borderRadius: '0.6rem',
                 background: 'linear-gradient(135deg, #d97706, #b45309)',
                 color: 'white', border: 'none', fontWeight: 800, fontSize: '0.78rem',
                 cursor: 'pointer', boxShadow: '0 4px 12px rgba(217, 119, 6, 0.4)'
@@ -131,8 +162,8 @@ export default function LoginGate() {
           <button
             onClick={() => { setPortal('teacher'); setLoginError(''); }}
             style={{
-              padding: '0.65rem', borderRadius: '0.65rem', border: 'none',
-              fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
+              padding: '0.6rem 0.2rem', borderRadius: '0.65rem', border: 'none',
+              fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
               background: portal === 'teacher' ? 'linear-gradient(135deg, #7c3aed, #6d28d9)' : 'transparent',
               color: portal === 'teacher' ? 'white' : '#94a3b8'
             }}
@@ -142,8 +173,8 @@ export default function LoginGate() {
           <button
             onClick={() => { setPortal('officer'); setLoginError(''); }}
             style={{
-              padding: '0.65rem', borderRadius: '0.65rem', border: 'none',
-              fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
+              padding: '0.6rem 0.2rem', borderRadius: '0.65rem', border: 'none',
+              fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
               background: portal === 'officer' ? 'linear-gradient(135deg, #0284c7, #0369a1)' : 'transparent',
               color: portal === 'officer' ? 'white' : '#94a3b8'
             }}
@@ -153,8 +184,8 @@ export default function LoginGate() {
           <button
             onClick={() => { setPortal('student'); setLoginError(''); }}
             style={{
-              padding: '0.65rem', borderRadius: '0.65rem', border: 'none',
-              fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
+              padding: '0.6rem 0.2rem', borderRadius: '0.65rem', border: 'none',
+              fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
               background: portal === 'student' ? 'linear-gradient(135deg, #d97706, #b45309)' : 'transparent',
               color: portal === 'student' ? 'white' : '#94a3b8'
             }}
@@ -166,9 +197,9 @@ export default function LoginGate() {
         {/* Error Alert */}
         {loginError && (
           <div style={{
-            padding: '0.75rem 1rem', background: 'rgba(220, 38, 38, 0.2)',
+            padding: '0.7rem 0.85rem', background: 'rgba(220, 38, 38, 0.2)',
             border: '1px solid #f87171', borderRadius: '0.75rem', color: '#fca5a5',
-            fontSize: '0.82rem', fontWeight: 600, textAlign: 'center'
+            fontSize: '0.8rem', fontWeight: 600, textAlign: 'center'
           }}>
             ⚠️ {loginError}
           </div>
@@ -176,9 +207,9 @@ export default function LoginGate() {
 
         {/* Portal Forms */}
         {portal === 'teacher' && (
-          <form onSubmit={handleTeacherSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <form onSubmit={handleTeacherSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
             <div>
-              <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#cbd5e1', display: 'block', marginBottom: '0.4rem' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#cbd5e1', display: 'block', marginBottom: '0.35rem' }}>
                 Mật khẩu Giáo viên Chủ nhiệm (GVCN)
               </label>
               <input
@@ -187,39 +218,39 @@ export default function LoginGate() {
                 value={teacherPass}
                 onChange={e => setTeacherPass(e.target.value)}
                 style={{
-                  width: '100%', padding: '0.75rem 1rem', borderRadius: '0.75rem',
-                  border: '1px solid rgba(255, 255, 255, 0.2)', background: 'rgba(0, 0, 0, 0.2)',
-                  color: 'white', fontSize: '0.9rem', outline: 'none'
+                  width: '100%', padding: '0.7rem 0.85rem', borderRadius: '0.75rem',
+                  border: '1px solid rgba(255, 255, 255, 0.2)', background: 'rgba(0, 0, 0, 0.25)',
+                  color: 'white', fontSize: '0.88rem', outline: 'none', boxSizing: 'border-box'
                 }}
               />
             </div>
             <button
               type="submit"
               style={{
-                width: '100%', padding: '0.85rem', borderRadius: '0.75rem',
+                width: '100%', padding: '0.8rem', borderRadius: '0.75rem',
                 background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', color: 'white',
-                border: 'none', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer',
+                border: 'none', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer',
                 boxShadow: '0 10px 20px -5px rgba(124, 58, 237, 0.5)'
               }}
             >
-              🚀 Đăng Nhập GVCN (Toàn Quyền Management)
+              🚀 Đăng Nhập GVCN (Toàn Quyền Quản Lý)
             </button>
           </form>
         )}
 
         {portal === 'officer' && (
-          <form onSubmit={handleStudentSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <form onSubmit={handleStudentSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
             <div>
-              <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#cbd5e1', display: 'block', marginBottom: '0.4rem' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#cbd5e1', display: 'block', marginBottom: '0.35rem' }}>
                 Chọn Cán bộ / Tổ trưởng
               </label>
               <select
                 value={selectedStudentId}
                 onChange={e => setSelectedStudentId(e.target.value)}
                 style={{
-                  width: '100%', padding: '0.75rem 1rem', borderRadius: '0.75rem',
+                  width: '100%', padding: '0.7rem 0.85rem', borderRadius: '0.75rem',
                   border: '1px solid rgba(255, 255, 255, 0.2)', background: '#1e293b',
-                  color: 'white', fontSize: '0.9rem', outline: 'none'
+                  color: 'white', fontSize: '0.88rem', outline: 'none', boxSizing: 'border-box'
                 }}
               >
                 {officers.map(s => (
@@ -230,27 +261,27 @@ export default function LoginGate() {
               </select>
             </div>
             <div>
-              <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#cbd5e1', display: 'block', marginBottom: '0.4rem' }}>
-                Mật khẩu xác thực (Mặc định là STT, VD: 01, 02)
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#cbd5e1', display: 'block', marginBottom: '0.35rem' }}>
+                Mật khẩu xác thực (Mặc định là số STT, VD: 01, 02)
               </label>
               <input
                 type="password"
-                placeholder="Nhập STT của bạn..."
+                placeholder="Nhập số STT của bạn..."
                 value={studentPass}
                 onChange={e => setStudentPass(e.target.value)}
                 style={{
-                  width: '100%', padding: '0.75rem 1rem', borderRadius: '0.75rem',
-                  border: '1px solid rgba(255, 255, 255, 0.2)', background: 'rgba(0, 0, 0, 0.2)',
-                  color: 'white', fontSize: '0.9rem', outline: 'none'
+                  width: '100%', padding: '0.7rem 0.85rem', borderRadius: '0.75rem',
+                  border: '1px solid rgba(255, 255, 255, 0.2)', background: 'rgba(0, 0, 0, 0.25)',
+                  color: 'white', fontSize: '0.88rem', outline: 'none', boxSizing: 'border-box'
                 }}
               />
             </div>
             <button
               type="submit"
               style={{
-                width: '100%', padding: '0.85rem', borderRadius: '0.75rem',
+                width: '100%', padding: '0.8rem', borderRadius: '0.75rem',
                 background: 'linear-gradient(135deg, #0284c7, #0369a1)', color: 'white',
-                border: 'none', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer',
+                border: 'none', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer',
                 boxShadow: '0 10px 20px -5px rgba(2, 132, 199, 0.5)'
               }}
             >
@@ -260,18 +291,18 @@ export default function LoginGate() {
         )}
 
         {portal === 'student' && (
-          <form onSubmit={handleStudentSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <form onSubmit={handleStudentSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
             <div>
-              <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#cbd5e1', display: 'block', marginBottom: '0.4rem' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#cbd5e1', display: 'block', marginBottom: '0.35rem' }}>
                 Chọn Họ và Tên Học sinh
               </label>
               <select
                 value={selectedStudentId}
                 onChange={e => setSelectedStudentId(e.target.value)}
                 style={{
-                  width: '100%', padding: '0.75rem 1rem', borderRadius: '0.75rem',
+                  width: '100%', padding: '0.7rem 0.85rem', borderRadius: '0.75rem',
                   border: '1px solid rgba(255, 255, 255, 0.2)', background: '#1e293b',
-                  color: 'white', fontSize: '0.9rem', outline: 'none'
+                  color: 'white', fontSize: '0.88rem', outline: 'none', boxSizing: 'border-box'
                 }}
               >
                 {INITIAL_STUDENTS.map(s => (
@@ -282,27 +313,27 @@ export default function LoginGate() {
               </select>
             </div>
             <div>
-              <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#cbd5e1', display: 'block', marginBottom: '0.4rem' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#cbd5e1', display: 'block', marginBottom: '0.35rem' }}>
                 Mật khẩu (Mặc định là số STT, VD: 03, 05)
               </label>
               <input
                 type="password"
-                placeholder="Nhập STT của bạn..."
+                placeholder="Nhập số STT của bạn..."
                 value={studentPass}
                 onChange={e => setStudentPass(e.target.value)}
                 style={{
-                  width: '100%', padding: '0.75rem 1rem', borderRadius: '0.75rem',
-                  border: '1px solid rgba(255, 255, 255, 0.2)', background: 'rgba(0, 0, 0, 0.2)',
-                  color: 'white', fontSize: '0.9rem', outline: 'none'
+                  width: '100%', padding: '0.7rem 0.85rem', borderRadius: '0.75rem',
+                  border: '1px solid rgba(255, 255, 255, 0.2)', background: 'rgba(0, 0, 0, 0.25)',
+                  color: 'white', fontSize: '0.88rem', outline: 'none', boxSizing: 'border-box'
                 }}
               />
             </div>
             <button
               type="submit"
               style={{
-                width: '100%', padding: '0.85rem', borderRadius: '0.75rem',
+                width: '100%', padding: '0.8rem', borderRadius: '0.75rem',
                 background: 'linear-gradient(135deg, #d97706, #b45309)', color: 'white',
-                border: 'none', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer',
+                border: 'none', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer',
                 boxShadow: '0 10px 20px -5px rgba(217, 119, 6, 0.5)'
               }}
             >
@@ -311,8 +342,8 @@ export default function LoginGate() {
           </form>
         )}
 
-        <div style={{ textAlign: 'center', fontSize: '0.75rem', color: '#64748b', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '1rem' }}>
-          🔒 Bảo mật 100% dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP • ClassMate Pro
+        <div style={{ textAlign: 'center', fontSize: '0.72rem', color: '#64748b', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '0.85rem' }}>
+          🔒 Bảo mật 100% dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP • Sổ Chủ Nhiệm Số
         </div>
       </div>
     </div>
