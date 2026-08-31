@@ -78,7 +78,7 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
 
       {/* Navigation */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', flex: 1 }}>
-        {NAV_ITEMS.filter(item => !item.teacherOnly || isTeacher).map(({ id, icon, label }) => (
+        {NAV_ITEMS.map(({ id, icon, label }) => (
           <button
             key={id}
             className={`nav-link ${activeTab === id ? 'active' : ''}`}
