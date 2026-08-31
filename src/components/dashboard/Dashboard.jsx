@@ -7,7 +7,7 @@ import Badges from '../gamification/Badges';
 import { useClassSettings } from '../../context/ClassSettingsContext';
 import { maskPhone, maskParentInfo } from '../../utils/privacy';
 
-export default function Dashboard({ students, attendance, timetableImage, classMapImage, isTeacher, setActiveTab, handleTimetableChange, onRefresh }) {
+export default function Dashboard({ students, attendance, timetableImage, classMapImage, isTeacher, setActiveTab, handleTimetableChange, handleClassMapChange, onRefresh }) {
   const { settings } = useClassSettings();
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [swapSrc, setSwapSrc] = useState(null);
@@ -52,17 +52,7 @@ export default function Dashboard({ students, attendance, timetableImage, classM
     setSwapSrc(null);
   };
 
-  const handleClassMapChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      await api.uploadClassMap(ev.target.result);
-      toast.success('Đã cập nhật sơ đồ lớp hình ảnh!');
-      onRefresh();
-    };
-    reader.readAsDataURL(file);
-  };
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>

@@ -30,6 +30,39 @@ import { useAuth } from './context/AuthContext';
 import { api } from './lib/api';
 import { INITIAL_STUDENTS } from './data/initialStudents';
 
+// ── Image Compressor Helper ──────────────────────────────────────────────────
+const compressImageFile = (file, maxWidth = 1600, quality = 0.82) => {
+  return new Promise((resolve) => {
+    if (!file || !file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.readAsDataURL(file);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => resolve(e.target.result);
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
 // ── App Entry Point ─────────────────────────────────────────────────────────
 export default function App() {
   const { user, isTeacher, isStudent } = useAuth();
@@ -39,8 +72,8 @@ export default function App() {
 
   const [data, setData] = useState({
     students: INITIAL_STUDENTS,
-    timetableImage: '',
-    classMapImage: '',
+    timetableImage: localStorage.getItem('qlcn_timetable_image') || '',
+    classMapImage: localStorage.getItem('qlcn_class_map_image') || '',
     announcements: [],
     leaveRequests: [],
     homeRequests: [],
@@ -55,15 +88,27 @@ export default function App() {
   const fetchData = useCallback(async (isInitial = false) => {
     try {
       const result = await api.getData();
+      const localTkb = localStorage.getItem('qlcn_timetable_image') || '';
+      const localMap = localStorage.getItem('qlcn_class_map_image') || '';
+
       setData(prev => ({
         ...prev,
         ...result,
-        students: (result.students && result.students.length > 0) ? result.students : INITIAL_STUDENTS
+        students: (result.students && result.students.length > 0) ? result.students : INITIAL_STUDENTS,
+        timetableImage: result.timetableImage || localTkb || prev.timetableImage,
+        classMapImage: result.classMapImage || localMap || prev.classMapImage,
       }));
     } catch {
       if (isInitial) {
         console.warn('Backend server disconnected. Running in client-side mode with preloaded Class 12.7 data.');
       }
+      const localTkb = localStorage.getItem('qlcn_timetable_image') || '';
+      const localMap = localStorage.getItem('qlcn_class_map_image') || '';
+      setData(prev => ({
+        ...prev,
+        timetableImage: prev.timetableImage || localTkb,
+        classMapImage: prev.classMapImage || localMap,
+      }));
     } finally {
       setLoading(false);
     }
@@ -228,18 +273,46 @@ export default function App() {
     e.target.value = '';
   }, [fetchData]);
 
-  // ── Timetable Upload ──────────────────────────────────────────────────────
+  // ── Timetable & Class Map Upload Handlers ─────────────────────────────────
   const handleTimetableChange = useCallback(async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      const base64 = ev.target.result;
+    const toastId = toast.loading('Đang xử lý ảnh thời khóa biểu...');
+    try {
+      const base64 = await compressImageFile(file);
+      // Store in local storage immediately for instant rendering
+      try { localStorage.setItem('qlcn_timetable_image', base64); } catch {}
+      setData(prev => ({ ...prev, timetableImage: base64 }));
+
+      // Upload to server/API
       await api.uploadTimetable(base64);
+      toast.success('✅ Đã cập nhật thời khóa biểu!', { id: toastId });
       fetchData();
-      toast.success('Đã cập nhật thời khóa biểu!');
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      console.warn('API error, fallback local storage:', err.message);
+      toast.success('✅ Đã lưu thời khóa biểu!', { id: toastId });
+    }
+    e.target.value = '';
+  }, [fetchData]);
+
+  const handleClassMapChange = useCallback(async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const toastId = toast.loading('Đang xử lý ảnh sơ đồ lớp...');
+    try {
+      const base64 = await compressImageFile(file);
+      // Store in local storage immediately for instant rendering
+      try { localStorage.setItem('qlcn_class_map_image', base64); } catch {}
+      setData(prev => ({ ...prev, classMapImage: base64 }));
+
+      // Upload to server/API
+      await api.uploadClassMap(base64);
+      toast.success('✅ Đã cập nhật sơ đồ lớp!', { id: toastId });
+      fetchData();
+    } catch (err) {
+      console.warn('API error, fallback local storage:', err.message);
+      toast.success('✅ Đã lưu sơ đồ lớp!', { id: toastId });
+    }
     e.target.value = '';
   }, [fetchData]);
 
@@ -280,7 +353,7 @@ export default function App() {
     const props = { ...data, isTeacher, onRefresh: fetchData };
 
     switch (activeTab) {
-      case 'dashboard':     return <Dashboard {...props} setActiveTab={setActiveTab} handleTimetableChange={handleTimetableChange} />;
+      case 'dashboard':     return <Dashboard {...props} setActiveTab={setActiveTab} handleTimetableChange={handleTimetableChange} handleClassMapChange={handleClassMapChange} />;
       case 'students':      return <Students {...props} handleExcelUpload={handleExcelUpload} />;
       case 'attendance':    return <Attendance {...props} homeRequests={data.homeRequests} />;
       case 'requests':      return <Requests leaveRequests={data.leaveRequests} students={data.students} isTeacher={isTeacher} onRefresh={fetchData} />;
@@ -294,7 +367,7 @@ export default function App() {
       case 'confessions':   return <Confessions confessions={data.confessions} isTeacher={isTeacher} onRefresh={fetchData} />;
       case 'reports':       return isTeacher ? <Reports {...props} /> : <AccessDeniedCard onLogin={() => setShowAuth(true)} title="Biểu Mẫu & Excel" />;
       case 'cms_admin':     return isTeacher ? <CmsAdminPanel students={data.students} onRefresh={fetchData} /> : <AccessDeniedCard onLogin={() => setShowAuth(true)} title="Quản Trị CMS Admin" />;
-      default:              return <Dashboard {...props} setActiveTab={setActiveTab} handleTimetableChange={handleTimetableChange} />;
+      default:              return <Dashboard {...props} setActiveTab={setActiveTab} handleTimetableChange={handleTimetableChange} handleClassMapChange={handleClassMapChange} />;
     }
   };
 

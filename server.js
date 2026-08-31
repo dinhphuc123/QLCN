@@ -13,8 +13,8 @@ const app = express();
 const JWT_SECRET = process.env.JWT_SECRET || 'qlcn_thpt_12_7_super_secret_key_2027';
 
 app.use(cors());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Memory-based Multer storage (100% Vercel Serverless Compatible - No disk writing)
 const storage = multer.memoryStorage();
