@@ -182,6 +182,7 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '0.85rem' }}>
             {students.map(student => {
               const status = sessionRecord[student.id] || 'present';
+              const canEdit = isTeacher || user?.role === 'monitor' || (user?.role === 'group_leader' && student.group === user.group);
               return (
                 <div key={student.id} style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -199,12 +200,22 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '0.3rem' }}>
-                    <StatusBtn active={status === 'present'} color="#16a34a" label="✓ Có mặt" onClick={() => setStatus(student.id, 'present')} />
-                    <StatusBtn active={status === 'permit'} color="#2563eb" label="📝 Có phép" onClick={() => setStatus(student.id, 'permit')} />
-                    <StatusBtn active={status === 'late'} color="#d97706" label="⏰ Trễ" onClick={() => setStatus(student.id, 'late')} />
-                    <StatusBtn active={status === 'absent'} color="#dc2626" label="🔴 KP" onClick={() => setStatus(student.id, 'absent')} />
-                  </div>
+                  {canEdit ? (
+                    <div style={{ display: 'flex', gap: '0.3rem' }}>
+                      <StatusBtn active={status === 'present'} color="#16a34a" label="✓ Có mặt" onClick={() => setStatus(student.id, 'present')} />
+                      <StatusBtn active={status === 'permit'} color="#2563eb" label="📝 Có phép" onClick={() => setStatus(student.id, 'permit')} />
+                      <StatusBtn active={status === 'late'} color="#d97706" label="⏰ Trễ" onClick={() => setStatus(student.id, 'late')} />
+                      <StatusBtn active={status === 'absent'} color="#dc2626" label="🔴 KP" onClick={() => setStatus(student.id, 'absent')} />
+                    </div>
+                  ) : (
+                    <span style={{
+                      fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: '9999px',
+                      background: status === 'absent' ? '#fee2e2' : status === 'permit' ? '#dbeafe' : status === 'late' ? '#fef3c7' : '#dcfce7',
+                      color: status === 'absent' ? '#991b1b' : status === 'permit' ? '#1e40af' : status === 'late' ? '#92400e' : '#166534',
+                    }}>
+                      {status === 'absent' ? 'Vắng KP' : status === 'permit' ? 'Có phép' : status === 'late' ? 'Đi trễ' : 'Có mặt'}
+                    </span>
+                  )}
                 </div>
               );
             })}

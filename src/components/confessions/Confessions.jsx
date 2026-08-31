@@ -1,8 +1,10 @@
 import React, { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { api } from '../../lib/api';
+import { useClassSettings } from '../../context/ClassSettingsContext';
 
 export default function Confessions({ confessions, isTeacher, onRefresh }) {
+  const { settings } = useClassSettings();
   const [content, setContent] = useState('');
   const [anonymous, setAnonymous] = useState(true);
   const [sending, setSending] = useState(false);
@@ -13,7 +15,7 @@ export default function Confessions({ confessions, isTeacher, onRefresh }) {
     try {
       await api.createConfession({ content: content.trim(), timestamp: new Date().toISOString(), anonymous });
       setContent('');
-      toast.success('Tâm sự đã được gửi an toàn đến GVCN Kim Tuyền 💌', { duration: 4000 });
+      toast.success(`Tâm sự đã được gửi an toàn đến GVCN ${settings.teacherName} 💌`, { duration: 4000 });
       onRefresh();
     } catch {
       toast.error('Lỗi khi gửi, vui lòng thử lại');
@@ -37,7 +39,7 @@ export default function Confessions({ confessions, isTeacher, onRefresh }) {
           onChange={e => setContent(e.target.value)}
           className="form-input"
           style={{ width: '100%', minHeight: '120px', resize: 'vertical', marginBottom: '1rem' }}
-          placeholder="Bạn đang nghĩ gì? Hãy chia sẻ với cô Kim Tuyền..."
+          placeholder={`Bạn đang nghĩ gì? Hãy chia sẻ với cô ${settings.teacherName}...`}
         />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>

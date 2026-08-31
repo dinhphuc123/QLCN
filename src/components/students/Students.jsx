@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import ConfirmModal from '../ui/ConfirmModal';
 import SearchFilterBar from '../ui/SearchFilterBar';
 import { api } from '../../lib/api';
+import { maskPhone, maskParentInfo } from '../../utils/privacy';
 
 const DORM_ROOMS = ['A1-07', 'A1-08', 'A1-09', 'A1-10', 'A1-11', 'C08'];
 const GROUPS = ['Tổ 1', 'Tổ 2', 'Tổ 3', 'Tổ 4'];
@@ -11,6 +12,10 @@ function StudentDetailModal({ student, onClose, isTeacher, onUpdateNote }) {
   const [note, setNote] = useState(student.note || '');
 
   if (!student) return null;
+
+  const motherInfo = maskParentInfo(student.motherName, student.motherPhone, isTeacher);
+  const fatherInfo = maskParentInfo(student.fatherName, student.fatherPhone, isTeacher);
+  const maskedPhone = maskPhone(student.phone, isTeacher);
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 150, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
@@ -27,7 +32,9 @@ function StudentDetailModal({ student, onClose, isTeacher, onUpdateNote }) {
             {student.name.split(' ').pop()[0]}
           </div>
           <div>
-            <h3 style={{ margin: 0, fontSize: '1.25rem' }}>{student.name} {student.isPoor && <span style={{ fontSize: '0.75rem', background: '#fef3c7', color: '#92400e', padding: '0.15rem 0.5rem', borderRadius: '9999px' }}>Cận nghèo</span>}</h3>
+            <h3 style={{ margin: 0, fontSize: '1.25rem' }}>
+              {student.name} {student.isPoor && isTeacher && <span style={{ fontSize: '0.75rem', background: '#fef3c7', color: '#92400e', padding: '0.15rem 0.5rem', borderRadius: '9999px' }}>Cận nghèo</span>}
+            </h3>
             <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.85rem', color: '#6b7280' }}>
               Mã HS: <strong>{student.studentCode || String(student.id).padStart(2, '0')}</strong> | STT: <strong>{String(student.id).padStart(2, '0')}</strong> | {student.group} | {student.dormRoom}
             </p>
@@ -55,19 +62,19 @@ function StudentDetailModal({ student, onClose, isTeacher, onUpdateNote }) {
           </div>
           <div style={{ background: '#f9fafb', padding: '0.75rem', borderRadius: '0.75rem' }}>
             <span style={{ color: '#6b7280', display: 'block', fontSize: '0.75rem' }}>SĐT Học sinh</span>
-            <strong>{student.phone || '—'}</strong>
+            <strong>{maskedPhone}</strong>
           </div>
           <div style={{ background: '#f9fafb', padding: '0.75rem', borderRadius: '0.75rem' }}>
             <span style={{ color: '#6b7280', display: 'block', fontSize: '0.75rem' }}>Họ tên & SĐT Mẹ</span>
-            <strong>{student.motherName || '—'}</strong> {student.motherPhone ? `(${student.motherPhone})` : ''}
+            <strong>{motherInfo.name}</strong> ({motherInfo.phone})
           </div>
           <div style={{ background: '#f9fafb', padding: '0.75rem', borderRadius: '0.75rem' }}>
             <span style={{ color: '#6b7280', display: 'block', fontSize: '0.75rem' }}>Họ tên & SĐT Cha</span>
-            <strong>{student.fatherName || '—'}</strong> {student.fatherPhone ? `(${student.fatherPhone})` : ''}
+            <strong>{fatherInfo.name}</strong> ({fatherInfo.phone})
           </div>
           <div style={{ background: '#f9fafb', padding: '0.75rem', borderRadius: '0.75rem', gridColumn: 'span 2' }}>
             <span style={{ color: '#6b7280', display: 'block', fontSize: '0.75rem' }}>Địa chỉ thường trú</span>
-            <strong>{student.address || '—'}</strong>
+            <strong>{isTeacher ? (student.address || '—') : '🔒 Chỉ GVCN'}</strong>
           </div>
         </div>
 
