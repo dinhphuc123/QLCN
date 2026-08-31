@@ -5,6 +5,7 @@ import { CLASS_OFFICERS } from '../../data/initialStudents';
 import SeatingGeneratorModal from './SeatingGeneratorModal';
 import Badges from '../gamification/Badges';
 import { useClassSettings } from '../../context/ClassSettingsContext';
+import { maskPhone, maskParentInfo } from '../../utils/privacy';
 
 export default function Dashboard({ students, attendance, timetableImage, classMapImage, isTeacher, setActiveTab, handleTimetableChange, onRefresh }) {
   const { settings } = useClassSettings();
@@ -274,30 +275,36 @@ export default function Dashboard({ students, attendance, timetableImage, classM
       </div>
 
       {/* Student detail modal */}
-      {selectedStudent && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-          <div className="glass-panel" style={{ background: 'white', padding: '2rem', maxWidth: '420px', width: '100%', display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-            <h3 style={{ borderBottom: '1px solid #f3f4f6', paddingBottom: '0.75rem', margin: 0 }}>👤 Hồ sơ học sinh</h3>
-            {[
-              ['Mã / STT', `${String(selectedStudent.id).padStart(2, '0')} (${selectedStudent.studentCode || ''})`],
-              ['Họ và tên', selectedStudent.name],
-              ['Giới tính', selectedStudent.gender || '—'],
-              ['Tổ học tập', selectedStudent.group],
-              ['Ký túc xá', selectedStudent.dormRoom],
-              ['Chức vụ', selectedStudent.position || 'Thành viên'],
-              ['SĐT Học sinh', selectedStudent.phone || '—'],
-              ['SĐT Mẹ', selectedStudent.motherPhone || '—'],
-              ['SĐT Cha', selectedStudent.fatherPhone || '—'],
-            ].map(([k, v]) => (
-              <div key={k} style={{ display: 'flex', gap: '0.5rem' }}>
-                <span style={{ fontWeight: 700, minWidth: '110px', fontSize: '0.82rem', color: '#6b7280' }}>{k}:</span>
-                <span style={{ fontSize: '0.88rem' }}>{v}</span>
-              </div>
-            ))}
-            <button className="btn-primary" style={{ marginTop: '0.5rem' }} onClick={() => setSelectedStudent(null)}>Đóng</button>
+      {selectedStudent && (() => {
+        const motherInfo = maskParentInfo(selectedStudent.motherName, selectedStudent.motherPhone, isTeacher);
+        const fatherInfo = maskParentInfo(selectedStudent.fatherName, selectedStudent.fatherPhone, isTeacher);
+        const maskedPhone = maskPhone(selectedStudent.phone, isTeacher);
+
+        return (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+            <div className="glass-panel" style={{ background: 'white', padding: '2rem', maxWidth: '420px', width: '100%', display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+              <h3 style={{ borderBottom: '1px solid #f3f4f6', paddingBottom: '0.75rem', margin: 0 }}>👤 Hồ sơ học sinh</h3>
+              {[
+                ['Mã / STT', `${String(selectedStudent.id).padStart(2, '0')} (${selectedStudent.studentCode || ''})`],
+                ['Họ và tên', selectedStudent.name],
+                ['Giới tính', selectedStudent.gender || '—'],
+                ['Tổ học tập', selectedStudent.group],
+                ['Ký túc xá', selectedStudent.dormRoom],
+                ['Chức vụ', selectedStudent.position || 'Thành viên'],
+                ['SĐT Học sinh', maskedPhone],
+                ['Thông tin Mẹ', `${motherInfo.name} (${motherInfo.phone})`],
+                ['Thông tin Cha', `${fatherInfo.name} (${fatherInfo.phone})`],
+              ].map(([k, v]) => (
+                <div key={k} style={{ display: 'flex', gap: '0.5rem' }}>
+                  <span style={{ fontWeight: 700, minWidth: '110px', fontSize: '0.82rem', color: '#6b7280' }}>{k}:</span>
+                  <span style={{ fontSize: '0.88rem' }}>{v}</span>
+                </div>
+              ))}
+              <button className="btn-primary" style={{ marginTop: '0.5rem' }} onClick={() => setSelectedStudent(null)}>Đóng</button>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
       {/* Seating Generator Modal */}
       {showSeatingModal && (
         <SeatingGeneratorModal

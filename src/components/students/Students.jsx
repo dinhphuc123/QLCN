@@ -367,7 +367,7 @@ export default function Students({ students, isTeacher, attendance, onRefresh, h
                             {student.name}
                           </div>
                           <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginTop: '0.1rem' }}>
-                            {student.isPoor && <span style={{ fontSize: '0.65rem', background: '#fef3c7', color: '#92400e', padding: '0.1rem 0.35rem', borderRadius: '4px', fontWeight: 700 }}>Cận nghèo</span>}
+                            {student.isPoor && isTeacher && <span style={{ fontSize: '0.65rem', background: '#fef3c7', color: '#92400e', padding: '0.1rem 0.35rem', borderRadius: '4px', fontWeight: 700 }}>Cận nghèo</span>}
                             {isAbsent && <span style={{ fontSize: '0.65rem', background: '#fee2e2', color: '#dc2626', padding: '0.1rem 0.35rem', borderRadius: '4px', fontWeight: 700 }}>🔴 Vắng hôm nay</span>}
                             {student.prevGPA && <span style={{ fontSize: '0.65rem', background: '#e0f2fe', color: '#0369a1', padding: '0.1rem 0.35rem', borderRadius: '4px' }}>11: ĐTB {student.prevGPA}</span>}
                           </div>
@@ -389,7 +389,7 @@ export default function Students({ students, isTeacher, attendance, onRefresh, h
                       ) : 'Thành viên'}
                     </td>
                     <td style={{ padding: '0.75rem', fontSize: '0.82rem', color: '#374151' }}>
-                      {student.phone || student.motherPhone || student.fatherPhone || '—'}
+                      {maskPhone(student.phone || student.motherPhone || student.fatherPhone, isTeacher)}
                     </td>
                     <td style={{ padding: '0.75rem', textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
