@@ -37,9 +37,6 @@ export default function App() {
   const [showAuth, setShowAuth] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Mandatory Authentication Gate
-  if (!user) return <LoginGate />;
-
   const [data, setData] = useState({
     students: INITIAL_STUDENTS,
     timetableImage: '',
@@ -300,6 +297,9 @@ export default function App() {
       default:              return <Dashboard {...props} setActiveTab={setActiveTab} handleTimetableChange={handleTimetableChange} />;
     }
   };
+
+  // Mandatory Authentication Gate (evaluated strictly after all hooks)
+  if (!user) return <LoginGate />;
 
   return (
     <div className="app-container">
