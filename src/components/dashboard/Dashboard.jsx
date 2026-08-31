@@ -197,20 +197,6 @@ export default function Dashboard({ students, attendance, timetableImage, classM
             )}
           </div>
 
-          {/* Class Officers Table */}
-          <div className="glass-panel" style={{ padding: '1.75rem' }}>
-            <h3 style={{ margin: '0 0 1rem 0' }}>👑 Danh Sách Ban Cán Sự Lớp {settings.className}</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.75rem' }}>
-              {CLASS_OFFICERS.map(off => (
-                <div key={off.position + off.name} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.6rem', padding: '0.65rem 0.85rem' }}>
-                  <span style={{ display: 'block', fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>{off.position}</span>
-                  <strong style={{ fontSize: '0.88rem', color: '#0f172a' }}>{off.name}</strong>
-                  {off.phone && <div style={{ fontSize: '0.75rem', color: '#0284c7', marginTop: '0.1rem' }}>📞 {maskPhone(off.phone, isTeacher)}</div>}
-                </div>
-              ))}
-            </div>
-          </div>
-
         </div>
 
         {/* Right col: Timetable + Honor Board + Quick Links */}
