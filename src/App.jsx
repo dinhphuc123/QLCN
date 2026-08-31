@@ -21,6 +21,7 @@ import Confessions from './components/confessions/Confessions';
 import Reports from './components/reports/Reports';
 import AiAssistant from './components/ai/AiAssistant';
 import ParentPortal from './components/parent/ParentPortal';
+import CmsAdminPanel from './components/admin/CmsAdminPanel';
 
 // Auth
 import AuthModal from './components/auth/AuthModal';
@@ -263,6 +264,7 @@ export default function App() {
       case 'parent_portal': return <ParentPortal />;
       case 'confessions':   return <Confessions confessions={data.confessions} isTeacher={isTeacher} onRefresh={fetchData} />;
       case 'reports':       return <Reports {...props} />;
+      case 'cms_admin':     return <CmsAdminPanel students={data.students} onRefresh={fetchData} />;
       default:              return <Dashboard {...props} setActiveTab={setActiveTab} handleTimetableChange={handleTimetableChange} />;
     }
   };

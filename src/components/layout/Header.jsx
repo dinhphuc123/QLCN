@@ -17,6 +17,7 @@ const TAB_LABELS = {
   parent_portal: 'Sổ phụ huynh',
   confessions:   'Hòm tâm sự',
   reports:       'Biểu mẫu & Excel',
+  cms_admin:     'Quản trị CMS',
 };
 
 export default function Header({ activeTab, onMenuClick }) {
