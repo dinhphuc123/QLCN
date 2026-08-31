@@ -429,7 +429,53 @@ app.post('/api/dorm-attendance', (req, res) => {
   res.json({ success: true });
 });
 
-// Competition Engine Endpoints
+// ── Competition / Thi Đua — 3-Tier Approval Engine ──────────────────────────
+// State machine: draft → submitted → reviewed → approved | rejected
+
+// Helper: derive week date range from weekId (tuan_01 = week 1 of school year)
+// School year starts first Monday of September
+function getWeekDates(weekId) {
+  const weekNum = parseInt(weekId.replace('tuan_', ''), 10) - 1;
+  const schoolStart = new Date('2025-09-01');
+  // Find first Monday on or after Sep 1
+  const day = schoolStart.getDay();
+  const daysToMon = day === 0 ? 1 : day === 1 ? 0 : 8 - day;
+  const firstMonday = new Date(schoolStart);
+  firstMonday.setDate(schoolStart.getDate() + daysToMon);
+  const start = new Date(firstMonday);
+  start.setDate(firstMonday.getDate() + weekNum * 7);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  return { start, end };
+}
+
+// Helper: count absences from attendance data for a given week
+function getAttendanceAutoFill(db, studentId, weekId) {
+  const { start, end } = getWeekDates(weekId);
+  let absent_permit = 0, absent_no_permit = 0, absent_self_study = 0, late_sleep = 0;
+
+  for (const [dateStr, dayData] of Object.entries(db.attendance || {})) {
+    const d = new Date(dateStr);
+    if (d < start || d > end) continue;
+    const sessions = dayData?.sessions || {};
+    for (const sessionRecord of Object.values(sessions)) {
+      const status = sessionRecord?.[studentId];
+      if (status === 'absent') absent_no_permit++;
+      if (status === 'excused') absent_permit++;
+    }
+  }
+  // Dorm attendance
+  for (const [dateStr, dormRecord] of Object.entries(db.dormAttendance || {})) {
+    const d = new Date(dateStr);
+    if (d < start || d > end) continue;
+    const status = dormRecord?.[studentId];
+    if (status === 'absent') absent_self_study++;
+    if (status === 'late') late_sleep++;
+  }
+  return { absent_permit, absent_no_permit, absent_self_study, late_sleep };
+}
+
+// GET /api/competition?week=tuan_XX → full week data (backward compat)
 app.get('/api/competition', (req, res) => {
   const { week } = req.query;
   const db = readDB();
@@ -437,39 +483,208 @@ app.get('/api/competition', (req, res) => {
   res.json(weekData);
 });
 
-app.post('/api/competition', (req, res) => {
-  const { weekId, studentId, violations } = req.body;
+// GET /api/competition/:week/status → trạng thái tất cả phiếu trong tuần
+app.get('/api/competition/:week/status', requireAuth, (req, res) => {
+  const { week } = req.params;
   const db = readDB();
-  if (!db.competitionRecords[weekId]) db.competitionRecords[weekId] = {};
-  
-  db.competitionRecords[weekId][studentId] = {
-    studentId,
-    violations,
-    status: 'draft',
-    updatedAt: new Date().toISOString()
+  const weekData = db.competitionRecords[week] || {};
+  // Return summary: { studentId: { status, score, reviewedBy, approvedBy } }
+  const summary = {};
+  for (const [sid, record] of Object.entries(weekData)) {
+    summary[sid] = {
+      status: record.status || 'draft',
+      score: record.score || 100,
+      ranking: record.ranking || null,
+      reviewedBy: record.reviewedBy || null,
+      approvedAt: record.approvedAt || null,
+      teacherNote: record.teacherNote || '',
+    };
+  }
+  res.json(summary);
+});
+
+// GET /api/competition/:week/pending-count → số phiếu chờ duyệt theo role
+app.get('/api/competition/:week/pending-count', requireAuth, (req, res) => {
+  const { week } = req.params;
+  const db = readDB();
+  const weekData = db.competitionRecords[week] || {};
+  const user = req.user;
+  let count = 0;
+
+  if (user.role === 'teacher') {
+    // GVCN: đếm phiếu status = 'reviewed'
+    count = Object.values(weekData).filter(r => r.status === 'reviewed').length;
+  } else if (user.role === 'group_leader' || user.role === 'monitor') {
+    // Tổ trưởng/lớp trưởng: đếm phiếu status = 'submitted'
+    const allStudents = db.students || [];
+    count = Object.values(weekData).filter(r => {
+      if (r.status !== 'submitted') return false;
+      if (user.role === 'group_leader' && user.groupLeaderOf) {
+        const st = allStudents.find(s => s.id === r.studentId);
+        return st && st.group === user.groupLeaderOf;
+      }
+      return true; // monitor sees all
+    }).length;
+  }
+  res.json({ count });
+});
+
+// GET /api/competition/:week/self-report/:studentId → lấy phiếu 1 HS
+app.get('/api/competition/:week/self-report/:studentId', requireAuth, (req, res) => {
+  const { week, studentId } = req.params;
+  const sid = parseInt(studentId, 10);
+  const db = readDB();
+  const weekData = db.competitionRecords[week] || {};
+  const record = weekData[sid] || null;
+
+  // Auto-fill attendance data if no record yet
+  const autoFill = getAttendanceAutoFill(db, sid, week);
+  res.json({ record, autoFill });
+});
+
+// POST /api/competition/:week/self-report → HS nộp phiếu tự đánh giá
+app.post('/api/competition/:week/self-report', requireAuth, (req, res) => {
+  const { week } = req.params;
+  const { studentId, violations } = req.body;
+  const sid = parseInt(studentId, 10);
+  const user = req.user;
+
+  // HS chỉ được nộp phiếu của mình
+  if (user.role === 'student' && user.id !== sid) {
+    return res.status(403).json({ error: 'Bạn chỉ có thể nộp phiếu của mình!' });
+  }
+
+  const db = readDB();
+  if (!db.competitionRecords[week]) db.competitionRecords[week] = {};
+  const existing = db.competitionRecords[week][sid] || {};
+
+  // Nếu đã approved thì không cho sửa nữa (trừ khi rejected)
+  if (existing.status === 'approved') {
+    return res.status(400).json({ error: 'Phiếu đã được GVCN duyệt, không thể sửa!' });
+  }
+  if (existing.status === 'reviewed') {
+    return res.status(400).json({ error: 'Phiếu đang chờ GVCN duyệt, không thể sửa!' });
+  }
+
+  const autoFill = getAttendanceAutoFill(db, sid, week);
+
+  db.competitionRecords[week][sid] = {
+    ...existing,
+    studentId: sid,
+    violations: violations || [],
+    attendanceAutoFilled: autoFill,
+    status: 'submitted',
+    submittedAt: new Date().toISOString(),
+    reviewNote: existing.reviewNote || '',
+    reviewedBy: null,
+    reviewedAt: null,
+    approvedBy: null,
+    approvedAt: null,
+    teacherNote: existing.teacherNote || '',
+    teacherOverride: null,
   };
   writeDB(db);
+  addAuditLog(user, 'NỘP PHIẾU TỰ ĐÁNH GIÁ', `HS ID ${sid} - Tuần ${week}`);
   res.json({ success: true });
 });
 
-app.put('/api/competition/:weekId/approve', (req, res) => {
-  const { weekId } = req.params;
-  const { changes } = req.body;
+// POST /api/competition/:week/review → Tổ trưởng / Lớp trưởng duyệt (vòng giữa)
+app.post('/api/competition/:week/review', requireAuth, (req, res) => {
+  const { week } = req.params;
+  const { changes } = req.body; // [{ studentId, violations, note }]
+  const user = req.user;
+
+  if (!['group_leader', 'monitor', 'teacher'].includes(user.role)) {
+    return res.status(403).json({ error: 'Bạn không có quyền duyệt phiếu thi đua!' });
+  }
+
   const db = readDB();
-  if (!db.competitionRecords[weekId]) db.competitionRecords[weekId] = {};
+  if (!db.competitionRecords[week]) db.competitionRecords[week] = {};
 
   (changes || []).forEach(item => {
-    db.competitionRecords[weekId][item.studentId] = {
-      ...db.competitionRecords[weekId][item.studentId],
-      violations: item.violations,
-      status: item.status || 'approved',
-      approvedAt: new Date().toISOString()
+    const sid = parseInt(item.studentId, 10);
+    const existing = db.competitionRecords[week][sid] || {};
+    db.competitionRecords[week][sid] = {
+      ...existing,
+      studentId: sid,
+      violations: item.violations || existing.violations || [],
+      reviewNote: item.note || '',
+      reviewedBy: user.name || user.role,
+      reviewedAt: new Date().toISOString(),
+      status: 'reviewed',
     };
   });
+
   writeDB(db);
-  addAuditLog(req.user, 'DUYỆT THI ĐỦA', `Tuần ${weekId}`);
+  addAuditLog(user, 'DUYỆT VÒNG GIỮA THI ĐUA', `Tuần ${week} - ${changes?.length || 0} phiếu`);
   res.json({ success: true });
 });
+
+// POST /api/competition/:week/final-approve → GVCN chốt (toàn quyền)
+app.post('/api/competition/:week/final-approve', requireAuth, (req, res) => {
+  const { week } = req.params;
+  const { changes } = req.body; // [{ studentId, violations, teacherNote, action: 'approve'|'reject' }]
+  const user = req.user;
+
+  if (user.role !== 'teacher') {
+    return res.status(403).json({ error: 'Quyền truy cập dành riêng cho GVCN!' });
+  }
+
+  const db = readDB();
+  if (!db.competitionRecords[week]) db.competitionRecords[week] = {};
+
+  (changes || []).forEach(item => {
+    const sid = parseInt(item.studentId, 10);
+    const existing = db.competitionRecords[week][sid] || {};
+    const action = item.action || 'approve';
+    db.competitionRecords[week][sid] = {
+      ...existing,
+      studentId: sid,
+      violations: item.violations !== undefined ? item.violations : existing.violations || [],
+      teacherNote: item.teacherNote || '',
+      teacherOverride: item.violations !== undefined,
+      approvedBy: user.name || 'GVCN',
+      approvedAt: new Date().toISOString(),
+      status: action === 'reject' ? 'rejected' : 'approved',
+    };
+  });
+
+  writeDB(db);
+  addAuditLog(user, 'GVCN CHỐT THI ĐUA', `Tuần ${week} - ${changes?.length || 0} phiếu`);
+  res.json({ success: true });
+});
+
+// GET /api/competition/history/:studentId → lịch sử điểm qua các tuần
+app.get('/api/competition/history/:studentId', requireAuth, (req, res) => {
+  const sid = parseInt(req.params.studentId, 10);
+  const user = req.user;
+
+  // HS chỉ xem lịch sử của mình; tổ trưởng/gvcn xem được tất cả
+  if (user.role === 'student' && user.id !== sid) {
+    return res.status(403).json({ error: 'Bạn chỉ có thể xem lịch sử của mình!' });
+  }
+
+  const db = readDB();
+  const history = [];
+  for (const [weekId, weekData] of Object.entries(db.competitionRecords || {})) {
+    const record = weekData[sid];
+    if (record) {
+      history.push({
+        week: weekId,
+        weekLabel: `Tuần ${parseInt(weekId.replace('tuan_', ''), 10)}`,
+        violations: record.violations || [],
+        status: record.status || 'draft',
+        score: record.score || 100,
+        submittedAt: record.submittedAt || null,
+        approvedAt: record.approvedAt || null,
+      });
+    }
+  }
+
+  history.sort((a, b) => a.week.localeCompare(b.week));
+  res.json(history);
+});
+
 
 // Activities
 app.get('/api/activities', (req, res) => {

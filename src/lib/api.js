@@ -75,12 +75,33 @@ export const api = {
     request('/api/dorm-attendance', { method: 'POST', body: JSON.stringify({ date, attendance: record }) }),
   getAttendance:      (date) => request(`/api/attendance?date=${date}`),
 
-  // ── Thi đua Dynamic API ────────────────────────────────────────────────
-  getCompetition:       (weekId)  => request(`/api/competition?week=${weekId}`),
-  saveCompetitionDraft: (weekId, studentId, violations) =>
-    request('/api/competition', { method: 'POST', body: JSON.stringify({ weekId, studentId, violations }) }),
-  approveCompetition:   (id, changes) =>
-    request(`/api/competition/${id}/approve`, { method: 'PUT', body: JSON.stringify({ changes }) }),
+  // ── Thi đua — 3-tier approval system ─────────────────────────────────────
+  // --- Backward compat (GVCN old flow still works) ---
+  getCompetition:        (weekId) => request(`/api/competition?week=${weekId}`),
+  saveCompetitionDraft:  (weekId, studentId, violations) =>
+    request(`/api/competition/${weekId}/self-report`, { method: 'POST', body: JSON.stringify({ studentId, violations }) }),
+  approveCompetition:    (weekId, changes) =>
+    request(`/api/competition/${weekId}/final-approve`, { method: 'POST', body: JSON.stringify({ changes }) }),
+
+  // --- New 3-tier API ---
+  // HS tự khai và nộp phiếu
+  selfReport:      (weekId, studentId, violations) =>
+    request(`/api/competition/${weekId}/self-report`, { method: 'POST', body: JSON.stringify({ studentId, violations }) }),
+  // Lấy phiếu + auto-fill của 1 HS
+  getSelfReport:   (weekId, studentId) =>
+    request(`/api/competition/${weekId}/self-report/${studentId}`),
+  // Vòng giữa: Tổ trưởng/Lớp trưởng duyệt
+  reviewCompetition: (weekId, changes) =>
+    request(`/api/competition/${weekId}/review`, { method: 'POST', body: JSON.stringify({ changes }) }),
+  // GVCN chốt cuối (approve / reject)
+  finalApprove:    (weekId, changes) =>
+    request(`/api/competition/${weekId}/final-approve`, { method: 'POST', body: JSON.stringify({ changes }) }),
+  // Lấy trạng thái tất cả phiếu trong tuần
+  getWeekStatus:   (weekId) => request(`/api/competition/${weekId}/status`),
+  // Số phiếu chờ duyệt theo role hiện tại
+  getPendingCount: (weekId) => request(`/api/competition/${weekId}/pending-count`),
+  // Lịch sử điểm cá nhân qua các tuần
+  getHistory:      (studentId) => request(`/api/competition/history/${studentId}`),
 
   // ── Activities Dynamic API ────────────────────────────────────────────
   getActivities:    ()       => request('/api/activities'),
