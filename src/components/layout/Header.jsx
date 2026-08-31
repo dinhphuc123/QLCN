@@ -61,18 +61,24 @@ export default function Header({ activeTab, onMenuClick }) {
       </div>
 
       <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexShrink: 0 }}>
-        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', whiteSpace: 'nowrap' }}>
-          👩‍🏫 GVCN: Đỗ Kim Tuyền
-        </span>
-        <span style={{
-          backgroundColor: isTeacher ? '#dcfce7' : user?.role === 'group_leader' ? '#e0f2fe' : user ? '#fef3c7' : '#f3f4f6',
-          color: isTeacher ? '#166534' : user?.role === 'group_leader' ? '#0369a1' : user ? '#92400e' : '#4b5563',
-          fontSize: '0.72rem', padding: '0.25rem 0.65rem',
-          borderRadius: '9999px', fontWeight: 700,
-          whiteSpace: 'nowrap',
-        }}>
-          {isTeacher ? '✅ GVCN' : user?.role === 'group_leader' ? `⭐ Tổ trưởng ${user.group}` : user ? `👨‍🎓 ${user.name}` : '👁️ Khách'}
-        </span>
+        {user ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{
+              backgroundColor: isTeacher ? '#dcfce7' : user.role === 'group_leader' ? '#e0f2fe' : '#f0fdf4',
+              color: isTeacher ? '#166534' : user.role === 'group_leader' ? '#0369a1' : '#15803d',
+              fontSize: '0.75rem', padding: '0.25rem 0.75rem',
+              borderRadius: '9999px', fontWeight: 800,
+              border: `1px solid ${isTeacher ? '#86efac' : user.role === 'group_leader' ? '#7dd3fc' : '#86efac'}`,
+              whiteSpace: 'nowrap',
+            }}>
+              {isTeacher ? '👑 GVCN Đỗ Kim Tuyền' : user.role === 'group_leader' ? `⭐ Tổ Trưởng ${user.group} (${user.name})` : `👨‍🎓 ${user.name} (${user.group})`}
+            </span>
+          </div>
+        ) : (
+          <span style={{ fontSize: '0.75rem', background: '#f3f4f6', color: '#6b7280', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontWeight: 600 }}>
+            👁️ Chế độ Xem Khách
+          </span>
+        )}
       </div>
 
       <style>{`
