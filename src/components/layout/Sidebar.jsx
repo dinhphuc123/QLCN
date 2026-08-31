@@ -11,6 +11,8 @@ const NAV_ITEMS = [
   { id: 'finance',       icon: '💰', label: 'Thu - Chi Quỹ Lớp' },
   { id: 'evaluation',    icon: '📈', label: 'Thi đua 47 Tiêu chí' },
   { id: 'exam',          icon: '🎓', label: 'Ôn thi & Hướng nghiệp' },
+  { id: 'ai_assistant',  icon: '🤖', label: 'AI Trợ Lý GVCN' },
+  { id: 'parent_portal', icon: '👨‍👩‍👧', label: 'Sổ Liên Lạc Phụ Huynh' },
   { id: 'confessions',   icon: '🤫', label: 'Hòm thư tâm sự' },
   { id: 'reports',       icon: '📋', label: 'Xuất Báo cáo Excel' },
 ];

@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { api } from '../../lib/api';
 import { CLASS_OFFICERS } from '../../data/initialStudents';
+import SeatingGeneratorModal from './SeatingGeneratorModal';
+import Badges from '../gamification/Badges';
 
 export default function Dashboard({ students, attendance, timetableImage, classMapImage, isTeacher, setActiveTab, handleTimetableChange, onRefresh }) {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [swapSrc, setSwapSrc] = useState(null);
+  const [showSeatingModal, setShowSeatingModal] = useState(false);
   const [showMapModal, setShowMapModal] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
@@ -128,14 +131,18 @@ export default function Dashboard({ students, attendance, timetableImage, classM
                 <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: '#6b7280' }}>Bố trí theo 4 tổ học tập và vị trí ngồi thực tế</p>
               </div>
               {isTeacher && (
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <button
+                    className="btn-primary"
+                    style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', background: '#7c3aed' }}
+                    onClick={() => setShowSeatingModal(true)}
+                  >
+                    🎲 Xếp sơ đồ tự động
+                  </button>
                   <label className="btn-primary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', cursor: 'pointer', background: '#0284c7' }}>
                     📷 Upload sơ đồ ảnh
                     <input type="file" accept="image/*,.pdf" style={{ display: 'none' }} onChange={handleClassMapChange} />
                   </label>
-                  <span style={{ fontSize: '0.75rem', color: swapSrc ? '#dc2626' : 'var(--color-primary-brand)', fontWeight: 700, alignSelf: 'center' }}>
-                    {swapSrc ? '👉 Chọn HS thứ 2' : '💡 Bấm để đổi chỗ'}
-                  </span>
                 </div>
               )}
             </div>
@@ -288,6 +295,17 @@ export default function Dashboard({ students, attendance, timetableImage, classM
             <button className="btn-primary" style={{ marginTop: '0.5rem' }} onClick={() => setSelectedStudent(null)}>Đóng</button>
           </div>
         </div>
+      )}
+      {/* Seating Generator Modal */}
+      {showSeatingModal && (
+        <SeatingGeneratorModal
+          students={students}
+          onClose={() => setShowSeatingModal(false)}
+          onSaveSeats={async (updated) => {
+            await api.updateStudents(updated);
+            onRefresh();
+          }}
+        />
       )}
 
     </div>

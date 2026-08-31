@@ -11,6 +11,8 @@ const TAB_LABELS = {
   finance:       'Quản lý Thu - Chi Quỹ Lớp',
   evaluation:    'Thi đua 47 Tiêu chí & Xếp loại',
   exam:          'Góc Ôn thi THPT & Hướng nghiệp',
+  ai_assistant:  'AI Trợ Lý GVCN — Tổng Hợp Báo Cáo',
+  parent_portal: 'Sổ Liên Lạc Điện Tử Dành Cho Phụ Huynh',
   confessions:   'Hòm thư Tâm sự Ẩn danh',
   reports:       'Xuất Báo cáo Excel 3 Sheet',
 };
