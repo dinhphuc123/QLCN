@@ -97,9 +97,16 @@ export default function Header({ activeTab, onMenuClick }) {
             </span>
           </div>
         ) : (
-          <span style={{ fontSize: '0.75rem', background: '#f3f4f6', color: '#6b7280', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontWeight: 600 }}>
-            👁️ Xem Khách
-          </span>
+          <button
+            onClick={onMenuClick}
+            style={{
+              fontSize: '0.75rem', background: '#7c3aed', color: 'white',
+              padding: '0.3rem 0.85rem', borderRadius: '9999px', fontWeight: 700,
+              border: 'none', cursor: 'pointer'
+            }}
+          >
+            🔑 Đăng nhập
+          </button>
         )}
       </div>
 

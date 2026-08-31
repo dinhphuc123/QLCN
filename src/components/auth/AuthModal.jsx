@@ -78,10 +78,10 @@ export default function AuthModal({ onClose }) {
               ⭐ Tổ Trưởng (02)
             </button>
             <button
-              onClick={() => { logout(); onClose(); }}
-              style={{ padding: '0.45rem', borderRadius: '0.5rem', background: '#64748b', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer' }}
+              onClick={() => { loginStudent('3', '03'); onClose(); }}
+              style={{ padding: '0.45rem', borderRadius: '0.5rem', background: '#d97706', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer' }}
             >
-              👁️ Chế độ Khách
+              👨‍🎓 Học Sinh (03)
             </button>
           </div>
         </div>
