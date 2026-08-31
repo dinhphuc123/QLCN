@@ -47,10 +47,43 @@ export default function AuthModal({ onClose }) {
         {/* Header */}
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '2.5rem', marginBottom: '0.3rem' }}>🔐</div>
-          <h3 style={{ fontFamily: 'var(--font-serif)', margin: 0, fontSize: '1.35rem' }}>Cổng Đăng Nhập Phân Quyền 12.7</h3>
+          <h3 style={{ fontFamily: 'var(--font-serif)', margin: 0, fontSize: '1.35rem' }}>Cổng Đăng Nhập Phân Quyền</h3>
           <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.3rem' }}>
-            Hệ thống Quản lý Lớp THPT — 3 Cấp Quyền Hạn
+            Hệ thống Quản lý Lớp THPT ClassMate Pro
           </p>
+        </div>
+
+        {/* 1-Click Fast Demo Login Buttons */}
+        <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', padding: '0.875rem', borderRadius: '0.875rem' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#475569', marginBottom: '0.5rem', textTransform: 'uppercase' }}>
+            ⚡ Đăng Nhập Nhanh 1-Click (Dành cho Giáo viên & Demo):
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
+            <button
+              onClick={() => { loginTeacher('gvcn2027'); onClose(); }}
+              style={{ padding: '0.45rem', borderRadius: '0.5rem', background: '#7c3aed', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer' }}
+            >
+              👑 GVCN Kim Tuyền
+            </button>
+            <button
+              onClick={() => { loginStudent('1', '01'); onClose(); }}
+              style={{ padding: '0.45rem', borderRadius: '0.5rem', background: '#0284c7', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer' }}
+            >
+              👑 Lớp Trưởng (01)
+            </button>
+            <button
+              onClick={() => { loginStudent('2', '02'); onClose(); }}
+              style={{ padding: '0.45rem', borderRadius: '0.5rem', background: '#059669', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer' }}
+            >
+              ⭐ Tổ Trưởng (02)
+            </button>
+            <button
+              onClick={() => { logout(); onClose(); }}
+              style={{ padding: '0.45rem', borderRadius: '0.5rem', background: '#64748b', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer' }}
+            >
+              👁️ Chế độ Khách
+            </button>
+          </div>
         </div>
 
         {/* Currently logged in status banner */}

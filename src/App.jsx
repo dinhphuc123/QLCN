@@ -245,6 +245,22 @@ export default function App() {
     e.target.value = '';
   }, [fetchData]);
 
+  // ── Access Denied Lock Banner ─────────────────────────────────────────────
+  const AccessDeniedCard = ({ title, onLogin }) => (
+    <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', maxWidth: '520px', margin: '2rem auto' }}>
+      <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>🔒</div>
+      <h3 style={{ fontFamily: 'var(--font-serif)', color: '#991b1b', marginBottom: '0.5rem' }}>
+        Khóa Quyền Riêng Tư: {title}
+      </h3>
+      <p style={{ fontSize: '0.88rem', color: '#4b5563', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+        Tính năng này chứa dữ liệu quản lý nội bộ dành riêng cho <strong>Giáo viên Chủ nhiệm (GVCN)</strong>. Vui lòng đăng nhập tài khoản GVCN để truy cập.
+      </p>
+      <button className="btn-primary" onClick={onLogin} style={{ padding: '0.75rem 2rem', background: '#7c3aed' }}>
+        🔑 Đăng nhập GVCN ngay
+      </button>
+    </div>
+  );
+
   // ── Tab Renderer ──────────────────────────────────────────────────────────
   const renderPage = () => {
     if (loading) return <LoadingSkeleton rows={8} />;
@@ -260,11 +276,11 @@ export default function App() {
       case 'finance':       return <Finance finance={data.finance} onRefresh={fetchData} />;
       case 'evaluation':    return <Evaluation {...props} />;
       case 'exam':          return <Exam students={data.students} isTeacher={isTeacher} onRefresh={fetchData} />;
-      case 'ai_assistant':  return <AiAssistant students={data.students} />;
+      case 'ai_assistant':  return isTeacher ? <AiAssistant students={data.students} /> : <AccessDeniedCard onLogin={() => setShowAuthModal(true)} title="AI Trợ Lý GVCN" />;
       case 'parent_portal': return <ParentPortal />;
       case 'confessions':   return <Confessions confessions={data.confessions} isTeacher={isTeacher} onRefresh={fetchData} />;
-      case 'reports':       return <Reports {...props} />;
-      case 'cms_admin':     return <CmsAdminPanel students={data.students} onRefresh={fetchData} />;
+      case 'reports':       return isTeacher ? <Reports {...props} /> : <AccessDeniedCard onLogin={() => setShowAuthModal(true)} title="Biểu Mẫu & Excel" />;
+      case 'cms_admin':     return isTeacher ? <CmsAdminPanel students={data.students} onRefresh={fetchData} /> : <AccessDeniedCard onLogin={() => setShowAuthModal(true)} title="Quản Trị CMS Admin" />;
       default:              return <Dashboard {...props} setActiveTab={setActiveTab} handleTimetableChange={handleTimetableChange} />;
     }
   };
