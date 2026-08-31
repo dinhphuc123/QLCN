@@ -191,13 +191,46 @@ app.post('/api/auth/login', (req, res) => {
   }
 });
 
-// API Data Route
-app.get('/api/data', (req, res) => {
+// API Data Route with Supabase Cloud Database Sync
+app.get('/api/data', async (req, res) => {
   try {
-    const data = readDB();
+    let data = readDB();
+
+    if (supabase) {
+      try {
+        const [
+          { data: dbStudents },
+          { data: dbAnnouncements },
+          { data: dbLeaveReqs },
+          { data: dbHomeReqs },
+          { data: dbConfessions },
+          { data: dbActivities },
+          { data: dbFinance }
+        ] = await Promise.all([
+          supabase.from('students').select('*').order('id', { ascending: true }),
+          supabase.from('announcements').select('*').order('created_at', { ascending: false }),
+          supabase.from('leave_requests').select('*').order('created_at', { ascending: false }),
+          supabase.from('home_requests').select('*').order('created_at', { ascending: false }),
+          supabase.from('confessions').select('*').order('created_at', { ascending: false }),
+          supabase.from('activities').select('*').order('created_at', { ascending: false }),
+          supabase.from('finance').select('*').order('created_at', { ascending: false })
+        ]);
+
+        if (dbStudents && dbStudents.length > 0) data.students = dbStudents;
+        if (dbAnnouncements) data.announcements = dbAnnouncements;
+        if (dbLeaveReqs) data.leaveRequests = dbLeaveReqs;
+        if (dbHomeReqs) data.homeRequests = dbHomeReqs;
+        if (dbConfessions) data.confessions = dbConfessions;
+        if (dbActivities) data.activities = dbActivities;
+        if (dbFinance) data.finance = dbFinance;
+      } catch (dbErr) {
+        console.warn('⚠️ Supabase Cloud fetch warning (using in-memory fallback):', dbErr.message);
+      }
+    }
+
     res.json(data);
   } catch (err) {
-    res.status(200).json({ students: [] });
+    res.status(200).json(readDB());
   }
 });
 
