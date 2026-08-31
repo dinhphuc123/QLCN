@@ -23,12 +23,10 @@ import AiAssistant from './components/ai/AiAssistant';
 import ParentPortal from './components/parent/ParentPortal';
 import CmsAdminPanel from './components/admin/CmsAdminPanel';
 
-// Auth
+import LoginGate from './components/auth/LoginGate';
 import AuthModal from './components/auth/AuthModal';
 import LoadingSkeleton from './components/ui/LoadingSkeleton';
 import { useAuth } from './context/AuthContext';
-
-// API
 import { api } from './lib/api';
 import { INITIAL_STUDENTS } from './data/initialStudents';
 
@@ -38,6 +36,9 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showAuth, setShowAuth] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Mandatory Authentication Gate
+  if (!user) return <LoginGate />;
 
   const [data, setData] = useState({
     students: INITIAL_STUDENTS,

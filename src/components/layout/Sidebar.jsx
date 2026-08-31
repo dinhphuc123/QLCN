@@ -3,20 +3,20 @@ import { useAuth } from '../../context/AuthContext';
 import { useClassSettings } from '../../context/ClassSettingsContext';
 
 const NAV_ITEMS = [
-  { id: 'dashboard',     icon: '📊', label: 'Trang chủ' },
-  { id: 'students',      icon: '👥', label: 'Hồ sơ lớp' },
-  { id: 'attendance',    icon: '📝', label: 'Điểm danh' },
-  { id: 'requests',      icon: '✉️',  label: 'Đơn xin nghỉ' },
-  { id: 'notifications', icon: '📢', label: 'Thông báo' },
-  { id: 'activities',    icon: '📸', label: 'Hoạt động' },
-  { id: 'finance',       icon: '💰', label: 'Quỹ lớp' },
-  { id: 'evaluation',    icon: '📈', label: 'Thi đua 47' },
-  { id: 'exam',          icon: '🎓', label: 'Ôn thi THPT' },
-  { id: 'ai_assistant',  icon: '🤖', label: 'Trợ lý AI' },
-  { id: 'parent_portal', icon: '👨‍👩‍👧', label: 'Sổ phụ huynh' },
-  { id: 'confessions',   icon: '🤫', label: 'Hòm tâm sự' },
-  { id: 'reports',       icon: '📋', label: 'Biểu mẫu & Excel' },
-  { id: 'cms_admin',     icon: '⚙️', label: 'Quản trị CMS', teacherOnly: true },
+  { id: 'dashboard',     icon: '📊', label: 'Trang chủ', roles: ['teacher', 'group_leader', 'monitor', 'student'] },
+  { id: 'students',      icon: '👥', label: 'Hồ sơ lớp', roles: ['teacher', 'group_leader', 'monitor', 'student'] },
+  { id: 'attendance',    icon: '📝', label: 'Điểm danh', roles: ['teacher', 'group_leader', 'monitor'] },
+  { id: 'requests',      icon: '✉️',  label: 'Đơn xin nghỉ', roles: ['teacher', 'group_leader', 'monitor', 'student'] },
+  { id: 'notifications', icon: '📢', label: 'Thông báo', roles: ['teacher', 'group_leader', 'monitor', 'student'] },
+  { id: 'activities',    icon: '📸', label: 'Hoạt động', roles: ['teacher', 'group_leader', 'monitor', 'student'] },
+  { id: 'finance',       icon: '💰', label: 'Quỹ lớp', roles: ['teacher', 'group_leader', 'monitor'] },
+  { id: 'evaluation',    icon: '📈', label: 'Thi đua 47', roles: ['teacher', 'group_leader', 'monitor'] },
+  { id: 'exam',          icon: '🎓', label: 'Ôn thi THPT', roles: ['teacher', 'group_leader', 'monitor', 'student'] },
+  { id: 'ai_assistant',  icon: '🤖', label: 'Trợ lý AI', roles: ['teacher'] },
+  { id: 'parent_portal', icon: '👨‍👩‍👧', label: 'Sổ phụ huynh', roles: ['teacher'] },
+  { id: 'confessions',   icon: '🤫', label: 'Hòm tâm sự', roles: ['teacher', 'student'] },
+  { id: 'reports',       icon: '📋', label: 'Biểu mẫu & Excel', roles: ['teacher'] },
+  { id: 'cms_admin',     icon: '⚙️', label: 'Quản trị CMS', roles: ['teacher'] },
 ];
 
 export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
@@ -78,7 +78,7 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
 
       {/* Navigation */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', flex: 1 }}>
-        {NAV_ITEMS.map(({ id, icon, label }) => (
+        {NAV_ITEMS.filter(item => !user || item.roles.includes(user?.role || 'student')).map(({ id, icon, label }) => (
           <button
             key={id}
             className={`nav-link ${activeTab === id ? 'active' : ''}`}
