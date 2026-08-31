@@ -4,8 +4,10 @@ import { api } from '../../lib/api';
 import { CLASS_OFFICERS } from '../../data/initialStudents';
 import SeatingGeneratorModal from './SeatingGeneratorModal';
 import Badges from '../gamification/Badges';
+import { useClassSettings } from '../../context/ClassSettingsContext';
 
 export default function Dashboard({ students, attendance, timetableImage, classMapImage, isTeacher, setActiveTab, handleTimetableChange, onRefresh }) {
+  const { settings } = useClassSettings();
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [swapSrc, setSwapSrc] = useState(null);
   const [showSeatingModal, setShowSeatingModal] = useState(false);
@@ -82,7 +84,7 @@ export default function Dashboard({ students, attendance, timetableImage, classM
             </div>
           </div>
           <span style={{ fontSize: '0.75rem', background: '#f59e0b', color: 'white', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontWeight: 700 }}>
-            🎉 12.7 Đoàn kết
+            🎉 Lớp {settings.className} Đoàn kết
           </span>
         </div>
       )}
@@ -90,7 +92,7 @@ export default function Dashboard({ students, attendance, timetableImage, classM
       {/* KPI Widgets */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
         <div className="glass-panel" style={{ padding: '1.25rem' }}>
-          <div style={{ fontSize: '0.78rem', color: '#6b7280', fontWeight: 600, marginBottom: '0.25rem' }}>Sĩ số lớp 12.7</div>
+          <div style={{ fontSize: '0.78rem', color: '#6b7280', fontWeight: 600, marginBottom: '0.25rem' }}>Sĩ số lớp {settings.className}</div>
           <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--color-primary-dark)' }}>
             {students.length} <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#4b5563' }}>({femaleCount} Nữ / {maleCount} Nam)</span>
           </div>
@@ -127,7 +129,7 @@ export default function Dashboard({ students, attendance, timetableImage, classM
           <div className="glass-panel" style={{ padding: '1.75rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div>
-                <h3 style={{ margin: 0 }}>🗺️ Sơ Đồ Lớp 12.7 (Tổ 1 → Tổ 4)</h3>
+                <h3 style={{ margin: 0 }}>🗺️ Sơ Đồ Lớp {settings.className} (Tổ 1 → Tổ 4)</h3>
                 <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: '#6b7280' }}>Bố trí theo 4 tổ học tập và vị trí ngồi thực tế</p>
               </div>
               {isTeacher && (
@@ -196,7 +198,7 @@ export default function Dashboard({ students, attendance, timetableImage, classM
 
           {/* Class Officers Table */}
           <div className="glass-panel" style={{ padding: '1.75rem' }}>
-            <h3 style={{ margin: '0 0 1rem 0' }}>👑 Danh Sách Ban Cán Sự Lớp 12.7</h3>
+            <h3 style={{ margin: '0 0 1rem 0' }}>👑 Danh Sách Ban Cán Sự Lớp {settings.className}</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.75rem' }}>
               {CLASS_OFFICERS.map(off => (
                 <div key={off.position + off.name} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.6rem', padding: '0.65rem 0.85rem' }}>
@@ -216,7 +218,7 @@ export default function Dashboard({ students, attendance, timetableImage, classM
           {/* Timetable widget */}
           <div className="glass-panel" style={{ padding: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-              <h4 style={{ margin: 0 }}>📅 Thời Khóa Biểu Lớp 12.7</h4>
+              <h4 style={{ margin: 0 }}>📅 Thời Khóa Biểu Lớp {settings.className}</h4>
               {isTeacher && (
                 <label className="btn-primary" style={{ padding: '0.3rem 0.75rem', fontSize: '0.72rem', cursor: 'pointer' }}>
                   🔄 Cập nhật

@@ -4,19 +4,19 @@ import { useClassSettings } from '../../context/ClassSettingsContext';
 import ClassSettingsModal from './ClassSettingsModal';
 
 const TAB_LABELS = {
-  dashboard:     'Trang chủ Lớp 12.7',
-  students:      'Hồ sơ Danh sách & Phòng KTX',
-  attendance:    'Điểm danh 5 Buổi & Đăng ký về nhà',
-  requests:      'Đơn xin phép nghỉ học điện tử',
-  notifications: 'Bảng tin Thông báo & Đính kèm',
-  activities:    'Nhật ký Hoạt động Hàng ngày',
-  finance:       'Quản lý Thu - Chi Quỹ Lớp',
-  evaluation:    'Thi đua 47 Tiêu chí & Xếp loại',
-  exam:          'Góc Ôn thi THPT & Hướng nghiệp',
-  ai_assistant:  'AI Trợ Lý GVCN — Tổng Hợp Báo Cáo',
-  parent_portal: 'Sổ Liên Lạc Điện Tử Dành Cho Phụ Huynh',
-  confessions:   'Hòm thư Tâm sự Ẩn danh',
-  reports:       'Xuất Báo cáo Excel 3 Sheet',
+  dashboard:     'Trang chủ',
+  students:      'Hồ sơ lớp',
+  attendance:    'Điểm danh',
+  requests:      'Đơn xin nghỉ',
+  notifications: 'Thông báo',
+  activities:    'Hoạt động',
+  finance:       'Quỹ lớp',
+  evaluation:    'Thi đua 47',
+  exam:          'Ôn thi THPT',
+  ai_assistant:  'Trợ lý AI',
+  parent_portal: 'Sổ phụ huynh',
+  confessions:   'Hòm tâm sự',
+  reports:       'Biểu mẫu & Excel',
 };
 
 export default function Header({ activeTab, onMenuClick }) {

@@ -1,29 +1,31 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useClassSettings } from '../../context/ClassSettingsContext';
 
 const NAV_ITEMS = [
-  { id: 'dashboard',     icon: '📊', label: 'Trang chủ Lớp (Tổng quan)' },
-  { id: 'students',      icon: '👥', label: 'Hồ sơ & Phòng KTX' },
-  { id: 'attendance',    icon: '📝', label: 'Điểm danh (Học & KTX)' },
-  { id: 'requests',      icon: '✉️',  label: 'Đơn xin phép điện tử' },
-  { id: 'notifications', icon: '📢', label: 'Thông báo & Đính kèm' },
-  { id: 'activities',    icon: '📸', label: 'Hoạt động hàng ngày' },
-  { id: 'finance',       icon: '💰', label: 'Thu - Chi Quỹ Lớp' },
-  { id: 'evaluation',    icon: '📈', label: 'Thi đua 47 Tiêu chí' },
-  { id: 'exam',          icon: '🎓', label: 'Ôn thi & Hướng nghiệp' },
-  { id: 'ai_assistant',  icon: '🤖', label: 'AI Trợ Lý GVCN' },
-  { id: 'parent_portal', icon: '👨‍👩‍👧', label: 'Sổ Liên Lạc Phụ Huynh' },
-  { id: 'confessions',   icon: '🤫', label: 'Hòm thư tâm sự' },
-  { id: 'reports',       icon: '📋', label: 'Xuất Báo cáo Excel' },
+  { id: 'dashboard',     icon: '📊', label: 'Trang chủ' },
+  { id: 'students',      icon: '👥', label: 'Hồ sơ lớp' },
+  { id: 'attendance',    icon: '📝', label: 'Điểm danh' },
+  { id: 'requests',      icon: '✉️',  label: 'Đơn xin nghỉ' },
+  { id: 'notifications', icon: '📢', label: 'Thông báo' },
+  { id: 'activities',    icon: '📸', label: 'Hoạt động' },
+  { id: 'finance',       icon: '💰', label: 'Quỹ lớp' },
+  { id: 'evaluation',    icon: '📈', label: 'Thi đua 47' },
+  { id: 'exam',          icon: '🎓', label: 'Ôn thi THPT' },
+  { id: 'ai_assistant',  icon: '🤖', label: 'Trợ lý AI' },
+  { id: 'parent_portal', icon: '👨‍👩‍👧', label: 'Sổ phụ huynh' },
+  { id: 'confessions',   icon: '🤫', label: 'Hòm tâm sự' },
+  { id: 'reports',       icon: '📋', label: 'Biểu mẫu & Excel' },
 ];
 
 export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
   const { user, isTeacher, logout } = useAuth();
+  const { settings } = useClassSettings();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const getRoleLabel = () => {
     if (!user) return null;
-    if (isTeacher) return { text: 'GVCN Kim Tuyền', icon: '👩‍🏫', bg: 'linear-gradient(135deg, #1B4D53, #2d6a70)' };
+    if (isTeacher) return { text: `GVCN ${settings.teacherName}`, icon: '👩‍🏫', bg: 'linear-gradient(135deg, #1B4D53, #2d6a70)' };
     if (user.role === 'group_leader') return { text: `Tổ trưởng ${user.group}`, icon: '⭐', bg: 'linear-gradient(135deg, #0284c7, #0369a1)' };
     if (user.role === 'monitor') return { text: 'Lớp trưởng', icon: '👑', bg: 'linear-gradient(135deg, #d97706, #b45309)' };
     return { text: user.name, icon: '👨‍🎓', bg: 'linear-gradient(135deg, #4b5563, #374151)' };
@@ -52,8 +54,8 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
             fontSize: '1.2rem', flexShrink: 0
           }}>🏫</div>
           <div>
-            <h2 style={{ fontSize: '1.4rem', fontFamily: 'var(--font-serif)', color: 'var(--color-primary-dark)', margin: 0 }}>QLCN</h2>
-            <span style={{ fontSize: '0.72rem', color: 'var(--color-accent-light)', fontWeight: 700, letterSpacing: '0.05em' }}>LỚP 12.7 • 2026–2027</span>
+            <h2 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-serif)', color: 'var(--color-primary-dark)', margin: 0, fontWeight: 800 }}>ClassMate Pro</h2>
+            <span style={{ fontSize: '0.72rem', color: 'var(--color-primary-brand)', fontWeight: 700, letterSpacing: '0.03em' }}>LỚP {settings.className} • {settings.schoolYear}</span>
           </div>
         </div>
 
