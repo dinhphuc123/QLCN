@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 
 const NAV_ITEMS = [
-  { id: 'dashboard',     icon: '📊', label: 'Tổng quan (Dashboard)' },
+  { id: 'dashboard',     icon: '📊', label: 'Trang chủ Lớp (Tổng quan)' },
   { id: 'students',      icon: '👥', label: 'Hồ sơ & Phòng KTX' },
   { id: 'attendance',    icon: '📝', label: 'Điểm danh (Học & KTX)' },
   { id: 'requests',      icon: '✉️',  label: 'Đơn xin phép điện tử' },
@@ -96,7 +96,7 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
             style={{ width: '100%', padding: '0.6rem', fontSize: '0.8rem', backgroundColor: '#b91c1c' }}
             onClick={logout}
           >
-            🚪 Đăng xuất ({user.name ? user.name.split(' ').pop() : 'User'})
+            🚪 Đăng xuất ({user.name ? user.name.split(' ').pop() : 'Tài khoản'})
           </button>
         ) : (
           <button
