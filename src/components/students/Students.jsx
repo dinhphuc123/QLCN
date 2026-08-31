@@ -155,7 +155,7 @@ function AddStudentModal({ onClose, onSave }) {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+        <div className="responsive-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
           <div>
             <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem' }}>Ngày sinh</label>
             <input type="text" className="form-input" style={{ width: '100%' }} placeholder="DD/MM/YYYY"
@@ -318,8 +318,54 @@ export default function Students({ students, isTeacher, attendance, onRefresh, h
           activeFilters={activeFilters}
         />
 
-        {/* Student Table */}
-        <div style={{ overflowX: 'auto', borderRadius: '0.75rem', border: '1px solid #f3f4f6' }}>
+        {/* Mobile: Card grid 2-column */}
+        <div className="mobile-card-grid" style={{ display: 'none', gap: '0.65rem' }}>
+          {filtered.map(student => {
+            const isAbsent = todayAttendance[student.id] === 'absent';
+            return (
+              <div
+                key={student.id}
+                onClick={() => setSelectedStudent(student)}
+                style={{
+                  background: isAbsent ? '#fff5f5' : student.isPoor ? '#fffbeb' : 'white',
+                  borderRadius: '0.75rem',
+                  border: `1px solid ${isAbsent ? '#fca5a5' : student.isPoor ? '#fde68a' : '#e5e7eb'}`,
+                  padding: '0.85rem',
+                  cursor: 'pointer',
+                  display: 'flex', flexDirection: 'column', gap: '0.3rem',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{
+                    width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0,
+                    background: student.gender === 'Nữ' ? 'linear-gradient(135deg, #ec4899, #be185d)' : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'white', fontSize: '0.75rem', fontWeight: 800,
+                  }}>
+                    {student.name.split(' ').pop()[0]}
+                  </div>
+                  <div style={{ overflow: 'hidden' }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.82rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {String(student.id).padStart(2, '0')}. {student.name}
+                    </div>
+                    <div style={{ fontSize: '0.68rem', color: '#6b7280' }}>
+                      {student.group} • {student.dormRoom}
+                    </div>
+                  </div>
+                </div>
+                {student.position && (
+                  <span style={{ fontSize: '0.62rem', background: '#dbeafe', color: '#1e40af', padding: '0.1rem 0.35rem', borderRadius: '4px', fontWeight: 600, alignSelf: 'flex-start' }}>
+                    {student.position.split(',')[0]}
+                  </span>
+                )}
+                {isAbsent && <span style={{ fontSize: '0.62rem', background: '#fee2e2', color: '#dc2626', padding: '0.1rem 0.35rem', borderRadius: '4px', fontWeight: 700, alignSelf: 'flex-start' }}>🔴 Vắng</span>}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop: Full Table */}
+        <div className="hide-mobile" style={{ overflowX: 'auto', borderRadius: '0.75rem', border: '1px solid #f3f4f6' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '850px' }}>
             <thead>
               <tr style={{ background: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>

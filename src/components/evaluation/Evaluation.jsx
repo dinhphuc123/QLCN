@@ -164,8 +164,8 @@ export default function Evaluation({ students = [], isTeacher, onRefresh }) {
         </div>
       </div>
 
-      {/* Main 2-Col layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(0, 1.2fr)', gap: '1.5rem' }}>
+      {/* Main layout: stacks to 1-col on mobile */}
+      <div className="eval-main-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(0, 1.2fr)', gap: '1.5rem' }}>
         
         {/* Left Column: 47 Criteria Checkbox Form */}
         <div className="glass-panel" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -175,7 +175,7 @@ export default function Evaluation({ students = [], isTeacher, onRefresh }) {
               <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', color: '#374151' }}>Chọn Học Sinh Chấm Điểm:</label>
               <select
                 className="form-input"
-                style={{ width: '260px', marginTop: '0.2rem', fontWeight: 600 }}
+                style={{ width: '100%', maxWidth: '300px', marginTop: '0.2rem', fontWeight: 600 }}
                 value={selectedStudentId}
                 onChange={e => setSelectedStudentId(e.target.value)}
               >
@@ -238,25 +238,27 @@ export default function Evaluation({ students = [], isTeacher, onRefresh }) {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <button
+                      className="criteria-btn"
                       onClick={() => handleToggleCriterion(item.id, -1)}
                       disabled={count === 0}
                       style={{
-                        width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #d1d5db',
+                        width: '44px', height: '44px', borderRadius: '50%', border: '1px solid #d1d5db',
                         background: 'white', cursor: count === 0 ? 'not-allowed' : 'pointer', opacity: count === 0 ? 0.4 : 1,
-                        fontWeight: 800, fontSize: '0.9rem'
+                        fontWeight: 800, fontSize: '1rem'
                       }}
                     >
                       -
                     </button>
-                    <span style={{ fontWeight: 800, fontSize: '0.95rem', minWidth: '20px', textAlign: 'center' }}>
+                    <span style={{ fontWeight: 800, fontSize: '0.95rem', minWidth: '24px', textAlign: 'center' }}>
                       {count}
                     </span>
                     <button
+                      className="criteria-btn"
                       onClick={() => handleToggleCriterion(item.id, 1)}
                       style={{
-                        width: '28px', height: '28px', borderRadius: '50%', border: 'none',
+                        width: '44px', height: '44px', borderRadius: '50%', border: 'none',
                         background: item.isBonus ? '#16a34a' : 'var(--color-primary-dark)', color: 'white', cursor: 'pointer',
-                        fontWeight: 800, fontSize: '0.9rem'
+                        fontWeight: 800, fontSize: '1rem'
                       }}
                     >
                       +

@@ -21,71 +21,64 @@ const TAB_LABELS = {
 };
 
 export default function Header({ activeTab, onMenuClick, onLoginClick }) {
-  const { user, isTeacher } = useAuth();
+  const { user, isTeacher, logout } = useAuth();
   const { settings } = useClassSettings();
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+
+  // User's first-name initial for mobile avatar
+  const userInitial = user?.name ? user.name.split(' ').pop()[0] : '?';
+  const avatarBg = isTeacher ? '#1B4D53' : user?.role === 'group_leader' ? '#0369a1' : user?.role === 'monitor' ? '#d97706' : '#4b5563';
 
   return (
     <header style={{
       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      padding: '0.875rem 1.5rem',
+      padding: '0.75rem 1rem',
       borderBottom: '1px solid rgba(0,0,0,0.07)',
-      background: 'rgba(255,255,255,0.7)',
+      background: 'rgba(255,255,255,0.92)',
       backdropFilter: 'blur(12px)',
       position: 'sticky', top: 0, zIndex: 50,
-      gap: '1rem',
+      gap: '0.75rem',
+      minHeight: '56px',
     }}>
-      {/* Mobile menu button */}
-      <button
-        onClick={onMenuClick}
-        className="mobile-menu-btn"
-        style={{
-          display: 'none',
-          width: '40px', height: '40px',
-          background: 'var(--color-bg-cream)',
-          border: '1px solid var(--glass-border)',
-          borderRadius: '0.5rem',
-          fontSize: '1.25rem',
-          cursor: 'pointer',
-          alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
-        }}
-        aria-label="Toggle menu"
-      >
-        ☰
-      </button>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
+      {/* Left: current tab title */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 0, flex: 1 }}>
         <h2 style={{
           fontFamily: 'var(--font-serif)',
-          fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
+          fontSize: 'clamp(0.95rem, 2.5vw, 1.2rem)',
           color: 'var(--color-primary-dark)',
           margin: 0,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          fontWeight: 800,
         }}>
           {TAB_LABELS[activeTab] || activeTab}
         </h2>
-        <span style={{ fontSize: '0.75rem', background: '#dbeafe', color: '#1e40af', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: 700, whiteSpace: 'nowrap' }}>
+        {/* Week badge — hidden on mobile */}
+        <span className="header-week-badge" style={{ fontSize: '0.7rem', background: '#dbeafe', color: '#1e40af', padding: '0.15rem 0.45rem', borderRadius: '4px', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>
           Lớp {settings.className} • {settings.currentWeek}
         </span>
       </div>
 
-      <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexShrink: 0 }}>
+      {/* Right: controls */}
+      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
+        {/* Settings button — only for teacher, full label on desktop */}
         {isTeacher && (
           <button
             onClick={() => setShowSettingsModal(true)}
             style={{
-              padding: '0.3rem 0.75rem', borderRadius: '9999px',
+              padding: '0.35rem 0.7rem', borderRadius: '9999px',
               background: '#f3f4f6', border: '1px solid #d1d5db',
-              fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', color: '#374151'
+              fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', color: '#374151',
+              whiteSpace: 'nowrap',
             }}
           >
-            ⚙️ Cấu hình lớp
+            ⚙️ <span className="header-week-badge">Cấu hình</span>
           </button>
         )}
+
+        {/* Full user badge — desktop only */}
         {user ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{
+          <>
+            <span className="header-user-full" style={{
               backgroundColor: isTeacher ? '#dcfce7' : user.role === 'group_leader' ? '#e0f2fe' : '#f0fdf4',
               color: isTeacher ? '#166534' : user.role === 'group_leader' ? '#0369a1' : '#15803d',
               fontSize: '0.75rem', padding: '0.25rem 0.75rem',
@@ -95,14 +88,27 @@ export default function Header({ activeTab, onMenuClick, onLoginClick }) {
             }}>
               {isTeacher ? `👑 GVCN ${settings.teacherName}` : user.role === 'group_leader' ? `⭐ Tổ Trưởng ${user.group}` : `👨‍🎓 ${user.name}`}
             </span>
-          </div>
+            {/* Mini avatar — mobile only */}
+            <div className="header-user-mini" style={{
+              display: 'none',
+              width: '34px', height: '34px', borderRadius: '50%',
+              background: avatarBg, color: 'white',
+              alignItems: 'center', justifyContent: 'center',
+              fontSize: '0.85rem', fontWeight: 800, flexShrink: 0,
+              cursor: 'pointer',
+            }}
+              title={user.name}
+            >
+              {userInitial}
+            </div>
+          </>
         ) : (
           <button
             onClick={onLoginClick || onMenuClick}
             style={{
-              fontSize: '0.75rem', background: '#7c3aed', color: 'white',
-              padding: '0.3rem 0.85rem', borderRadius: '9999px', fontWeight: 700,
-              border: 'none', cursor: 'pointer'
+              fontSize: '0.78rem', background: '#7c3aed', color: 'white',
+              padding: '0.35rem 0.85rem', borderRadius: '9999px', fontWeight: 700,
+              border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
             }}
           >
             🔑 Đăng nhập
@@ -110,11 +116,6 @@ export default function Header({ activeTab, onMenuClick, onLoginClick }) {
         )}
       </div>
 
-      <style>{`
-        @media (max-width: 768px) {
-          .mobile-menu-btn { display: flex !important; }
-        }
-      `}</style>
       {showSettingsModal && <ClassSettingsModal onClose={() => setShowSettingsModal(false)} />}
     </header>
   );

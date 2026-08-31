@@ -6,18 +6,21 @@ const NAV_ITEMS = [
   { id: 'dashboard',     icon: '📊', label: 'Trang chủ',       roles: ['teacher', 'group_leader', 'monitor', 'student'] },
   { id: 'students',      icon: '👥', label: 'Hồ sơ lớp',       roles: ['teacher', 'group_leader', 'monitor', 'student'] },
   { id: 'attendance',    icon: '📝', label: 'Điểm danh',        roles: ['teacher', 'group_leader', 'monitor'] },
-  { id: 'requests',      icon: '✉️',  label: 'Đơn xin nghỉ',   roles: ['teacher', 'group_leader', 'monitor', 'student'] },
+  { id: 'requests',      icon: '✉️',  label: 'Đơn nghỉ',        roles: ['teacher', 'group_leader', 'monitor', 'student'] },
   { id: 'notifications', icon: '📢', label: 'Thông báo',        roles: ['teacher', 'group_leader', 'monitor', 'student'] },
   { id: 'activities',    icon: '📸', label: 'Hoạt động',        roles: ['teacher', 'group_leader', 'monitor', 'student'] },
   { id: 'finance',       icon: '💰', label: 'Quỹ lớp',          roles: ['teacher', 'group_leader', 'monitor'] },
-  { id: 'evaluation',    icon: '📈', label: 'Thi đua 47',       roles: ['teacher', 'group_leader', 'monitor'] },
-  { id: 'exam',          icon: '🎓', label: 'Ôn thi THPT',      roles: ['teacher', 'group_leader', 'monitor', 'student'] },
+  { id: 'evaluation',    icon: '📈', label: 'Thi đua',          roles: ['teacher', 'group_leader', 'monitor'] },
+  { id: 'exam',          icon: '🎓', label: 'Ôn thi',           roles: ['teacher', 'group_leader', 'monitor', 'student'] },
   { id: 'ai_assistant',  icon: '🤖', label: 'Trợ lý AI',        roles: ['teacher'] },
-  { id: 'parent_portal', icon: '👨‍👩‍👧', label: 'Sổ phụ huynh', roles: ['teacher'] },
-  { id: 'confessions',   icon: '🤫', label: 'Hòm tâm sự',      roles: ['teacher', 'student'] },
-  { id: 'reports',       icon: '📋', label: 'Biểu mẫu & Excel', roles: ['teacher'] },
-  { id: 'cms_admin',     icon: '⚙️', label: 'Quản trị CMS',    roles: ['teacher'] },
+  { id: 'parent_portal', icon: '👨‍👩‍👧', label: 'Phụ huynh',    roles: ['teacher'] },
+  { id: 'confessions',   icon: '🤫', label: 'Tâm sự',           roles: ['teacher', 'student'] },
+  { id: 'reports',       icon: '📋', label: 'Biểu mẫu',         roles: ['teacher'] },
+  { id: 'cms_admin',     icon: '⚙️', label: 'Quản trị',         roles: ['teacher'] },
 ];
+
+// Logout item — shown only in Bottom Nav when logged in
+const LOGOUT_NAV_ITEM = { id: '__logout__', icon: '🚪', label: 'Đăng xuất' };
 
 export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
   const { user, isTeacher, logout } = useAuth();
@@ -117,6 +120,9 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
     </aside>
   );
 
+  // Bottom nav items: nav tabs + logout/login at end
+  const bottomItems = [...visibleItems];
+
   return (
     <>
       {/* Desktop sidebar */}
@@ -137,7 +143,8 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
       {/* ─── Mobile Bottom Nav Bar ─────────────────────────────────────── */}
       <nav className="mobile-bottom-nav" role="navigation" aria-label="Điều hướng chính">
         <div className="mobile-bottom-scroll">
-          {visibleItems.map(({ id, icon, label }) => (
+          {/* Nav tabs */}
+          {bottomItems.map(({ id, icon, label }) => (
             <button
               key={id}
               className={`mbn-item${activeTab === id ? ' mbn-active' : ''}`}
@@ -149,6 +156,28 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
               <span className="mbn-label">{label}</span>
             </button>
           ))}
+
+          {/* Separator + Logout / Login button at the end */}
+          <div className="mbn-separator" aria-hidden="true" />
+          {user ? (
+            <button
+              className="mbn-item mbn-logout"
+              onClick={logout}
+              aria-label="Đăng xuất"
+            >
+              <span className="mbn-icon">🚪</span>
+              <span className="mbn-label">Đăng xuất</span>
+            </button>
+          ) : (
+            <button
+              className="mbn-item mbn-login"
+              onClick={onLoginClick}
+              aria-label="Đăng nhập"
+            >
+              <span className="mbn-icon">🔑</span>
+              <span className="mbn-label">Đăng nhập</span>
+            </button>
+          )}
         </div>
       </nav>
 
@@ -161,21 +190,19 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
           .mobile-bottom-nav { display: none; }
         }
 
-        /* ── Mobile ── */
+        /* ── Mobile Bottom Nav ── */
         @media (max-width: 768px) {
           .sidebar-desktop { display: none !important; }
 
-          /* Bottom Nav Bar */
           .mobile-bottom-nav {
             position: fixed;
             bottom: 0; left: 0; right: 0;
             z-index: 200;
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-top: 1px solid rgba(0,0,0,0.08);
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
-            /* Safe area for iPhone home indicator */
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(0,0,0,0.06);
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.07);
             padding-bottom: env(safe-area-inset-bottom, 0px);
           }
           .mobile-bottom-scroll {
@@ -183,8 +210,7 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
             overflow-x: auto;
             scrollbar-width: none;
             -ms-overflow-style: none;
-            padding: 0 0.25rem;
-            gap: 0;
+            padding: 0 0.125rem;
           }
           .mobile-bottom-scroll::-webkit-scrollbar { display: none; }
 
@@ -193,9 +219,9 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 0.15rem;
-            padding: 0.55rem 0.7rem 0.5rem;
-            min-width: 64px;
+            gap: 0.12rem;
+            padding: 0.6rem 0.65rem 0.5rem;
+            min-width: 62px;
             flex-shrink: 0;
             background: none;
             border: none;
@@ -210,9 +236,9 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
           .mbn-item.mbn-active::before {
             content: '';
             position: absolute;
-            top: 0; left: 20%; right: 20%;
-            height: 2.5px;
-            border-radius: 0 0 3px 3px;
+            top: 0; left: 18%; right: 18%;
+            height: 3px;
+            border-radius: 0 0 4px 4px;
             background: linear-gradient(90deg, #0369a1, #0284c7);
           }
 
@@ -221,24 +247,36 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
             line-height: 1;
             transition: transform 0.18s;
           }
-          .mbn-item.mbn-active .mbn-icon {
-            transform: translateY(-1px);
-          }
+          .mbn-item.mbn-active .mbn-icon { transform: translateY(-1px); }
           .mbn-label {
-            font-size: 0.58rem;
+            font-size: 0.56rem;
             font-weight: 600;
             color: #94a3b8;
             white-space: nowrap;
             line-height: 1;
           }
-          .mbn-item.mbn-active .mbn-label {
-            color: #0369a1;
-            font-weight: 800;
+          .mbn-item.mbn-active .mbn-label { color: #0369a1; font-weight: 800; }
+
+          /* Separator line before logout */
+          .mbn-separator {
+            width: 1px;
+            background: #e5e7eb;
+            margin: 0.55rem 0;
+            flex-shrink: 0;
           }
+
+          /* Logout button — red tint */
+          .mbn-logout .mbn-icon { filter: hue-rotate(180deg) saturate(2); }
+          .mbn-logout .mbn-label { color: #ef4444; }
+          .mbn-logout:active { background: rgba(239,68,68,0.07); }
+
+          /* Login button — purple tint */
+          .mbn-login .mbn-label { color: #7c3aed; }
+          .mbn-login:active { background: rgba(124,58,237,0.07); }
 
           /* Push main content up so Bottom Nav doesn't cover it */
           .main-content {
-            padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+            padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
           }
         }
       `}</style>

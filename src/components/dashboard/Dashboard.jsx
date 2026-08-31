@@ -81,7 +81,7 @@ export default function Dashboard({ students, attendance, timetableImage, classM
       )}
 
       {/* KPI Widgets */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
+      <div className="dashboard-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
         <div className="glass-panel" style={{ padding: '1.25rem' }}>
           <div style={{ fontSize: '0.78rem', color: '#6b7280', fontWeight: 600, marginBottom: '0.25rem' }}>Sĩ số lớp {settings.className}</div>
           <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--color-primary-dark)' }}>
@@ -112,10 +112,10 @@ export default function Dashboard({ students, attendance, timetableImage, classM
       </div>
 
       {/* Main Grid: Seating Map + Class Officers + Timetable */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) minmax(0, 1fr)', gap: '1.5rem' }}>
+      <div className="responsive-2col" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) minmax(0, 1fr)', gap: '1.5rem' }}>
         
-        {/* Left col: Interactive Seating Map */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {/* Left col: Interactive Seating Map (hidden on mobile) */}
+        <div className="dashboard-seat-section" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
           <div className="glass-panel" style={{ padding: '1.75rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>

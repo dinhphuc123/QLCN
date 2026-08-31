@@ -179,7 +179,7 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
           </div>
 
           {/* Student attendance list */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '0.85rem' }}>
+          <div className="attendance-card-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.75rem' }}>
             {students.map(student => {
               const status = sessionRecord[student.id] || 'present';
               const canEdit = isTeacher || user?.role === 'monitor' || (user?.role === 'group_leader' && student.group === user.group);
@@ -226,8 +226,8 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
         /* Home Requests List */
         <div className="glass-panel" style={{ padding: '2rem' }}>
           <h3 style={{ margin: '0 0 1rem 0' }}>🏡 Danh Sách Đăng Ký Về Nhà Cuối Tuần</h3>
-          <div style={{ overflowX: 'auto', borderRadius: '0.75rem', border: '1px solid #f3f4f6' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '700px' }}>
+          <div className="mobile-scroll-x" style={{ borderRadius: '0.75rem', border: '1px solid #f3f4f6' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
               <thead>
                 <tr style={{ background: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
                   <th style={{ padding: '0.75rem 1rem', fontSize: '0.8rem', fontWeight: 700, color: '#374151' }}>Học sinh</th>
