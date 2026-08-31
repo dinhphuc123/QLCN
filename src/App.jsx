@@ -51,7 +51,7 @@ export default function App() {
   });
 
   // ── Data fetch ─────────────────────────────────────────────────────────────
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (isInitial = false) => {
     try {
       const result = await api.getData();
       setData(prev => ({
@@ -60,17 +60,19 @@ export default function App() {
         students: (result.students && result.students.length > 0) ? result.students : INITIAL_STUDENTS
       }));
     } catch {
-      toast.error('Không thể kết nối server. Đang dùng dữ liệu lớp 12.7 có sẵn.', { id: 'server-error' });
+      if (isInitial) {
+        console.warn('Backend server disconnected. Running in client-side mode with preloaded Class 12.7 data.');
+      }
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchData();
+    fetchData(true);
     // Realtime background sync polling every 5 seconds
     const timer = setInterval(() => {
-      fetchData();
+      fetchData(false);
     }, 5000);
     return () => clearInterval(timer);
   }, [fetchData]);
