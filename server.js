@@ -59,54 +59,79 @@ if (isSupabaseConfigured) {
   console.log('⚠️ Supabase credentials not configured in .env. Falling back to Local JSON database.');
 }
 
-// Local JSON Database Helper
+// In-memory cache for serverless environments (Vercel)
+let inMemoryDB = null;
+
 function readDB() {
-  if (!fs.existsSync(DB_FILE)) {
-    const defaultData = {
-      students: [],
-      timetableImage: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&q=80&w=800',
-      classMapImage: '',
-      announcements: [],
-      leaveRequests: [],
-      homeRequests: [],
-      confessions: [],
-      attendance: {},
-      dormAttendance: {},
-      competitionRecords: {},
-      activities: [],
-      finance: [],
-      auditLogs: []
-    };
-    fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf-8');
+  if (inMemoryDB) return inMemoryDB;
+  
+  let data = {
+    students: [],
+    timetableImage: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&q=80&w=800',
+    classMapImage: '',
+    announcements: [],
+    leaveRequests: [],
+    homeRequests: [],
+    confessions: [],
+    attendance: {},
+    dormAttendance: {},
+    competitionRecords: {},
+    activities: [],
+    finance: [],
+    auditLogs: []
+  };
+
+  try {
+    if (fs.existsSync(DB_FILE)) {
+      const parsed = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+      data = { ...data, ...parsed };
+    }
+  } catch (err) {
+    console.warn('⚠️ Cannot read DB file, using default data:', err.message);
   }
-  const data = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+
   if (!data.homeRequests) data.homeRequests = [];
   if (!data.competitionRecords) data.competitionRecords = {};
   if (!data.activities) data.activities = [];
   if (!data.finance) data.finance = [];
   if (!data.auditLogs) data.auditLogs = [];
+
+  inMemoryDB = data;
   return data;
 }
 
 function writeDB(data) {
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  inMemoryDB = data;
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (err) {
+    // Silently handle EROFS / read-only filesystem on Vercel
+    try {
+      const tmpPath = path.join('/tmp', 'db_data_12.7.json');
+      fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), 'utf-8');
+    } catch { /* ignore serverless write restriction */ }
+  }
 }
 
 // Helper: Log audit trail
 function addAuditLog(user, action, target, details = '') {
-  const db = readDB();
-  const entry = {
-    id: Date.now(),
-    timestamp: new Date().toISOString(),
-    user: user?.name || 'Hệ thống',
-    role: user?.role || 'system',
-    action,
-    target,
-    details
-  };
-  db.auditLogs.unshift(entry);
-  if (db.auditLogs.length > 500) db.auditLogs.pop(); // keep last 500
-  writeDB(db);
+  try {
+    const db = readDB();
+    const entry = {
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+      user: user?.name || 'Hệ thống',
+      role: user?.role || 'system',
+      action,
+      target,
+      details
+    };
+    db.auditLogs.unshift(entry);
+    if (db.auditLogs.length > 500) db.auditLogs.pop();
+    writeDB(db);
+  } catch {
+    /* Audit log non-critical failover */
+  }
 }
 
 // Auth Middleware
