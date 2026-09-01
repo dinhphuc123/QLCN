@@ -13,6 +13,8 @@
   --glass-bg: rgba(255, 255, 255, 0.45);
   --glass-border: rgba(197, 215, 57, 0.3);
   --glass-blur: 12px;
+  --card-bg: #ffffff;
+  --text-main: #1e293b;
   --space-xs: 0.5rem;
   --space-sm: 0.75rem;
   --space-md: 1rem;
@@ -24,17 +26,52 @@
   --radius-xl: 1.5rem;
 }
 
+[data-theme="dark"] {
+  --color-primary-dark: #67e8f9;
+  --color-primary-brand: #a3e635;
+  --color-bg-soft: #0f172a;
+  --glass-bg: rgba(30, 41, 59, 0.75);
+  --glass-border: rgba(103, 232, 249, 0.2);
+  --card-bg: #1e293b;
+  --text-main: #f8fafc;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   font-family: var(--font-sans);
   background-color: var(--color-bg-soft);
-  color: var(--color-primary-dark);
+  color: var(--text-main);
   min-height: 100vh;
   line-height: 1.6;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+[data-theme="dark"] body {
   background-image:
-    radial-gradient(at 0% 0%, rgba(244, 248, 208, 0.4) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(197, 215, 57, 0.2) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(15, 23, 42, 0.9) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(30, 41, 59, 0.9) 0px, transparent 50%);
+}
+
+[data-theme="dark"] .glass-panel {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(100, 116, 139, 0.4);
+  color: #f8fafc;
+}
+
+[data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3, [data-theme="dark"] h4 {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .form-input, [data-theme="dark"] select {
+  background-color: #334155 !important;
+  color: #f8fafc !important;
+  border-color: #475569 !important;
+}
+
+[data-theme="dark"] .modal-inner {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
 }
 
 #root { width: 100%; min-height: 100vh; display: flex; flex-direction: column; }

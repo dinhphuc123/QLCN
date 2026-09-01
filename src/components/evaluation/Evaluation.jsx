@@ -177,6 +177,103 @@ export default function Evaluation({ students = [], isTeacher, onRefresh }) {
     });
   }, [students, competitionData]);
 
+  const [viewMode, setViewMode] = useState('weekly'); // 'weekly' | 'monthly_audit'
+
+  // Star Student & Best Group calculation
+  const bestGroup = useMemo(() => {
+    if (!groupStats.length) return null;
+    return [...groupStats].sort((a, b) => b['Điểm TB'] - a['Điểm TB'])[0];
+  }, [groupStats]);
+
+  const starStudents = useMemo(() => {
+    return students.filter(s => {
+      const rec = competitionData[s.id];
+      const vList = rec && rec.violations ? rec.violations : [];
+      return calcWeekScore(vList) === 100;
+    });
+  }, [students, competitionData]);
+
+  // PDF Export for Competition Report
+  const handleExportCompetitionPDF = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) { toast.error('Trình duyệt chặn pop-up'); return; }
+
+    const weekNum = selectedWeek.replace('tuan_', '');
+    const rows = students.map((s, idx) => {
+      const rec = competitionData[s.id] || {};
+      const vList = rec.violations || [];
+      const score = calcWeekScore(vList);
+      const rk = calcRanking(score);
+      const vText = vList.map(v => {
+        const c = THI_DUA_CRITERIA.find(item => item.id === v.criteriaId);
+        return c ? `${c.label} (x${v.count})` : '';
+      }).filter(Boolean).join(', ');
+
+      return `<tr>
+        <td style="text-align:center; padding: 6px;">${idx + 1}</td>
+        <td style="padding: 6px; font-weight: bold;">${s.name}</td>
+        <td style="text-align:center; padding: 6px;">${s.group || 'Tổ 1'}</td>
+        <td style="text-align:center; padding: 6px; font-weight: bold; color: ${score >= 90 ? '#16a34a' : score >= 80 ? '#2563eb' : '#dc2626'}">${score}</td>
+        <td style="text-align:center; padding: 6px;">${rk.rank}</td>
+        <td style="padding: 6px; font-size: 11px;">${vText || 'Không vi phạm'}</td>
+      </tr>`;
+    }).join('');
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Báo Cáo Thi Đua Lớp 12.7 - Tuần ${weekNum}</title>
+        <style>
+          body { font-family: 'Times New Roman', serif; padding: 20px; line-height: 1.4; color: #000; }
+          h2, h3 { text-align: center; margin: 5px 0; text-transform: uppercase; }
+          table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+          th, td { border: 1px solid #000; }
+          th { background-color: #f2f2f2; padding: 8px; text-align: center; }
+          .footer { margin-top: 30px; display: flex; justify-content: space-between; text-align: center; }
+        </style>
+      </head>
+      <body>
+        <div style="display: flex; justify-content: space-between;">
+          <div>TRƯỜNG THPT QUỐC GIA<br/><strong>LỚP 12.7</strong></div>
+          <div style="text-align: right;"><strong>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br/>Độc lập - Tự do - Hạnh phúc</div>
+        </div>
+        <hr style="margin: 15px 0; border: 0.5px solid #000;" />
+        <h2>BẢNG TỔNG HỢP XẾP LOẠI THI ĐƯA NỀ NẾP TUẦN ${weekNum}</h2>
+        <p style="text-align: center; font-style: italic; margin-top: 0;">(Phục vụ Chào cờ Thứ 2 và Đánh giá Hạnh kiểm hàng tuần)</p>
+        
+        <div style="margin: 10px 0; font-size: 13px;">
+          • <strong>Tổ xuất sắc nhất tuần:</strong> ${bestGroup ? `${bestGroup.name} (ĐTB: ${bestGroup['Điểm TB']}đ)` : 'Tổ 1'}<br/>
+          • <strong>Số học sinh đạt điểm tuyệt đối 100đ (⭐ Ngôi Sao Tuần):</strong> ${starStudents.length} / ${students.length} học sinh
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 35px;">STT</th>
+              <th>Họ và Tên</th>
+              <th style="width: 60px;">Tổ</th>
+              <th style="width: 70px;">Điểm</th>
+              <th style="width: 80px;">Xếp loại</th>
+              <th>Chi tiết vi phạm trong tuần</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+
+        <div class="footer">
+          <div><strong>ĐẠI DIỆN BAN THI ĐƯA LỚP</strong><br/><br/><br/><br/>(Ký & ghi rõ họ tên)</div>
+          <div><strong>GIÁO VIÊN CHỦ NHIỆM</strong><br/><br/><br/><br/>Đỗ Kim Tuyền</div>
+        </div>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    setTimeout(() => { printWindow.print(); }, 500);
+  };
+
   // Trạng thái hiển thị badge
   const getStatusBadge = (status) => {
     switch (status) {
@@ -195,8 +292,8 @@ export default function Evaluation({ students = [], isTeacher, onRefresh }) {
       <div className="glass-panel" style={{ padding: '1.5rem 2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <h3 style={{ margin: 0 }}>📈 Quy Trình Đánh Giá Thi Đua 3 Vòng</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <h3 style={{ margin: 0 }}>📈 Đánh Giá Thi Đua Nề Nếp & Vinh Danh</h3>
               {getStatusBadge(currentRecord.status)}
             </div>
             <p style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.3rem' }}>
@@ -204,11 +301,33 @@ export default function Evaluation({ students = [], isTeacher, onRefresh }) {
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>Tuần:</label>
+          <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ background: '#f1f5f9', padding: '0.25rem', borderRadius: '9999px', display: 'flex', gap: '0.2rem' }}>
+              <button
+                onClick={() => setViewMode('weekly')}
+                style={{
+                  padding: '0.35rem 0.85rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 700, border: 'none', cursor: 'pointer',
+                  background: viewMode === 'weekly' ? 'var(--color-primary-dark)' : 'transparent',
+                  color: viewMode === 'weekly' ? 'white' : '#475569'
+                }}
+              >
+                📊 Đánh Giá Tuần
+              </button>
+              <button
+                onClick={() => setViewMode('monthly_audit')}
+                style={{
+                  padding: '0.35rem 0.85rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 700, border: 'none', cursor: 'pointer',
+                  background: viewMode === 'monthly_audit' ? 'var(--color-primary-dark)' : 'transparent',
+                  color: viewMode === 'monthly_audit' ? 'white' : '#475569'
+                }}
+              >
+                🗓️ Bảng Đối Soát Tháng
+              </button>
+            </div>
+
             <select
               className="form-input"
-              style={{ width: '130px', fontWeight: 700 }}
+              style={{ width: '120px', fontWeight: 700 }}
               value={selectedWeek}
               onChange={e => setSelectedWeek(e.target.value)}
             >
@@ -217,6 +336,39 @@ export default function Evaluation({ students = [], isTeacher, onRefresh }) {
                 return <option key={wId} value={wId}>Tuần {i + 1}</option>;
               })}
             </select>
+
+            <button
+              onClick={handleExportCompetitionPDF}
+              style={{
+                padding: '0.45rem 0.95rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 700,
+                background: '#16a34a', color: 'white', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem'
+              }}
+            >
+              📄 Xuất Báo Cáo PDF
+            </button>
+          </div>
+        </div>
+
+        {/* Weekly Badges Row: Best Group & Star Students */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+          <div style={{ background: 'linear-gradient(135deg, #fef9c3, #fef08a)', padding: '0.85rem 1.1rem', borderRadius: '0.85rem', border: '1px solid #fde047', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+            <span style={{ fontSize: '1.8rem' }}>🏆</span>
+            <div>
+              <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#854d0e', textTransform: 'uppercase' }}>TỔ XUẤT SẮC NHẤT TUẦN</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 900, color: '#713f12' }}>
+                {bestGroup ? `${bestGroup.name} (${bestGroup['Điểm TB']} điểm)` : 'Tổ 1'}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ background: 'linear-gradient(135deg, #dcfce7, #bbf7d0)', padding: '0.85rem 1.1rem', borderRadius: '0.85rem', border: '1px solid #86efac', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+            <span style={{ fontSize: '1.8rem' }}>⭐</span>
+            <div>
+              <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#166534', textTransform: 'uppercase' }}>NGÔI SAO TUẦN (100 ĐIỂM TUYỆT ĐỐI)</div>
+              <div style={{ fontSize: '1rem', fontWeight: 900, color: '#14532d' }}>
+                {starStudents.length} / {students.length} Học Sinh
+              </div>
+            </div>
           </div>
         </div>
       </div>

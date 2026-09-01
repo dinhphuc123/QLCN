@@ -138,6 +138,104 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
     onRefresh();
   };
 
+  // Compute students with >= 2 unexcused absences
+  const frequentAbsentees = React.useMemo(() => {
+    const counts = {};
+    Object.values(attendance || {}).forEach(dayRec => {
+      const sessObj = dayRec.sessions || {};
+      Object.values(sessObj).forEach(sessRec => {
+        if (typeof sessRec === 'object') {
+          Object.entries(sessRec).forEach(([sId, val]) => {
+            const st = typeof val === 'object' ? val.status : val;
+            if (st === 'absent') {
+              counts[sId] = (counts[sId] || 0) + 1;
+            }
+          });
+        }
+      });
+    });
+
+    return students.filter(s => (counts[s.id] || 0) >= 2).map(s => ({
+      ...s,
+      absentTimes: counts[s.id]
+    }));
+  }, [students, attendance]);
+
+  // PDF Export for Attendance Report
+  const handleExportAttendancePDF = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) { toast.error('Trình duyệt chặn pop-up'); return; }
+
+    const rows = students.map((s, idx) => {
+      const stObj = getStudentStatus(s.id);
+      const stText = stObj.status === 'present' ? 'Có mặt' : stObj.status === 'late' ? 'Đi trễ' : stObj.status === 'permit' ? 'Có phép' : 'Vắng KP';
+      const stColor = stObj.status === 'present' ? '#16a34a' : stObj.status === 'late' ? '#d97706' : stObj.status === 'permit' ? '#2563eb' : '#dc2626';
+
+      return `<tr>
+        <td style="text-align:center; padding: 6px;">${idx + 1}</td>
+        <td style="padding: 6px; font-weight: bold;">${s.name}</td>
+        <td style="text-align:center; padding: 6px;">${s.group || 'Tổ 1'}</td>
+        <td style="text-align:center; padding: 6px;">${s.dormRoom || 'Không'}</td>
+        <td style="text-align:center; padding: 6px; font-weight: bold; color: ${stColor}">${stText}</td>
+        <td style="text-align:center; padding: 6px; font-size: 11px;">${stObj.checkedInAt ? new Date(stObj.checkedInAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '--:--'}</td>
+      </tr>`;
+    }).join('');
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Báo Cáo Sĩ Số & Điểm Danh - Ngày ${selectedDate}</title>
+        <style>
+          body { font-family: 'Times New Roman', serif; padding: 20px; line-height: 1.4; color: #000; }
+          h2, h3 { text-align: center; margin: 5px 0; text-transform: uppercase; }
+          table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+          th, td { border: 1px solid #000; }
+          th { background-color: #f2f2f2; padding: 8px; text-align: center; }
+          .footer { margin-top: 30px; display: flex; justify-content: space-between; text-align: center; }
+        </style>
+      </head>
+      <body>
+        <div style="display: flex; justify-content: space-between;">
+          <div>TRƯỜNG THPT QUỐC GIA<br/><strong>LỚP 12.7</strong></div>
+          <div style="text-align: right;"><strong>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br/>Độc lập - Tự do - Hạnh phúc</div>
+        </div>
+        <hr style="margin: 15px 0; border: 0.5px solid #000;" />
+        <h2>BÁO CÁO ĐIỂM DANH SĨ SỐ HỌC SINH</h2>
+        <p style="text-align: center; font-style: italic; margin-top: 0;">Ngày: ${selectedDate} | Buổi: ${currentSessionDef.label} (${currentSessionDef.time})</p>
+        
+        <div style="margin: 10px 0; font-size: 13px;">
+          • <strong>Tổng sĩ số:</strong> ${students.length} học sinh | <strong>Có mặt:</strong> ${presentCount} | <strong>Vắng phép:</strong> ${permitCount} | <strong>Vắng KP:</strong> ${absentCount} | <strong>Trễ:</strong> ${lateCount}<br/>
+          • <strong>Tỷ lệ chuyên cần buổi:</strong> ${Math.round(((presentCount + permitCount) / (students.length || 1)) * 100)}%
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 35px;">STT</th>
+              <th>Họ và Tên</th>
+              <th style="width: 60px;">Tổ</th>
+              <th style="width: 80px;">Phòng KTX</th>
+              <th style="width: 90px;">Trạng Thái</th>
+              <th style="width: 90px;">Giờ Check-in</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+
+        <div class="footer">
+          <div><strong>ĐẠI DIỆN LỚP / TỔ TRƯỞNG</strong><br/><br/><br/><br/>(Ký & ghi rõ họ tên)</div>
+          <div><strong>GIÁO VIÊN CHỦ NHIỆM</strong><br/><br/><br/><br/>Đỗ Kim Tuyền</div>
+        </div>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    setTimeout(() => { printWindow.print(); }, 500);
+  };
+
   // Compute Statistics
   let absentCount = 0, lateCount = 0, permitCount = 0, presentCount = 0;
   students.forEach(s => {
@@ -226,8 +324,67 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
         )}
       </div>
 
+      {/* Frequent Absence Warning Banner */}
+      {frequentAbsentees.length > 0 && (
+        <div style={{
+          background: 'linear-gradient(135deg, #fef2f2, #fee2e2)',
+          border: '1.5px solid #fca5a5',
+          borderRadius: '1rem',
+          padding: '1rem 1.25rem',
+          display: 'flex',
+          alignItems: 'center',
+          justify: 'space-between',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+          boxShadow: '0 4px 12px rgba(220, 38, 38, 0.08)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <span style={{ fontSize: '1.6rem' }}>🚨</span>
+            <div>
+              <h4 style={{ margin: 0, color: '#991b1b', fontSize: '0.95rem' }}>
+                CẢNH BÁO NỀ NẾP: {frequentAbsentees.length} Học Sinh Vắng Không Phép ≥ 2 Lần!
+              </h4>
+              <div style={{ fontSize: '0.8rem', color: '#7f1d1d', marginTop: '0.2rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                {frequentAbsentees.map(s => (
+                  <span key={s.id} style={{ background: '#ffffff', padding: '0.15rem 0.5rem', borderRadius: '4px', border: '1px solid #f87171', fontWeight: 700 }}>
+                    {s.name} ({s.group || 'Lớp'}) — Vắng {s.absentTimes} buổi
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+          <span style={{ fontSize: '0.75rem', background: '#991b1b', color: 'white', padding: '0.3rem 0.75rem', borderRadius: '9999px', fontWeight: 700 }}>
+            GVCN Cần Nhắc Nhở
+          </span>
+        </div>
+      )}
+
       {activeSubTab === 'attendance5' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          
+          {/* Section Controls: Date picker & Export PDF */}
+          <div className="glass-panel" style={{ padding: '1rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>📅 Chọn Ngày:</label>
+              <input
+                type="date"
+                className="form-input"
+                style={{ width: '150px', fontWeight: 700 }}
+                value={selectedDate}
+                onChange={e => setSelectedDate(e.target.value)}
+              />
+            </div>
+
+            <button
+              onClick={handleExportAttendancePDF}
+              style={{
+                padding: '0.45rem 1rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 700,
+                background: '#0284c7', color: 'white', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem'
+              }}
+            >
+              📄 Xuất Báo Cáo Sĩ Số PDF
+            </button>
+          </div>
           
           {/* Section 1: Student Check-in Card (For Students) */}
           {user && !isTeacher && (

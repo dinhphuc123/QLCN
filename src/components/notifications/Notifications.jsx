@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
+import NotificationReadTrackerModal from './NotificationReadTrackerModal';
 
 const TAG_COLORS = {
   '🚨 KHẨN': { bg: '#fee2e2', text: '#dc2626' },
@@ -271,9 +272,18 @@ export default function Notifications({ announcements = [], students = [], onRef
                   {alreadyRead ? '✓ Đã xác nhận đã đọc' : '🔔 Bấm xác nhận đã đọc'}
                 </button>
 
-                <span style={{ fontSize: '0.8rem', color: '#4b5563', fontWeight: 600 }}>
-                  👥 Đã đọc: <strong>{(ann.readBy || []).length} / {students.length}</strong> học sinh
-                </span>
+                <button
+                  onClick={() => setTrackingAnn(ann)}
+                  style={{
+                    fontSize: '0.8rem', color: '#0284c7', background: '#e0f2fe',
+                    border: '1px solid #7dd3fc', padding: '0.35rem 0.75rem',
+                    borderRadius: '9999px', fontWeight: 700, cursor: 'pointer',
+                    display: 'inline-flex', alignItems: 'center', gap: '0.35rem'
+                  }}
+                  title="Bấm xem chi tiết tiến độ đọc 4 Tổ"
+                >
+                  📊 Đã đọc: <strong>{(ann.readBy || []).length} / {students.length || 40}</strong> HS (Xem 4 Tổ)
+                </button>
               </div>
             </div>
           );
@@ -281,6 +291,13 @@ export default function Notifications({ announcements = [], students = [], onRef
       </div>
 
       {showModal && <NewAnnouncementModal onClose={() => setShowModal(false)} onSave={handleCreate} />}
+      {trackingAnn && (
+        <NotificationReadTrackerModal
+          announcement={trackingAnn}
+          students={students}
+          onClose={() => setTrackingAnn(null)}
+        />
+      )}
     </div>
   );
 }

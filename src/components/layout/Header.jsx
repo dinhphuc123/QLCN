@@ -29,12 +29,25 @@ export default function Header({ activeTab, onMenuClick, onLoginClick }) {
   const userInitial = user?.name ? user.name.split(' ').pop()[0] : '?';
   const avatarBg = isTeacher ? '#1B4D53' : user?.role === 'group_leader' ? '#0369a1' : user?.role === 'monitor' ? '#d97706' : '#4b5563';
 
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('qlcn_theme') === 'dark');
+
+  const toggleDarkMode = () => {
+    const nextTheme = darkMode ? 'light' : 'dark';
+    setDarkMode(!darkMode);
+    document.documentElement.setAttribute('data-theme', nextTheme);
+    localStorage.setItem('qlcn_theme', nextTheme);
+  };
+
+  React.useEffect(() => {
+    if (darkMode) document.documentElement.setAttribute('data-theme', 'dark');
+  }, [darkMode]);
+
   return (
     <header style={{
       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       padding: '0.75rem 1rem',
       borderBottom: '1px solid rgba(0,0,0,0.07)',
-      background: 'rgba(255,255,255,0.92)',
+      background: 'var(--glass-bg)',
       backdropFilter: 'blur(12px)',
       position: 'sticky', top: 0, zIndex: 50,
       gap: '0.75rem',
@@ -60,6 +73,20 @@ export default function Header({ activeTab, onMenuClick, onLoginClick }) {
 
       {/* Right: controls */}
       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
+        {/* Dark Mode Toggle */}
+        <button
+          onClick={toggleDarkMode}
+          title={darkMode ? "Chuyển sang Chế độ Sáng" : "Chuyển sang Chế độ Ban Đêm"}
+          style={{
+            padding: '0.35rem 0.65rem', borderRadius: '9999px',
+            background: darkMode ? '#334155' : '#f3f4f6', border: '1px solid #94a3b8',
+            fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', color: darkMode ? '#f8fafc' : '#334155',
+            display: 'flex', alignItems: 'center', gap: '0.25rem', whiteSpace: 'nowrap'
+          }}
+        >
+          {darkMode ? '🌙 Ban đêm' : '☀️ Ban sáng'}
+        </button>
+
         {/* Settings button — only for teacher, full label on desktop */}
         {isTeacher && (
           <button

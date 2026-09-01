@@ -50,6 +50,60 @@ export default function Finance({ finance = [], onRefresh }) {
 
   const formatVND = (num) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num || 0);
 
+  const handleExportVoucherPDF = (item) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) { toast.error('Trình duyệt chặn pop-up'); return; }
+
+    const isInc = item.type === 'income';
+    const typeLabel = isInc ? 'PHIẾU THU' : 'PHIẾU CHI';
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>${typeLabel} - ${item.title}</title>
+        <style>
+          body { font-family: 'Times New Roman', serif; padding: 30px; line-height: 1.6; color: #000; }
+          .header { display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+          h2 { text-align: center; margin: 10px 0 5px 0; text-transform: uppercase; font-size: 20px; }
+          .date { text-align: center; font-style: italic; margin-bottom: 25px; }
+          .content-row { margin-bottom: 12px; font-size: 15px; }
+          .label { font-weight: bold; min-width: 150px; display: inline-block; }
+          .amount-box { border: 2px solid #000; padding: 10px; text-align: center; font-size: 18px; font-weight: bold; margin: 20px 0; background: #f9f9f9; }
+          .signatures { display: flex; justify-content: space-between; margin-top: 40px; text-align: center; }
+          .sig-box { width: 30%; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>TRƯỜNG THPT QUỐC GIA<br/><strong>BAN DÂN LẬP & LỚP 12.7</strong></div>
+          <div style="text-align: right;"><strong>Mẫu số C30-HD</strong><br/>Ban hành theo TT 107/2017/TT-BTC</div>
+        </div>
+
+        <h2>${typeLabel} QUỸ LỚP</h2>
+        <div class="date">Ngày ${item.date || new Date().toISOString().split('T')[0]} | Mã số: #VCH-${item.id || Date.now()}</div>
+
+        <div class="content-row"><span class="label">Họ tên người nhận/nộp:</span> Ban Đại Diện Phụ Huynh / Học Sinh Lớp 12.7</div>
+        <div class="content-row"><span class="label">Nội dung thu/chi:</span> <strong>${item.title}</strong></div>
+        <div class="content-row"><span class="label">Danh mục:</span> ${item.category || 'Quỹ lớp'}</div>
+        <div class="content-row"><span class="label">Ghi chú kèm theo:</span> ${item.note || 'Không có'}</div>
+
+        <div class="amount-box">
+          Số tiền: ${formatVND(item.amount)}
+        </div>
+
+        <div class="signatures">
+          <div class="sig-box"><strong>NGƯỜI LẬP PHIẾU</strong><br/><br/><br/><br/>(Ký & ghi rõ họ tên)</div>
+          <div class="sig-box"><strong>THỦ QUỸ LỚP</strong><br/><br/><br/><br/>(Ký & ghi rõ họ tên)</div>
+          <div class="sig-box"><strong>GIÁO VIÊN CHỦ NHIỆM</strong><br/><br/><br/><br/>Đỗ Kim Tuyền</div>
+        </div>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    setTimeout(() => { printWindow.print(); }, 500);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       
@@ -99,7 +153,7 @@ export default function Finance({ finance = [], onRefresh }) {
                 <th style={{ padding: '0.75rem', fontSize: '0.8rem', fontWeight: 700, color: '#374151' }}>Nội dung Thu / Chi</th>
                 <th style={{ padding: '0.75rem', fontSize: '0.8rem', fontWeight: 700, color: '#374151' }}>Danh mục</th>
                 <th style={{ padding: '0.75rem', fontSize: '0.8rem', fontWeight: 700, color: '#374151', textAlign: 'right' }}>Số tiền</th>
-                {isTeacher && <th style={{ padding: '0.75rem', fontSize: '0.8rem', fontWeight: 700, color: '#374151', textAlign: 'center' }}>Xóa</th>}
+                <th style={{ padding: '0.75rem', fontSize: '0.8rem', fontWeight: 700, color: '#374151', textAlign: 'center' }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -124,20 +178,29 @@ export default function Finance({ finance = [], onRefresh }) {
                     {item.note && <div style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 400 }}>{item.note}</div>}
                   </td>
                   <td style={{ padding: '0.75rem', fontSize: '0.82rem', color: '#4b5563' }}>{item.category || '—'}</td>
-                  <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 700, fontSize: '0.95rem', color: item.type === 'income' ? '#16a34a' : '#dc2626' }}>
+                  <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 800, color: item.type === 'income' ? '#166534' : '#b91c1c' }}>
                     {item.type === 'income' ? '+' : '-'}{formatVND(item.amount)}
                   </td>
-                  {isTeacher && (
-                    <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                  <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
                       <button
-                        onClick={() => handleDelete(item.id)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem' }}
-                        title="Xóa giao dịch"
+                        onClick={() => handleExportVoucherPDF(item)}
+                        style={{ background: '#e0f2fe', color: '#0369a1', border: 'none', padding: '0.25rem 0.55rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700 }}
+                        title="In Phiếu Thu/Chi PDF"
                       >
-                        🗑️
+                        📄 Phiếu
                       </button>
-                    </td>
-                  )}
+                      {isTeacher && (
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem' }}
+                          title="Xóa giao dịch"
+                        >
+                          🗑️
+                        </button>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
