@@ -99,12 +99,13 @@ export default function App() {
 
       const localTkb = localStorage.getItem('qlcn_timetable_image') || '';
       const localMap = localStorage.getItem('qlcn_class_map_image') || '';
-      let localAnn = [], localReqs = [], localHomeReqs = [], localFinance = [], localActivities = [];
+      let localAnn = [], localReqs = [], localHomeReqs = [], localFinance = [], localActivities = [], localConfessions = [];
       try { localAnn = JSON.parse(localStorage.getItem('qlcn_announcements') || '[]'); } catch {}
       try { localReqs = JSON.parse(localStorage.getItem('qlcn_leave_requests') || '[]'); } catch {}
       try { localHomeReqs = JSON.parse(localStorage.getItem('qlcn_home_requests') || '[]'); } catch {}
       try { localFinance = JSON.parse(localStorage.getItem('qlcn_finance') || '[]'); } catch {}
       try { localActivities = JSON.parse(localStorage.getItem('qlcn_activities') || '[]'); } catch {}
+      try { localConfessions = JSON.parse(localStorage.getItem('qlcn_confessions') || '[]'); } catch {}
 
       const serverAnn = Array.isArray(result.announcements) ? result.announcements : [];
       const mergedAnn = [...serverAnn];
@@ -146,6 +147,14 @@ export default function App() {
         }
       });
 
+      const serverConfessions = Array.isArray(result.confessions) ? result.confessions : [];
+      const mergedConfessions = [...serverConfessions];
+      localConfessions.forEach(lc => {
+        if (!mergedConfessions.some(c => String(c.id) === String(lc.id))) {
+          mergedConfessions.unshift(lc);
+        }
+      });
+
       setData(prev => ({
         ...prev,
         ...result,
@@ -155,6 +164,7 @@ export default function App() {
         homeRequests: mergedHomeReqs,
         finance: mergedFinance,
         activities: mergedActivities,
+        confessions: mergedConfessions,
         timetableImage: result.timetableImage || localTkb || prev.timetableImage,
         classMapImage: result.classMapImage || localMap || prev.classMapImage,
       }));
@@ -164,12 +174,13 @@ export default function App() {
       }
       const localTkb = localStorage.getItem('qlcn_timetable_image') || '';
       const localMap = localStorage.getItem('qlcn_class_map_image') || '';
-      let localAnn = [], localReqs = [], localHomeReqs = [], localFinance = [], localActivities = [];
+      let localAnn = [], localReqs = [], localHomeReqs = [], localFinance = [], localActivities = [], localConfessions = [];
       try { localAnn = JSON.parse(localStorage.getItem('qlcn_announcements') || '[]'); } catch {}
       try { localReqs = JSON.parse(localStorage.getItem('qlcn_leave_requests') || '[]'); } catch {}
       try { localHomeReqs = JSON.parse(localStorage.getItem('qlcn_home_requests') || '[]'); } catch {}
       try { localFinance = JSON.parse(localStorage.getItem('qlcn_finance') || '[]'); } catch {}
       try { localActivities = JSON.parse(localStorage.getItem('qlcn_activities') || '[]'); } catch {}
+      try { localConfessions = JSON.parse(localStorage.getItem('qlcn_confessions') || '[]'); } catch {}
 
       setData(prev => ({
         ...prev,
@@ -178,6 +189,7 @@ export default function App() {
         homeRequests: localHomeReqs.length > 0 ? localHomeReqs : prev.homeRequests,
         finance: localFinance.length > 0 ? localFinance : prev.finance,
         activities: localActivities.length > 0 ? localActivities : prev.activities,
+        confessions: localConfessions.length > 0 ? localConfessions : prev.confessions,
         timetableImage: prev.timetableImage || localTkb,
         classMapImage: prev.classMapImage || localMap,
       }));

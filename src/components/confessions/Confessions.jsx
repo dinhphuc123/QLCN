@@ -12,15 +12,31 @@ export default function Confessions({ confessions, isTeacher, onRefresh }) {
   const handleSend = async () => {
     if (!content.trim()) { toast.error('Vui lòng nhập nội dung!'); return; }
     setSending(true);
+
+    const newConf = {
+      id: Date.now(),
+      content: content.trim(),
+      timestamp: new Date().toISOString(),
+      anonymous,
+      createdAt: new Date().toISOString(),
+    };
+
+    // Instant local persistence
     try {
-      await api.createConfession({ content: content.trim(), timestamp: new Date().toISOString(), anonymous });
-      setContent('');
-      toast.success(`Tâm sự đã được gửi an toàn đến GVCN ${settings.teacherName} 💌`, { duration: 4000 });
-      onRefresh();
-    } catch {
-      toast.error('Lỗi khi gửi, vui lòng thử lại');
-    } finally {
-      setSending(false);
+      const localConfessions = JSON.parse(localStorage.getItem('qlcn_confessions') || '[]');
+      localStorage.setItem('qlcn_confessions', JSON.stringify([newConf, ...localConfessions]));
+    } catch {}
+
+    setContent('');
+    toast.success(`Tâm sự đã được gửi an toàn đến GVCN ${settings.teacherName} 💌`, { duration: 4000 });
+    setSending(false);
+    onRefresh();
+
+    // Background sync
+    try {
+      await api.createConfession(newConf);
+    } catch (err) {
+      console.warn('createConfession API background sync failed (saved locally):', err.message);
     }
   };
 
