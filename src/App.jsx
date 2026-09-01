@@ -84,14 +84,24 @@ export default function App() {
     finance: [],
   });
 
+  const lastDataRef = React.useRef(null);
+
   // ── Data fetch ─────────────────────────────────────────────────────────────
   const fetchData = useCallback(async (isInitial = false) => {
     try {
       const result = await api.getData();
+      const dataHash = JSON.stringify(result);
+      if (lastDataRef.current === dataHash && !isInitial) {
+        setLoading(false);
+        return; // Skip state update if server data hasn't changed (stops screen flickering!)
+      }
+      lastDataRef.current = dataHash;
+
       const localTkb = localStorage.getItem('qlcn_timetable_image') || '';
       const localMap = localStorage.getItem('qlcn_class_map_image') || '';
-      let localAnn = [];
+      let localAnn = [], localReqs = [];
       try { localAnn = JSON.parse(localStorage.getItem('qlcn_announcements') || '[]'); } catch {}
+      try { localReqs = JSON.parse(localStorage.getItem('qlcn_leave_requests') || '[]'); } catch {}
 
       const serverAnn = Array.isArray(result.announcements) ? result.announcements : [];
       const mergedAnn = [...serverAnn];
@@ -101,11 +111,20 @@ export default function App() {
         }
       });
 
+      const serverReqs = Array.isArray(result.leaveRequests) ? result.leaveRequests : [];
+      const mergedReqs = [...serverReqs];
+      localReqs.forEach(lr => {
+        if (!mergedReqs.some(r => r.id === lr.id)) {
+          mergedReqs.unshift(lr);
+        }
+      });
+
       setData(prev => ({
         ...prev,
         ...result,
         students: (result.students && result.students.length > 0) ? result.students : INITIAL_STUDENTS,
         announcements: mergedAnn,
+        leaveRequests: mergedReqs,
         timetableImage: result.timetableImage || localTkb || prev.timetableImage,
         classMapImage: result.classMapImage || localMap || prev.classMapImage,
       }));
@@ -115,12 +134,14 @@ export default function App() {
       }
       const localTkb = localStorage.getItem('qlcn_timetable_image') || '';
       const localMap = localStorage.getItem('qlcn_class_map_image') || '';
-      let localAnn = [];
+      let localAnn = [], localReqs = [];
       try { localAnn = JSON.parse(localStorage.getItem('qlcn_announcements') || '[]'); } catch {}
+      try { localReqs = JSON.parse(localStorage.getItem('qlcn_leave_requests') || '[]'); } catch {}
 
       setData(prev => ({
         ...prev,
         announcements: localAnn.length > 0 ? localAnn : prev.announcements,
+        leaveRequests: localReqs.length > 0 ? localReqs : prev.leaveRequests,
         timetableImage: prev.timetableImage || localTkb,
         classMapImage: prev.classMapImage || localMap,
       }));

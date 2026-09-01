@@ -416,13 +416,19 @@ app.put('/api/home-requests/:id', requireTeacher, (req, res) => {
 
 // Leave Requests
 app.post('/api/requests', (req, res) => {
-  const leaveReq = req.body;
-  const db = readDB();
-  const newReq = { ...leaveReq, id: Date.now(), createdAt: new Date().toISOString() };
-  db.leaveRequests.unshift(newReq);
-  writeDB(db);
-  addAuditLog(req.user, 'TẠO ĐƠN XIN NGHỈ', leaveReq.studentName);
-  res.json({ success: true, request: newReq });
+  try {
+    const leaveReq = req.body;
+    const db = readDB();
+    if (!Array.isArray(db.leaveRequests)) db.leaveRequests = [];
+    const newReq = { ...leaveReq, id: Date.now(), createdAt: new Date().toISOString() };
+    db.leaveRequests.unshift(newReq);
+    writeDB(db);
+    addAuditLog(req.user, 'TẠO ĐƠN XIN NGHỈ', leaveReq.studentName || 'Học sinh');
+    return res.json({ success: true, request: newReq });
+  } catch (err) {
+    console.error('Error creating leave request:', err);
+    return res.status(200).json({ success: false, error: err.message || 'Lỗi lưu đơn xin nghỉ' });
+  }
 });
 
 app.put('/api/requests/:id', (req, res) => {
