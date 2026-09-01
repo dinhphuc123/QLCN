@@ -5,7 +5,7 @@ import { CLASS_OFFICERS } from '../../data/initialStudents';
 import SeatingGeneratorModal from './SeatingGeneratorModal';
 import Badges from '../gamification/Badges';
 import { useClassSettings } from '../../context/ClassSettingsContext';
-import { maskPhone, maskParentInfo } from '../../utils/privacy';
+import StudentDashboard from './StudentDashboard';
 
 export default function Dashboard({ students, attendance, timetableImage, classMapImage, isTeacher, setActiveTab, handleTimetableChange, handleClassMapChange, onRefresh }) {
   const { settings } = useClassSettings();
@@ -13,6 +13,10 @@ export default function Dashboard({ students, attendance, timetableImage, classM
   const [swapSrc, setSwapSrc] = useState(null);
   const [showSeatingModal, setShowSeatingModal] = useState(false);
   const [showMapModal, setShowMapModal] = useState(false);
+
+  if (!isTeacher) {
+    return <StudentDashboard students={students} attendance={attendance} setActiveTab={setActiveTab} onRefresh={onRefresh} />;
+  }
 
   const today = new Date().toISOString().split('T')[0];
   const todayAtt = (attendance[today] && attendance[today].sessions ? attendance[today].sessions.morning : attendance[today]) || {};
