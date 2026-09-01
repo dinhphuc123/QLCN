@@ -526,18 +526,22 @@ export default function Evaluation({ students = [], onRefresh }) {
             </div>
           </div>
 
-          {/* Group Category Tabs */}
-          <div style={{ display: 'flex', gap: '0.4rem', overflowX: 'auto', background: '#f3f4f6', padding: '0.3rem', borderRadius: '0.75rem' }}>
+          {/* Group Category Tabs (Mobile Touch Scroll Pills) */}
+          <div className="mobile-scroll-x" style={{
+            display: 'flex', gap: '0.45rem', overflowX: 'auto', background: '#f3f4f6',
+            padding: '0.35rem', borderRadius: '0.85rem', scrollbarWidth: 'none', msOverflowStyle: 'none'
+          }}>
             {CRITERIA_GROUPS.map(grp => (
               <button
                 key={grp}
                 onClick={() => setActiveGroup(grp)}
                 style={{
-                  padding: '0.45rem 0.75rem', borderRadius: '0.5rem', border: 'none', cursor: 'pointer',
-                  fontWeight: 700, fontSize: '0.78rem', whiteSpace: 'nowrap', transition: 'all 0.15s',
+                  padding: '0.55rem 0.9rem', borderRadius: '0.65rem', border: 'none', cursor: 'pointer',
+                  fontWeight: 700, fontSize: '0.8rem', whiteSpace: 'nowrap', transition: 'all 0.15s ease',
+                  flexShrink: 0,
                   background: activeGroup === grp ? 'white' : 'transparent',
-                  color: activeGroup === grp ? 'var(--color-primary-dark)' : '#6b7280',
-                  boxShadow: activeGroup === grp ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
+                  color: activeGroup === grp ? 'var(--color-primary-dark)' : '#4b5563',
+                  boxShadow: activeGroup === grp ? '0 2px 8px rgba(0,0,0,0.12)' : 'none',
                 }}
               >
                 {grp}
@@ -545,40 +549,41 @@ export default function Evaluation({ students = [], onRefresh }) {
             ))}
           </div>
 
-          {/* Criteria List */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', maxHeight: '400px', overflowY: 'auto', paddingRight: '0.3rem' }}>
+          {/* Criteria List (Touch-optimized 44px targets) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', maxHeight: '420px', overflowY: 'auto', paddingRight: '0.3rem' }}>
             {getCriteriaByGroup(activeGroup).map(item => {
               const count = selectedViolations[item.id] || 0;
               return (
                 <div key={item.id} style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: '0.65rem 0.85rem', borderRadius: '0.625rem',
+                  padding: '0.75rem 0.95rem', borderRadius: '0.75rem',
                   background: count > 0 ? (item.isBonus ? '#f0fdf4' : '#fff5f5') : 'white',
-                  border: `1px solid ${count > 0 ? (item.isBonus ? '#86efac' : '#fca5a5') : '#f3f4f6'}`,
+                  border: `1.5px solid ${count > 0 ? (item.isBonus ? '#86efac' : '#fca5a5') : '#f3f4f6'}`,
+                  boxShadow: count > 0 ? '0 2px 8px rgba(0,0,0,0.03)' : 'none'
                 }}>
-                  <div style={{ flex: 1, paddingRight: '1rem' }}>
-                    <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#111827' }}>
+                  <div style={{ flex: 1, paddingRight: '0.75rem' }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#111827', lineHeight: 1.35 }}>
                       #{item.id}. {item.label}
                     </div>
-                    <span style={{ fontSize: '0.75rem', color: item.isBonus ? '#15803d' : '#b91c1c', fontWeight: 700 }}>
+                    <span style={{ fontSize: '0.75rem', color: item.isBonus ? '#15803d' : '#b91c1c', fontWeight: 800, marginTop: '0.15rem', display: 'inline-block' }}>
                       {item.points > 0 ? `+${item.points}` : item.points} điểm / {item.unit}
                     </span>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
                     <button
                       className="criteria-btn"
                       onClick={() => handleToggleCriterion(item.id, -1)}
                       disabled={count === 0}
                       style={{
-                        width: '44px', height: '44px', borderRadius: '50%', border: '1px solid #d1d5db',
-                        background: 'white', cursor: count === 0 ? 'not-allowed' : 'pointer', opacity: count === 0 ? 0.4 : 1,
-                        fontWeight: 800, fontSize: '1rem'
+                        width: '44px', height: '44px', borderRadius: '50%', border: '1.5px solid #d1d5db',
+                        background: 'white', cursor: count === 0 ? 'not-allowed' : 'pointer', opacity: count === 0 ? 0.35 : 1,
+                        fontWeight: 800, fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
                       }}
                     >
                       -
                     </button>
-                    <span style={{ fontWeight: 800, fontSize: '0.95rem', minWidth: '24px', textAlign: 'center' }}>
+                    <span style={{ fontWeight: 900, fontSize: '1rem', minWidth: '24px', textAlign: 'center', color: '#1f2937' }}>
                       {count}
                     </span>
                     <button
@@ -587,7 +592,8 @@ export default function Evaluation({ students = [], onRefresh }) {
                       style={{
                         width: '44px', height: '44px', borderRadius: '50%', border: 'none',
                         background: item.isBonus ? '#16a34a' : 'var(--color-primary-dark)', color: 'white', cursor: 'pointer',
-                        fontWeight: 800, fontSize: '1rem'
+                        fontWeight: 800, fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
                       }}
                     >
                       +
