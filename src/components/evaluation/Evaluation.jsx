@@ -638,44 +638,49 @@ export default function Evaluation({ students = [], onRefresh }) {
         {/* Right Column: Analytics & Ranking */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
-          {/* BarChart */}
-          <div className="glass-panel" style={{ padding: '1.5rem' }}>
-            <h4 style={{ margin: '0 0 1rem 0' }}>🏆 Điểm TB Thi Đua 4 Tổ ({selectedWeek.replace('tuan_', 'Tuần ')})</h4>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={groupStats} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                <YAxis domain={[0, 110]} tick={{ fontSize: 11 }} />
-                <Tooltip contentStyle={{ borderRadius: '0.75rem', fontSize: '0.82rem' }} />
-                <Bar dataKey="Điểm TB" radius={[6, 6, 0, 0]}>
-                  {groupStats.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          {/* BarChart & Class Progress List (Only visible to Officers: GVCN, Lớp trưởng, Tổ trưởng) */}
+          {(isTeacher || isMonitor || isGroupLeader || canApproveCompetition) && (
+            <>
+              {/* BarChart */}
+              <div className="glass-panel" style={{ padding: '1.5rem' }}>
+                <h4 style={{ margin: '0 0 1rem 0' }}>🏆 Điểm TB Thi Đua 4 Tổ ({selectedWeek.replace('tuan_', 'Tuần ')})</h4>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={groupStats} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                    <YAxis domain={[0, 110]} tick={{ fontSize: 11 }} />
+                    <Tooltip contentStyle={{ borderRadius: '0.75rem', fontSize: '0.82rem' }} />
+                    <Bar dataKey="Điểm TB" radius={[6, 6, 0, 0]}>
+                      {groupStats.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
 
-          {/* Quick List Status */}
-          <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <h4 style={{ margin: 0, fontSize: '0.92rem' }}>📋 Tiến Độ Nộp Phiếu Tuần Này</h4>
-            <div style={{ maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem' }}>
-              {students.map(s => {
-                const r = competitionData[s.id] || {};
-                const st = r.status || 'draft';
-                return (
-                  <div key={s.id} onClick={() => setSelectedStudentId(String(s.id))} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.35rem 0.6rem', borderRadius: '0.4rem', background: selectedStudentId === String(s.id) ? '#e0f2fe' : '#f9fafb', cursor: 'pointer' }}>
-                    <span style={{ fontWeight: 600 }}>{String(s.id).padStart(2, '0')}. {s.name}</span>
-                    <span>
-                      {st === 'approved' && '✅'}
-                      {st === 'reviewed' && '⏳ (Chờ GVCN)'}
-                      {st === 'submitted' && '📩 (Chờ Tổ)'}
-                      {st === 'rejected' && '❌ (Làm lại)'}
-                      {st === 'draft' && '📝 (Chưa nộp)'}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+              {/* Quick List Status */}
+              <div className="glass-panel" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <h4 style={{ margin: 0, fontSize: '0.92rem' }}>📋 Tiến Độ Nộp Phiếu Tuần Này</h4>
+                <div style={{ maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem' }}>
+                  {students.map(s => {
+                    const r = competitionData[s.id] || {};
+                    const st = r.status || 'draft';
+                    return (
+                      <div key={s.id} onClick={() => setSelectedStudentId(String(s.id))} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.35rem 0.6rem', borderRadius: '0.4rem', background: selectedStudentId === String(s.id) ? '#e0f2fe' : '#f9fafb', cursor: 'pointer' }}>
+                        <span style={{ fontWeight: 600 }}>{String(s.id).padStart(2, '0')}. {s.name}</span>
+                        <span>
+                          {st === 'approved' && '✅'}
+                          {st === 'reviewed' && '⏳ (Chờ GVCN)'}
+                          {st === 'submitted' && '📩 (Chờ Tổ)'}
+                          {st === 'rejected' && '❌ (Làm lại)'}
+                          {st === 'draft' && '📝 (Chưa nộp)'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
+          )}
 
         </div>
 
