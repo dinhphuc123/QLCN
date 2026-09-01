@@ -290,34 +290,37 @@ export default function Notifications({ announcements = [], students = [], onRef
               )}
 
               {/* Read Receipt Footer */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f3f4f6', paddingTop: '0.75rem' }}>
-                <button
-                  onClick={() => handleMarkRead(ann)}
-                  disabled={alreadyRead}
-                  style={{
-                    padding: '0.45rem 1.1rem', fontSize: '0.8rem', borderRadius: '9999px',
-                    background: alreadyRead ? '#f0fdf4' : '#0369a1',
-                    color: alreadyRead ? '#166534' : 'white',
-                    border: alreadyRead ? '1px solid #86efac' : 'none',
-                    cursor: alreadyRead ? 'default' : 'pointer', fontWeight: 800,
-                    boxShadow: alreadyRead ? 'none' : '0 2px 8px rgba(3,105,161,0.25)',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  {alreadyRead ? '✓ Đã Check-in nhận thông báo' : '🔔 Bấm Check-in xác nhận đã đọc'}
-                </button>
+              <div style={{ display: 'flex', justifyContent: isTeacher ? 'flex-end' : 'space-between', alignItems: 'center', borderTop: '1px solid #f3f4f6', paddingTop: '0.75rem' }}>
+                {!isTeacher && (
+                  <button
+                    onClick={() => handleMarkRead(ann)}
+                    disabled={alreadyRead}
+                    style={{
+                      padding: '0.45rem 1.1rem', fontSize: '0.8rem', borderRadius: '9999px',
+                      background: alreadyRead ? '#f0fdf4' : '#0369a1',
+                      color: alreadyRead ? '#166534' : 'white',
+                      border: alreadyRead ? '1px solid #86efac' : 'none',
+                      cursor: alreadyRead ? 'default' : 'pointer', fontWeight: 800,
+                      boxShadow: alreadyRead ? 'none' : '0 2px 8px rgba(3,105,161,0.25)',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {alreadyRead ? '✓ Đã Check-in nhận thông báo' : '🔔 Bấm Check-in xác nhận đã đọc'}
+                  </button>
+                )}
 
                 <button
                   onClick={() => setTrackingAnn(ann)}
                   style={{
-                    fontSize: '0.8rem', color: '#0284c7', background: '#e0f2fe',
-                    border: '1px solid #7dd3fc', padding: '0.35rem 0.75rem',
-                    borderRadius: '9999px', fontWeight: 700, cursor: 'pointer',
-                    display: 'inline-flex', alignItems: 'center', gap: '0.35rem'
+                    fontSize: '0.82rem', color: '#0284c7', background: '#e0f2fe',
+                    border: '1.5px solid #7dd3fc', padding: '0.4rem 0.95rem',
+                    borderRadius: '9999px', fontWeight: 800, cursor: 'pointer',
+                    display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                    boxShadow: '0 2px 8px rgba(2, 132, 199, 0.15)'
                   }}
                   title="Bấm xem chi tiết tiến độ đọc 4 Tổ"
                 >
-                  📊 Đã đọc: <strong>{(ann.readBy || []).length} / {students.length || 40}</strong> HS (Xem 4 Tổ)
+                  📊 Tiến độ Check-in đọc: <strong>{(ann.readBy || []).length} / {students.length || 40}</strong> HS (Xem chi tiết 4 Tổ)
                 </button>
               </div>
             </div>
