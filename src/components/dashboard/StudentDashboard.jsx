@@ -310,7 +310,7 @@ export default function StudentDashboard({ timetableImage = '', students = [], a
       {/* Balanced 2-Column Section: Class Announcements (Left) & Smart Timetable (Right) */}
       <div className="eval-main-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.2fr)', gap: '1.25rem' }}>
         
-        {/* Left Column: Class Announcements (Linked directly from GVCN Portal) */}
+        {/* Left Column: Class Announcements */}
         <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -331,6 +331,8 @@ export default function StudentDashboard({ timetableImage = '', students = [], a
               {activeAnnouncements.slice(0, 3).map((item, idx) => {
                 const tagConfig = ANNOUNCEMENT_TAG_COLORS[item.tag] || { bg: '#eff6ff', text: '#1e40af', border: '#bfdbfe' };
                 const isUrgent = item.tag === '🚨 KHẨN';
+                const isReadByMe = (item.readBy || []).includes(user?.id);
+
                 return (
                   <div key={idx} style={{
                     padding: '0.85rem 1rem', background: tagConfig.bg, borderRadius: '0.85rem',
@@ -353,6 +355,30 @@ export default function StudentDashboard({ timetableImage = '', students = [], a
                         📎 Tải file đính kèm: {item.fileName || 'Tài liệu'}
                       </a>
                     )}
+                    
+                    {/* Interactive Check-in Announcement Confirmation Button */}
+                    <div style={{ marginTop: '0.65rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', paddingTop: '0.5rem', borderTop: `1px solid ${tagConfig.border}` }}>
+                      <button
+                        onClick={() => handleCheckInRead(item)}
+                        disabled={isReadByMe}
+                        style={{
+                          padding: '0.38rem 0.85rem', fontSize: '0.75rem', borderRadius: '9999px',
+                          background: isReadByMe ? '#dcfce7' : '#0369a1',
+                          color: isReadByMe ? '#166534' : 'white',
+                          border: isReadByMe ? '1px solid #86efac' : 'none',
+                          fontWeight: 800, cursor: isReadByMe ? 'default' : 'pointer',
+                          display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                          boxShadow: isReadByMe ? 'none' : '0 2px 8px rgba(3, 105, 161, 0.25)',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {isReadByMe ? '✓ Đã Check-in nhận thông báo' : '🔔 Bấm Check-in xác nhận đã đọc'}
+                      </button>
+
+                      <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700 }}>
+                        📊 Đã đọc: {(item.readBy || []).length} HS
+                      </span>
+                    </div>
                   </div>
                 );
               })}

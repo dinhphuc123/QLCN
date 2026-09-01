@@ -293,15 +293,18 @@ export default function Notifications({ announcements = [], students = [], onRef
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f3f4f6', paddingTop: '0.75rem' }}>
                 <button
                   onClick={() => handleMarkRead(ann)}
+                  disabled={alreadyRead}
                   style={{
                     padding: '0.45rem 1.1rem', fontSize: '0.8rem', borderRadius: '9999px',
-                    background: alreadyRead ? '#f0fdf4' : 'var(--color-primary-brand)',
-                    color: alreadyRead ? '#16a34a' : 'white',
+                    background: alreadyRead ? '#f0fdf4' : '#0369a1',
+                    color: alreadyRead ? '#166534' : 'white',
                     border: alreadyRead ? '1px solid #86efac' : 'none',
-                    cursor: alreadyRead ? 'default' : 'pointer', fontWeight: 700,
+                    cursor: alreadyRead ? 'default' : 'pointer', fontWeight: 800,
+                    boxShadow: alreadyRead ? 'none' : '0 2px 8px rgba(3,105,161,0.25)',
+                    transition: 'all 0.15s ease'
                   }}
                 >
-                  {alreadyRead ? '✓ Đã xác nhận đã đọc' : '🔔 Bấm xác nhận đã đọc'}
+                  {alreadyRead ? '✓ Đã Check-in nhận thông báo' : '🔔 Bấm Check-in xác nhận đã đọc'}
                 </button>
 
                 <button
