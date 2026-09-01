@@ -67,17 +67,38 @@ function NewAnnouncementModal({ onClose, onSave }) {
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 150, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-      <div style={{ background: 'white', borderRadius: '1.25rem', padding: '2rem', width: '100%', maxWidth: '520px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <h3 style={{ fontFamily: 'var(--font-serif)', margin: 0 }}>📢 Đăng Thông Báo / Kế Hoạch Mới</h3>
+    <div 
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(15, 23, 42, 0.65)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '1.25rem', overflowY: 'auto'
+      }}
+    >
+      <div 
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: 'white', borderRadius: '1.25rem', padding: '1.75rem 2rem',
+          width: '100%', maxWidth: '540px', maxHeight: '88vh', overflowY: 'auto',
+          margin: 'auto', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.25)',
+          display: 'flex', flexDirection: 'column', gap: '1.1rem'
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem' }}>
+          <h3 style={{ fontFamily: 'var(--font-serif)', margin: 0, fontSize: '1.2rem', color: '#0f172a' }}>
+            📢 Đăng Thông Báo / Kế Hoạch Mới
+          </h3>
+          <button onClick={onClose} style={{ border: 'none', background: '#f1f5f9', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', fontWeight: 800 }}>✕</button>
+        </div>
 
         <div>
-          <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem' }}>Tiêu đề thông báo *</label>
+          <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem', color: '#334155' }}>Tiêu đề thông báo *</label>
           <input type="text" className="form-input" style={{ width: '100%' }} placeholder="Nhập tiêu đề..." value={title} onChange={e => setTitle(e.target.value)} />
         </div>
 
         <div>
-          <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem' }}>Phân loại (Tag)</label>
+          <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem', color: '#334155' }}>Phân loại (Tag)</label>
           <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
             {Object.keys(TAG_COLORS).map(t => (
               <button key={t} onClick={() => setTag(t)} style={{
@@ -92,19 +113,19 @@ function NewAnnouncementModal({ onClose, onSave }) {
         </div>
 
         <div>
-          <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem' }}>Nội dung chi tiết *</label>
+          <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem', color: '#334155' }}>Nội dung chi tiết *</label>
           <textarea className="form-input" style={{ width: '100%', minHeight: '120px', resize: 'vertical' }}
             placeholder="Viết nội dung chỉ đạo, lưu ý..." value={content} onChange={e => setContent(e.target.value)} />
         </div>
 
         <div>
-          <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem' }}>File đính kèm (PDF / Word / Ảnh)</label>
+          <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem', color: '#334155' }}>File đính kèm (PDF / Word / Ảnh)</label>
           <input type="file" className="form-input" style={{ width: '100%' }} onChange={handleFileUpload} />
-          {uploading && <p style={{ fontSize: '0.75rem', color: '#2563eb' }}>Đang nạp file...</p>}
-          {fileName && <p style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 700 }}>📎 Đã đính kèm: {fileName}</p>}
+          {uploading && <p style={{ fontSize: '0.75rem', color: '#2563eb', marginTop: '0.2rem' }}>Đang nạp file...</p>}
+          {fileName && <p style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 700, marginTop: '0.2rem' }}>📎 Đã đính kèm: {fileName}</p>}
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.85rem' }}>
           <button onClick={onClose} style={{ padding: '0.6rem 1.5rem', borderRadius: '9999px', border: '1.5px solid #d1d5db', background: 'white', cursor: 'pointer', fontWeight: 600 }}>Hủy</button>
           <button className="btn-primary" onClick={handleSave} disabled={uploading}>📢 Đăng thông báo</button>
         </div>

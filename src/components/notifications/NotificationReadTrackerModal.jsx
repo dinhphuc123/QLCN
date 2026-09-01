@@ -42,21 +42,21 @@ ${names || 'Đã đọc đủ 100%!'}
 
   return (
     <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      position: 'fixed', inset: 0,
       backgroundColor: 'rgba(15, 23, 42, 0.65)',
-      backdropFilter: 'blur(6px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 999, padding: '1rem'
+      zIndex: 9999, padding: '1.25rem', overflowY: 'auto'
     }} onClick={onClose}>
       <div className="modal-inner" style={{
         background: '#ffffff',
         borderRadius: '1.25rem',
-        padding: '1.5rem',
+        padding: '1.75rem',
         maxWidth: '650px',
         width: '100%',
-        maxHeight: '90vh',
+        maxHeight: '88vh',
         overflowY: 'auto',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+        margin: 'auto',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
         border: '1px solid rgba(0,0,0,0.1)'
       }} onClick={e => e.stopPropagation()}>
 
