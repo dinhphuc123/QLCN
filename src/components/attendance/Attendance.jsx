@@ -182,7 +182,7 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
           <div className="attendance-card-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.75rem' }}>
             {students.map(student => {
               const status = sessionRecord[student.id] || 'present';
-              const canEdit = isTeacher || user?.role === 'monitor' || (user?.role === 'group_leader' && student.group === user.group);
+              const canEdit = isTeacher || user?.role === 'monitor' || (user?.role === 'group_leader' && student.group === user.group) || (user?.id && Number(user.id) === student.id);
               return (
                 <div key={student.id} style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',

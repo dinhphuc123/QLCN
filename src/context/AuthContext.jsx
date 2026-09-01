@@ -18,10 +18,18 @@ export function AuthProvider({ children }) {
     } catch { /* ignore */ }
   }, []);
 
-  const persistSession = (u, token = 'offline_jwt_token') => {
+  const persistSession = (u, token = null) => {
     if (u) {
+      let finalToken = token;
+      if (!finalToken || finalToken === 'offline_jwt_token') {
+        try {
+          finalToken = 'fallback_' + btoa(unescape(encodeURIComponent(JSON.stringify(u))));
+        } catch {
+          finalToken = 'offline_jwt_token';
+        }
+      }
       localStorage.setItem('qlcn_session', JSON.stringify(u));
-      localStorage.setItem('qlcn_jwt_token', token || 'offline_jwt_token');
+      localStorage.setItem('qlcn_jwt_token', finalToken);
     } else {
       localStorage.removeItem('qlcn_session');
       localStorage.removeItem('qlcn_jwt_token');

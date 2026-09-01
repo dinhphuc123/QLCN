@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { api } from '../../lib/api';
+import { useAuth } from '../../context/AuthContext';
 
 const STATUS_STYLES = {
   pending:  { bg: '#fffbeb', text: '#92400e', label: '⏳ Chờ duyệt' },
@@ -9,12 +10,17 @@ const STATUS_STYLES = {
 };
 
 function CreateRequestModal({ students, onClose, onSave }) {
-  const [form, setForm] = useState({ studentName: '', type: 'Nghỉ ốm', reason: '' });
+  const { user } = useAuth();
+  const [form, setForm] = useState({ 
+    studentName: user?.name || (students[0] ? students[0].name : ''), 
+    type: 'Nghỉ ốm', 
+    reason: '' 
+  });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const handleSave = () => {
     if (!form.studentName.trim() || !form.reason.trim()) {
-      toast.error('Vui lòng nhập đầy đủ thông tin!');
+      toast.error('Vui lòng chọn tên học sinh và điền lý do chi tiết!');
       return;
     }
     onSave(form);
