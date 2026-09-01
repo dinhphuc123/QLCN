@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { useClassSettings } from '../../context/ClassSettingsContext';
 
-// Default Timetable Data if not provided
+// Default Timetable Data
 const DEFAULT_TIMETABLE = {
   'Thứ 2': { morning: ['Chào cờ', 'Toán', 'Toán', 'Văn', 'Tiếng Anh'], afternoon: ['Lịch sử', 'Địa lý', 'Sinh học'] },
   'Thứ 3': { morning: ['Vật lý', 'Vật lý', 'Hóa học', 'Toán', 'Tin học'], afternoon: ['Thể dục', 'Thể dục'] },
@@ -13,21 +13,85 @@ const DEFAULT_TIMETABLE = {
   'Thứ 7': { morning: ['Toán', 'Văn', 'Vật lý', 'Sinh hoạt lớp', 'Sinh hoạt Đoàn'], afternoon: [] },
 };
 
-const TREE_STAGES = [
-  { level: 1, minPts: 0,   maxPts: 60,  name: '🌱 Hạt Mầm Nảy Mầm',    desc: 'Bắt đầu hành trình rèn luyện nề nếp', color: '#16a34a', icon: '🌱' },
-  { level: 2, minPts: 61,  maxPts: 80,  name: '🌿 Cây Con Vươn Lên',   desc: 'Duy trì check-in & nề nếp đúng giờ', color: '#0d9488', icon: '🌿' },
-  { level: 3, minPts: 81,  maxPts: 90,  name: '🌳 Cây Xanh Xum Xuê',   desc: 'Tích cực học tập & rèn luyện xuất sắc', color: '#0284c7', icon: '🌳' },
-  { level: 4, minPts: 91,  maxPts: 98,  name: '🌸 Cây Khoe Sắc Hoa',    desc: 'Cán bộ tiêu biểu, gặt hái thành tích', color: '#d97706', icon: '🌸' },
-  { level: 5, minPts: 99,  maxPts: 120, name: '🍎 Cây Trĩu Quả Ngọt',   desc: 'Trưởng thành toàn diện, tấm gương lớp', color: '#7c3aed', icon: '🍎' },
+// 6 Cành rèn luyện với thang 100 điểm/tuần
+const TREE_BRANCHES = [
+  {
+    id: 'academic',
+    title: 'Học tập chủ động',
+    maxScore: 25,
+    icon: '📚',
+    color: '#0284c7',
+    items: ['Tham gia giờ tự học', 'Hoàn thành bài tập', 'Có tiến bộ trong môn học', 'Biết lập kế hoạch học tập']
+  },
+  {
+    id: 'dorm',
+    title: 'Nề nếp nội trú',
+    maxScore: 25,
+    icon: '🏠',
+    color: '#16a34a',
+    items: ['Đúng giờ ngủ, giờ thức', 'Giữ gìn phòng ở sạch sẽ', 'Bảo quản tài sản chung', 'Thực hiện tốt nội quy']
+  },
+  {
+    id: 'independence',
+    title: 'Tự lập và trách nhiệm',
+    maxScore: 20,
+    icon: '🎒',
+    color: '#7c3aed',
+    items: ['Tự chăm sóc bản thân', 'Sắp xếp đồ dùng gọn gàng', 'Chủ động giải quyết công việc', 'Nhận lỗi và sửa lỗi']
+  },
+  {
+    id: 'culture',
+    title: 'Đoàn kết & ứng xử',
+    maxScore: 15,
+    icon: '🤝',
+    color: '#d97706',
+    items: ['Tôn trọng bạn bè', 'Biết chia sẻ, giúp đỡ', 'Không gây mất đoàn kết', 'Giao tiếp lịch sự']
+  },
+  {
+    id: 'health',
+    title: 'Sức khỏe & an toàn',
+    maxScore: 10,
+    icon: '⚽',
+    color: '#059669',
+    items: ['Ăn uống, nghỉ ngơi đúng giờ', 'Tham gia thể dục & hoạt động tập thể', 'Giữ vệ sinh cá nhân', 'Tuân thủ quy định an toàn']
+  },
+  {
+    id: 'community',
+    title: 'Đóng góp cộng đồng',
+    maxScore: 5,
+    icon: '🌟',
+    color: '#db2777',
+    items: ['Trực nhật, vệ sinh khu KTX', 'Tham gia hoạt động chung', 'Hỗ trợ bạn hoặc tập thể', 'Có sáng kiến cải thiện đời sống']
+  }
+];
+
+// 5 Trạng thái ghi nhận
+const GROWTH_MARKERS = [
+  { icon: '🍃', name: 'Lá xanh', desc: 'Hoàn thành tốt trong tuần', color: '#16a34a' },
+  { icon: '🍂', name: 'Lá vàng', desc: 'Có tiến bộ rõ rệt', color: '#d97706' },
+  { icon: '🌸', name: 'Hoa', desc: 'Việc tốt / đóng góp nổi bật tháng', color: '#ec4899' },
+  { icon: '🍎', name: 'Quả', desc: 'Thành tích & trưởng thành cuối năm', color: '#dc2626' },
+  { icon: '🌱', name: 'Chồi non', desc: 'Mục tiêu cá nhân tiếp theo', color: '#10b981' }
+];
+
+// 6 Danh hiệu tháng
+const MONTHLY_TITLES = [
+  { title: '🤝 Người bạn nội trú tích cực', desc: 'Luôn sẵn sàng giúp đỡ bạn bè trong KTX', bg: '#e0f2fe', color: '#0369a1' },
+  { title: '🌟 Gương tự lập', desc: 'Gọn gàng, ngăn nắp và có tinh thần tự giác cao', bg: '#fef3c7', color: '#b45309' },
+  { title: '🏠 Phòng ở văn minh', desc: 'Giữ gìn vệ sinh phòng sạch sẽ và kỷ luật', bg: '#dcfce7', color: '#166534' },
+  { title: '📚 Bước tiến học tập', desc: 'Nỗ lực bứt phá trong học tập & giờ tự học', bg: '#faf5ff', color: '#6b21a8' },
+  { title: '⚡ Truyền năng lượng tốt', desc: 'Vui vẻ, hòa đồng, xây dựng tập thể vững mạnh', bg: '#ffe4e6', color: '#be123c' },
+  { title: '🏆 Tập thể tiến bộ', desc: 'Đồng lòng cùng phòng/tổ hoàn thành xuất sắc mục tiêu', bg: '#ccfbf1', color: '#0f766e' }
 ];
 
 export default function StudentDashboard({ students = [], attendance = {}, setActiveTab, announcements = [], onRefresh }) {
   const { user } = useAuth();
   const { settings } = useClassSettings();
+
   const [wateredToday, setWateredToday] = useState(false);
-  const [waterBonus, setWaterBonus] = useState(0);
+  const [activeBranch, setActiveBranch] = useState(null);
   const [selectedDay, setSelectedDay] = useState(() => {
-    const dayIndex = new Date().getDay(); // 0 is Sun, 1 Mon...
+    const dayIndex = new Date().getDay();
     const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
     return days[dayIndex] && DEFAULT_TIMETABLE[days[dayIndex]] ? days[dayIndex] : 'Thứ 2';
   });
@@ -38,16 +102,14 @@ export default function StudentDashboard({ students = [], attendance = {}, setAc
     return students.find(s => s.id === user.id) || {
       id: user.id || 1,
       name: user.name || 'Học sinh',
-      points: 92,
+      points: 95,
       group: user.group || 'Tổ 1',
       dormRoom: user.dormRoom || 'A1-07',
       position: user.position || 'Học sinh',
     };
   }, [user, students]);
 
-  const rawScore = (currentStudent?.points || 90) + waterBonus;
-  const currentStage = TREE_STAGES.find(s => rawScore >= s.minPts && rawScore <= s.maxPts) || TREE_STAGES[2];
-  const progressPct = Math.min(100, Math.max(0, ((rawScore - currentStage.minPts) / (currentStage.maxPts - currentStage.minPts)) * 100));
+  const studentScore = currentStudent?.points || 95;
 
   const today = new Date().toISOString().split('T')[0];
   const todayAtt = attendance[today] || {};
@@ -55,12 +117,11 @@ export default function StudentDashboard({ students = [], attendance = {}, setAc
 
   const handleWaterTree = () => {
     if (wateredToday) {
-      toast('Hôm nay bạn đã chăm sóc cây rồi! 🌿', { icon: '💧' });
+      toast('Hôm nay bạn đã chăm sóc cây rèn luyện rồi! 🍃', { icon: '💧' });
       return;
     }
     setWateredToday(true);
-    setWaterBonus(b => b + 2);
-    toast.success('🎉 Bạn đã tưới nước rèn luyện! (+2 điểm tinh thần)');
+    toast.success('🎉 Bạn đã tưới nước rèn luyện! (+2 điểm tinh thần tích cực)');
   };
 
   return (
@@ -90,17 +151,17 @@ export default function StudentDashboard({ students = [], attendance = {}, setAc
           </div>
           <div>
             <div style={{ fontSize: '0.8rem', opacity: 0.9, fontWeight: 600 }}>
-              👋 Chào mừng trở lại, {user?.position || 'Học sinh'}!
+              👋 Chào mừng trở lại, {user?.position || 'Học sinh Nội Trú'}!
             </div>
             <h2 style={{ margin: '0.2rem 0', fontSize: '1.4rem', fontWeight: 800 }}>
               {user?.name || 'Học sinh 12.7'}
             </h2>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.35rem' }}>
               <span style={{ fontSize: '0.72rem', background: 'rgba(255,255,255,0.2)', padding: '0.15rem 0.55rem', borderRadius: '9999px', fontWeight: 700 }}>
-                📍 {user?.group || 'Tổ 1'} • Phòng {user?.dormRoom || 'KTX'}
+                📍 {user?.group || 'Tổ 1'} • Phòng KTX {user?.dormRoom || 'A1-07'}
               </span>
               <span style={{ fontSize: '0.72rem', background: '#e0f2fe', color: '#0369a1', padding: '0.15rem 0.55rem', borderRadius: '9999px', fontWeight: 800 }}>
-                🏆 {rawScore} Điểm rèn luyện
+                🏆 {studentScore}/100 Điểm Tuần
               </span>
               <span style={{ fontSize: '0.72rem', background: isCheckedInToday ? '#dcfce7' : '#fef3c7', color: isCheckedInToday ? '#166534' : '#b45309', padding: '0.15rem 0.55rem', borderRadius: '9999px', fontWeight: 800 }}>
                 {isCheckedInToday ? '✅ Đã Check-in Hôm Nay' : '⏳ Chưa Check-in'}
@@ -109,35 +170,35 @@ export default function StudentDashboard({ students = [], attendance = {}, setAc
           </div>
         </div>
 
-        {/* Growth Level Tag */}
+        {/* Current Monthly Honor Title */}
         <div style={{
           background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)',
           border: '1px solid rgba(255,255,255,0.2)', padding: '0.75rem 1.25rem',
-          borderRadius: '1rem', textAlign: 'center', minWidth: '160px'
+          borderRadius: '1rem', textAlign: 'center', minWidth: '170px'
         }}>
-          <div style={{ fontSize: '0.72rem', opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cấp Độ Trưởng Thành</div>
-          <div style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0.2rem 0', color: '#fef08a' }}>
-            {currentStage.icon} Cấp {currentStage.level}
+          <div style={{ fontSize: '0.72rem', opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Danh Hiệu Tháng 09</div>
+          <div style={{ fontSize: '0.95rem', fontWeight: 800, margin: '0.2rem 0', color: '#fef08a' }}>
+            🌟 Gương Tự Lập
           </div>
-          <div style={{ fontSize: '0.75rem', fontWeight: 600 }}>{currentStage.name.split(' ').slice(1).join(' ')}</div>
+          <div style={{ fontSize: '0.72rem', opacity: 0.9 }}>Học sinh KTX Xuất Sắc</div>
         </div>
       </div>
 
       {/* 2-Column Responsive Layout */}
-      <div className="responsive-2col" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)', gap: '1.25rem' }}>
+      <div className="responsive-2col" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.3fr) minmax(0, 1fr)', gap: '1.25rem' }}>
         
-        {/* Left Column: Growth Tree & Quick Actions */}
+        {/* Left Column: Cây Hành Trình Trưởng Thành & 4 Quick Actions */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
-          {/* Cây Rèn Luyện & Trưởng Thành Card */}
+          {/* CÂY HÀNH TRÌNH TRƯỞNG THÀNH CARD */}
           <div className="glass-panel" style={{ padding: '1.5rem', position: 'relative', overflow: 'hidden' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div>
                 <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--color-primary-dark)' }}>
-                  🌳 Cây Rèn Luyện & Trưởng Thành
+                  🌳 Cây “Hành Trình Trưởng Thành”
                 </h3>
                 <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.78rem', color: '#6b7280' }}>
-                  Phát triển từng ngày qua quá trình đi học đúng giờ & nề nếp
+                  Ghi nhận 6 khía cạnh học tập, nề nếp KTX & kỹ năng sống (Tuần - Tháng - Năm)
                 </p>
               </div>
               <button
@@ -153,51 +214,112 @@ export default function StudentDashboard({ students = [], attendance = {}, setAc
               </button>
             </div>
 
-            {/* Tree Visual Illustration */}
+            {/* Tree Graphical Representation */}
             <div style={{
               background: 'linear-gradient(180deg, #f0fdf4 0%, #e0f2fe 100%)',
-              borderRadius: '1rem', padding: '1.5rem', textAlign: 'center',
-              border: '1.5px solid #bbf7d0', position: 'relative', marginBottom: '1rem'
+              borderRadius: '1.25rem', padding: '1.5rem',
+              border: '1.5px solid #bbf7d0', position: 'relative', marginBottom: '1.25rem'
             }}>
-              <div style={{ fontSize: '4.5rem', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.1))', transform: 'scale(1.1)', transition: 'all 0.3s ease' }}>
-                {currentStage.icon}
-              </div>
-              <div style={{ fontSize: '1rem', fontWeight: 800, color: currentStage.color, marginTop: '0.5rem' }}>
-                {currentStage.name}
-              </div>
-              <div style={{ fontSize: '0.78rem', color: '#4b5563', marginTop: '0.2rem' }}>
-                {currentStage.desc}
-              </div>
-
-              {/* Progress Bar */}
-              <div style={{ marginTop: '1rem', textAlign: 'left' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', fontWeight: 700, color: '#374151', marginBottom: '0.25rem' }}>
-                  <span>Tiến độ cấp {currentStage.level}</span>
-                  <span>{Math.round(progressPct)}% ({rawScore}/{currentStage.maxPts} điểm)</span>
+              {/* Tree Canopy Header */}
+              <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                <div style={{ fontSize: '4.2rem', filter: 'drop-shadow(0 8px 14px rgba(0,0,0,0.12))', transform: 'scale(1.05)' }}>
+                  🌳
                 </div>
-                <div style={{ height: '8px', background: '#d1d5db', borderRadius: '9999px', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${progressPct}%`, background: 'linear-gradient(90deg,#16a34a,#0284c7)', borderRadius: '9999px', transition: 'width 0.5s ease' }} />
+                <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#166534', marginTop: '0.2rem' }}>
+                  Cây Rèn Luyện Nội Trú 12.7
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#374151', fontWeight: 600 }}>
+                  Tổng điểm rèn luyện tuần này: <strong style={{ color: '#0284c7', fontSize: '0.9rem' }}>{studentScore}/100 điểm</strong>
                 </div>
               </div>
-            </div>
 
-            {/* Stages Milestones */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.35rem', textAlign: 'center' }}>
-              {TREE_STAGES.map(s => {
-                const isActive = currentStage.level >= s.level;
-                return (
-                  <div key={s.level} style={{
-                    padding: '0.35rem 0.2rem', borderRadius: '0.5rem',
-                    background: isActive ? '#f0fdf4' : '#f3f4f6',
-                    border: `1px solid ${isActive ? '#86efac' : '#e5e7eb'}`,
-                    opacity: isActive ? 1 : 0.6
-                  }}>
-                    <div style={{ fontSize: '1.2rem' }}>{s.icon}</div>
-                    <div style={{ fontSize: '0.65rem', fontWeight: 700, color: isActive ? '#166534' : '#6b7280' }}>Cấp {s.level}</div>
+              {/* 6 Cành cây rèn luyện (6 Branches Grid) */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.6rem', marginBottom: '1rem' }}>
+                {TREE_BRANCHES.map(b => (
+                  <div
+                    key={b.id}
+                    onClick={() => setActiveBranch(activeBranch === b.id ? null : b.id)}
+                    style={{
+                      background: 'white', border: `1.5px solid ${b.color}`, borderRadius: '0.75rem',
+                      padding: '0.6rem', cursor: 'pointer', transition: 'all 0.2s ease',
+                      boxShadow: activeBranch === b.id ? `0 0 0 2px ${b.color}` : 'none'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '1.1rem' }}>{b.icon}</span>
+                      <span style={{ fontSize: '0.7rem', fontWeight: 800, background: `${b.color}15`, color: b.color, padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                        {b.maxScore}đ
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#1f2937', marginTop: '0.3rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {b.title}
+                    </div>
                   </div>
-                );
-              })}
+                ))}
+              </div>
+
+              {/* Branch Detail Popup Modal / Expanded Info */}
+              {activeBranch && (
+                <div style={{ background: 'white', padding: '0.85rem 1rem', borderRadius: '0.75rem', border: '1px solid #d1d5db', marginBottom: '1rem', animation: 'fadeIn 0.2s' }}>
+                  {(() => {
+                    const b = TREE_BRANCHES.find(item => item.id === activeBranch);
+                    if (!b) return null;
+                    return (
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: '0.85rem', color: b.color, marginBottom: '0.35rem' }}>
+                          {b.icon} Tiêu chí cành "{b.title}" ({b.maxScore} điểm/tuần):
+                        </div>
+                        <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.78rem', color: '#4b5563', lineHeight: 1.5 }}>
+                          {b.items.map((it, idx) => <li key={idx}>{it}</li>)}
+                        </ul>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* Visual Markers Legend (Lá xanh, Lá vàng, Hoa, Quả, Chồi) */}
+              <div style={{ background: 'white', borderRadius: '0.75rem', padding: '0.75rem 1rem', border: '1px solid #e5e7eb' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#374151', marginBottom: '0.4rem' }}>
+                  🍃 Hệ thống biểu tượng ghi nhận:
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.4rem', textAlign: 'center' }}>
+                  {GROWTH_MARKERS.map((m, idx) => (
+                    <div key={idx} style={{ background: '#f9fafb', padding: '0.35rem 0.2rem', borderRadius: '6px', border: '1px solid #f3f4f6' }}>
+                      <div style={{ fontSize: '1.1rem' }}>{m.icon}</div>
+                      <div style={{ fontSize: '0.68rem', fontWeight: 800, color: m.color }}>{m.name}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Motto Footer Banner under Tree */}
+              <div style={{
+                marginTop: '1rem', padding: '0.75rem 1rem', borderRadius: '0.75rem',
+                background: 'linear-gradient(135deg, #1B4D53, #166534)', color: 'white',
+                textAlign: 'center', fontSize: '0.82rem', fontWeight: 700, fontStyle: 'italic',
+                boxShadow: '0 4px 12px rgba(27,77,83,0.15)'
+              }}>
+                💬 “Rời xa gia đình để học cách tự lập, sống cùng tập thể để trưởng thành.”
+              </div>
+
             </div>
+
+            {/* Monthly Titles Section */}
+            <div>
+              <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--color-primary-dark)', marginBottom: '0.6rem' }}>
+                🏆 6 Danh Hiệu Tuyên Dương Học Sinh Nội Trú Theo Tháng:
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem' }}>
+                {MONTHLY_TITLES.map((t, idx) => (
+                  <div key={idx} style={{ background: t.bg, border: `1px solid ${t.color}30`, borderRadius: '0.65rem', padding: '0.55rem 0.75rem' }}>
+                    <div style={{ fontWeight: 800, fontSize: '0.78rem', color: t.color }}>{t.title}</div>
+                    <div style={{ fontSize: '0.68rem', color: '#4b5563', marginTop: '0.15rem' }}>{t.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
 
           {/* 4 Quick Action Buttons */}
@@ -261,7 +383,7 @@ export default function StudentDashboard({ students = [], attendance = {}, setAc
 
         </div>
 
-        {/* Right Column: Announcements & Smart Timetable */}
+        {/* Right Column: Class Announcements & Smart Timetable */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
           {/* Class Announcements */}
@@ -284,15 +406,15 @@ export default function StudentDashboard({ students = [], attendance = {}, setAc
               ) : (
                 <>
                   <div style={{ padding: '0.75rem', background: '#f0fdf4', borderRadius: '0.75rem', border: '1px solid #bbf7d0' }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#166534' }}>📌 Nhắc nhở nề nếp tuần 01</div>
+                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#166534' }}>📌 Nhắc nhở nề nếp KTX tuần 01</div>
                     <div style={{ fontSize: '0.78rem', color: '#15803d', marginTop: '0.2rem' }}>
-                      Các bạn Tổ trưởng hoàn thành duyệt nề nếp vòng 1 trước 17h thứ 6. Học sinh thực hiện check-in đủ 5 buổi.
+                      Các phòng ở duy trì sinh hoạt đúng giờ, tự học từ 19h30 đến 21h30 và tắt đèn lúc 22h30.
                     </div>
                   </div>
                   <div style={{ padding: '0.75rem', background: '#eff6ff', borderRadius: '0.75rem', border: '1px solid #bfdbfe' }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#1e40af' }}>📢 Lịch sinh hoạt KTX tuần này</div>
+                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#1e40af' }}>📢 Đăng ký thi đua "Phòng ở văn minh"</div>
                     <div style={{ fontSize: '0.78rem', color: '#1d4ed8', marginTop: '0.2rem' }}>
-                      Trưởng phòng KTX kiểm tra vệ sinh phòng lúc 21h30 hằng ngày. Tắt đèn đúng 22h30.
+                      Trưởng phòng KTX hoàn thành kiểm tra và tự đánh giá thi đua tuần trước 17h thứ 6.
                     </div>
                   </div>
                 </>
