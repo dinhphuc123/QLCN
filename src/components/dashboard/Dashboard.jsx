@@ -7,7 +7,7 @@ import Badges from '../gamification/Badges';
 import { useClassSettings } from '../../context/ClassSettingsContext';
 import StudentDashboard from './StudentDashboard';
 
-export default function Dashboard({ students, attendance, timetableImage, classMapImage, isTeacher, setActiveTab, handleTimetableChange, handleClassMapChange, onRefresh }) {
+export default function Dashboard({ students, attendance, announcements, timetableImage, classMapImage, isTeacher, setActiveTab, handleTimetableChange, handleClassMapChange, onRefresh }) {
   const { settings } = useClassSettings();
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [swapSrc, setSwapSrc] = useState(null);
@@ -15,7 +15,7 @@ export default function Dashboard({ students, attendance, timetableImage, classM
   const [showMapModal, setShowMapModal] = useState(false);
 
   if (!isTeacher) {
-    return <StudentDashboard students={students} attendance={attendance} setActiveTab={setActiveTab} onRefresh={onRefresh} />;
+    return <StudentDashboard announcements={announcements} students={students} attendance={attendance} setActiveTab={setActiveTab} onRefresh={onRefresh} />;
   }
 
   const today = new Date().toISOString().split('T')[0];

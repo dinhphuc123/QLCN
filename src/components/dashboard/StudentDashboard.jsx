@@ -90,10 +90,64 @@ export default function StudentDashboard({ students = [], attendance = {}, setAc
 
   const [wateredToday, setWateredToday] = useState(false);
   const [activeBranch, setActiveBranch] = useState(null);
+  // Combine prop announcements with localStorage announcements posted by GVCN
+  const activeAnnouncements = useMemo(() => {
+    let localAnns = [];
+    try {
+      localAnns = JSON.parse(localStorage.getItem('qlcn_announcements') || '[]');
+    } catch {}
+    const combined = [...(Array.isArray(announcements) ? announcements : [])];
+    localAnns.forEach(la => {
+      if (!combined.some(a => String(a.id) === String(la.id))) {
+        combined.push(la);
+      }
+    });
+
+    if (combined.length === 0) {
+      return [
+        {
+          id: 101,
+          title: 'Nhắc nhở nề nếp KTX tuần 01',
+          content: 'Các phòng ở duy trì sinh hoạt đúng giờ, tự học từ 19h30 đến 21h30 và tắt đèn lúc 22h30.',
+          tag: 'Ký túc xá',
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 102,
+          title: 'Đăng ký thi đua "Phòng ở văn minh"',
+          content: 'Trưởng phòng KTX hoàn thành kiểm tra và tự đánh giá thi đua tuần trước 17h thứ 6.',
+          tag: 'Kế hoạch tuần',
+          createdAt: new Date().toISOString()
+        }
+      ];
+    }
+    return combined;
+  }, [announcements]);
+
+  // Combine Timetable data from localStorage or fallback
+  const timetableData = useMemo(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('qlcn_timetable_data') || 'null');
+      if (saved && typeof saved === 'object') return saved;
+    } catch {}
+    return DEFAULT_TIMETABLE;
+  }, []);
+
+  // ANNOUNCEMENT TAG STYLES
+  const ANNOUNCEMENT_TAG_COLORS = {
+    '🚨 KHẨN': { bg: '#fee2e2', text: '#dc2626', border: '#fca5a5' },
+    'Học tập': { bg: '#dbeafe', text: '#1e40af', border: '#93c5fd' },
+    'Nề nếp':  { bg: '#fef3c7', text: '#92400e', border: '#fde68a' },
+    'Kế hoạch tuần': { bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
+    'Kế hoạch tháng': { bg: '#f3e8ff', text: '#6b21a8', border: '#e9d5ff' },
+    'Ký túc xá': { bg: '#dcfce7', text: '#166534', border: '#86efac' },
+  };
+
   const [selectedDay, setSelectedDay] = useState(() => {
     const dayIndex = new Date().getDay();
     const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-    return days[dayIndex] && DEFAULT_TIMETABLE[days[dayIndex]] ? days[dayIndex] : 'Thứ 2';
+    const todayName = days[dayIndex];
+    return todayName && timetableData[todayName] ? todayName : 'Thứ 2';
   });
 
   // Current student record
@@ -251,50 +305,67 @@ export default function StudentDashboard({ students = [], attendance = {}, setAc
       {/* Balanced 2-Column Section: Class Announcements (Left) & Smart Timetable (Right) */}
       <div className="eval-main-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.2fr)', gap: '1.25rem' }}>
         
-        {/* Left Column: Class Announcements */}
+        {/* Left Column: Class Announcements (Linked directly from GVCN Portal) */}
         <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ margin: 0, color: 'var(--color-primary-dark)', fontSize: '1.1rem', fontWeight: 800 }}>📢 Thông Báo Mới</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div>
+                <h3 style={{ margin: 0, color: 'var(--color-primary-dark)', fontSize: '1.1rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  📢 Thông Báo Mới
+                </h3>
+                <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, marginTop: '0.15rem' }}>
+                  ⚡ Đã đồng bộ trực tiếp từ GVCN Lớp 12.7
+                </div>
+              </div>
               <span style={{ fontSize: '0.72rem', background: '#dbeafe', color: '#1e40af', padding: '0.18rem 0.6rem', borderRadius: '9999px', fontWeight: 800 }}>
-                Tuần 01
+                {activeAnnouncements.length} Thông Báo
               </span>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              {announcements && announcements.length > 0 ? (
-                announcements.slice(0, 3).map((item, idx) => (
-                  <div key={idx} style={{ padding: '0.85rem 1rem', background: '#f9fafb', borderRadius: '0.85rem', border: '1px solid #e5e7eb' }}>
-                    <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#111827' }}>📌 {item.title || 'Thông báo lớp'}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#4b5563', marginTop: '0.25rem', lineHeight: 1.45 }}>{item.content || item.body}</div>
-                  </div>
-                ))
-              ) : (
-                <>
-                  <div style={{ padding: '0.85rem 1rem', background: '#f0fdf4', borderRadius: '0.85rem', border: '1.5px solid #bbf7d0' }}>
-                    <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#166534' }}>📌 Nhắc nhở nề nếp KTX tuần 01</div>
-                    <div style={{ fontSize: '0.8rem', color: '#15803d', marginTop: '0.25rem', lineHeight: 1.45 }}>
-                      Các phòng ở duy trì sinh hoạt đúng giờ, tự học từ 19h30 đến 21h30 và tắt đèn lúc 22h30.
+              {activeAnnouncements.slice(0, 3).map((item, idx) => {
+                const tagConfig = ANNOUNCEMENT_TAG_COLORS[item.tag] || { bg: '#eff6ff', text: '#1e40af', border: '#bfdbfe' };
+                const isUrgent = item.tag === '🚨 KHẨN';
+                return (
+                  <div key={idx} style={{
+                    padding: '0.85rem 1rem', background: tagConfig.bg, borderRadius: '0.85rem',
+                    border: `1.5px solid ${tagConfig.border}`,
+                    boxShadow: isUrgent ? '0 4px 12px rgba(220,38,38,0.15)' : 'none'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                      <span style={{ fontWeight: 800, fontSize: '0.88rem', color: tagConfig.text }}>
+                        {isUrgent ? '🚨' : '📌'} {item.title || 'Thông báo lớp'}
+                      </span>
+                      <span style={{ fontSize: '0.68rem', fontWeight: 800, background: 'white', color: tagConfig.text, padding: '0.1rem 0.45rem', borderRadius: '9999px', border: `1px solid ${tagConfig.border}` }}>
+                        {item.tag || 'Chung'}
+                      </span>
                     </div>
-                  </div>
-                  <div style={{ padding: '0.85rem 1rem', background: '#eff6ff', borderRadius: '0.85rem', border: '1.5px solid #bfdbfe' }}>
-                    <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#1e40af' }}>📢 Đăng ký thi đua "Phòng ở văn minh"</div>
-                    <div style={{ fontSize: '0.8rem', color: '#1d4ed8', marginTop: '0.25rem', lineHeight: 1.45 }}>
-                      Trưởng phòng KTX hoàn thành kiểm tra và tự đánh giá thi đua tuần trước 17h thứ 6.
+                    <div style={{ fontSize: '0.8rem', color: '#374151', lineHeight: 1.45 }}>
+                      {item.content || item.body}
                     </div>
+                    {item.fileUrl && (
+                      <a href={item.fileUrl} download={item.fileName || 'file_dinh_kem'} target="_blank" rel="noreferrer" style={{ fontSize: '0.75rem', color: '#0284c7', fontWeight: 700, marginTop: '0.4rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', textDecoration: 'none' }}>
+                        📎 Tải file đính kèm: {item.fileName || 'Tài liệu'}
+                      </a>
+                    )}
                   </div>
-                </>
-              )}
+                );
+              })}
             </div>
           </div>
         </div>
 
-        {/* Right Column: Smart Timetable Widget */}
+        {/* Right Column: Smart Timetable Widget (Linked directly from GVCN Portal) */}
         <div className="glass-panel" style={{ padding: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-            <h3 style={{ margin: 0, color: 'var(--color-primary-dark)', fontSize: '1.1rem', fontWeight: 800 }}>📅 Thời Khóa Biểu</h3>
+            <div>
+              <h3 style={{ margin: 0, color: 'var(--color-primary-dark)', fontSize: '1.1rem', fontWeight: 800 }}>📅 Thời Khóa Biểu</h3>
+              <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, marginTop: '0.15rem' }}>
+                ⚡ Cập nhật theo lịch học GVCN Lớp 12.7
+              </div>
+            </div>
             <div style={{ display: 'flex', gap: '0.3rem', overflowX: 'auto', paddingBottom: '0.2rem' }}>
-              {Object.keys(DEFAULT_TIMETABLE).map(day => (
+              {Object.keys(timetableData).map(day => (
                 <button
                   key={day}
                   onClick={() => setSelectedDay(day)}
@@ -315,13 +386,15 @@ export default function StudentDashboard({ students = [], attendance = {}, setAc
           <div style={{ background: '#f9fafb', borderRadius: '0.85rem', padding: '0.85rem 1rem', border: '1px solid #e5e7eb' }}>
             <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1B4D53', marginBottom: '0.6rem', display: 'flex', justifyContent: 'space-between' }}>
               <span>Lịch Học: {selectedDay}</span>
-              <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 700 }}>Sáng 5 Tiết • Chiều 3 Tiết</span>
+              <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 700 }}>
+                Sáng {(timetableData[selectedDay]?.morning || []).length} Tiết • Chiều {(timetableData[selectedDay]?.afternoon || []).length} Tiết
+              </span>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0369a1', textTransform: 'uppercase' }}>☀️ Buổi Sáng (07:00 - 11:30)</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.4rem' }}>
-                {(DEFAULT_TIMETABLE[selectedDay]?.morning || []).map((sub, i) => (
+              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max((timetableData[selectedDay]?.morning || []).length, 1)}, 1fr)`, gap: '0.4rem' }}>
+                {(timetableData[selectedDay]?.morning || []).map((sub, i) => (
                   <div key={i} style={{
                     padding: '0.5rem 0.2rem', textAlign: 'center', background: 'white',
                     border: '1.5px solid #e5e7eb', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800, color: '#1f2937'
@@ -332,11 +405,11 @@ export default function StudentDashboard({ students = [], attendance = {}, setAc
                 ))}
               </div>
 
-              {(DEFAULT_TIMETABLE[selectedDay]?.afternoon || []).length > 0 && (
+              {(timetableData[selectedDay]?.afternoon || []).length > 0 && (
                 <>
                   <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#d97706', textTransform: 'uppercase', marginTop: '0.4rem' }}>⛅ Buổi Chiều (13:30 - 17:00)</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.4rem' }}>
-                    {DEFAULT_TIMETABLE[selectedDay].afternoon.map((sub, i) => (
+                  <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max((timetableData[selectedDay]?.afternoon || []).length, 1)}, 1fr)`, gap: '0.4rem' }}>
+                    {timetableData[selectedDay].afternoon.map((sub, i) => (
                       <div key={i} style={{
                         padding: '0.5rem 0.2rem', textAlign: 'center', background: 'white',
                         border: '1.5px solid #e5e7eb', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800, color: '#1f2937'
