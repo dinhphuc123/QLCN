@@ -296,27 +296,6 @@ export default function LoginGate() {
           </p>
         </div>
 
-        {/* Quick login */}
-        <div className="quick-bar">
-          <div style={{ fontSize: '0.68rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-            ⚡ Dùng thử nhanh
-          </div>
-          <div className="quick-grid">
-            <button className="quick-btn" style={{ background: 'linear-gradient(135deg,#7c3aed,#6d28d9)', boxShadow: '0 3px 10px rgba(124,58,237,0.35)' }}
-              onClick={() => loginTeacher('gvcn2027')}>
-              👑 GVCN Kim Tuyền
-            </button>
-            <button className="quick-btn" style={{ background: 'linear-gradient(135deg,#0284c7,#0369a1)', boxShadow: '0 3px 10px rgba(2,132,199,0.35)' }}
-              onClick={() => loginStudent('7', '07')}>
-              👑 Lớp Trưởng (07)
-            </button>
-            <button className="quick-btn" style={{ background: 'linear-gradient(135deg,#059669,#047857)', boxShadow: '0 3px 10px rgba(5,150,105,0.35)' }}
-              onClick={() => loginStudent('11', '11')}>
-              ⭐ Tổ Trưởng T4 (11)
-            </button>
-          </div>
-        </div>
-
         {/* Portal tabs */}
         <div className="lg-tabs">
           {PORTALS.map(p => (
@@ -397,7 +376,7 @@ export default function LoginGate() {
             {/* Password */}
             <div>
               <label className="lg-label" htmlFor="student-pass">
-                Mật khẩu <span style={{ fontWeight: 400, color: '#94a3b8' }}>(Mặc định: số STT, VD: 01)</span>
+                Mật khẩu
               </label>
               <div className="pass-field">
                 <input

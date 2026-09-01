@@ -412,19 +412,13 @@ export default function App() {
         <p style={{ fontSize: '0.88rem', color: '#4b5563', lineHeight: 1.6, marginBottom: '1.5rem' }}>
           Tính năng này chứa dữ liệu quản lý nội bộ dành riêng cho <strong>Giáo viên Chủ nhiệm (GVCN)</strong>. Vui lòng đăng nhập tài khoản GVCN để mở khóa.
         </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
           <button
             className="btn-primary"
-            onClick={() => loginTeacher('gvcn2027')}
-            style={{ padding: '0.75rem 2rem', background: '#7c3aed', width: '100%', fontWeight: 700 }}
-          >
-            ⚡ Đăng nhập GVCN Kim Tuyền (1-Click)
-          </button>
-          <button
             onClick={onLogin}
-            style={{ padding: '0.6rem 1.5rem', background: 'transparent', color: '#4b5563', border: '1px solid #d1d5db', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
+            style={{ padding: '0.75rem 2rem', background: '#7c3aed', fontWeight: 700 }}
           >
-            🔑 Mở cổng chọn tài khoản khác
+            🔑 Mở Cổng Đăng Nhập GVCN
           </button>
         </div>
       </div>

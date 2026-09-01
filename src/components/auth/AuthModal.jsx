@@ -53,39 +53,6 @@ export default function AuthModal({ onClose }) {
           </p>
         </div>
 
-        {/* 1-Click Fast Demo Login Buttons */}
-        <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', padding: '0.875rem', borderRadius: '0.875rem' }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#475569', marginBottom: '0.5rem', textTransform: 'uppercase' }}>
-            ⚡ Đăng Nhập Nhanh 1-Click (Dành cho Giáo viên & Demo):
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
-            <button
-              onClick={() => { loginTeacher('gvcn2027'); onClose(); }}
-              style={{ padding: '0.45rem', borderRadius: '0.5rem', background: '#7c3aed', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer' }}
-            >
-              👑 GVCN Kim Tuyền
-            </button>
-            <button
-              onClick={() => { loginStudent('7', '07'); onClose(); }}
-              style={{ padding: '0.45rem', borderRadius: '0.5rem', background: '#0284c7', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer' }}
-            >
-              👑 Lớp Trưởng (07)
-            </button>
-            <button
-              onClick={() => { loginStudent('11', '11'); onClose(); }}
-              style={{ padding: '0.45rem', borderRadius: '0.5rem', background: '#059669', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer' }}
-            >
-              ⭐ Tổ Trưởng T4 (11)
-            </button>
-            <button
-              onClick={() => { loginStudent('22', '22'); onClose(); }}
-              style={{ padding: '0.45rem', borderRadius: '0.5rem', background: '#d97706', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer' }}
-            >
-              ⭐ Tổ Trưởng T1 (22)
-            </button>
-          </div>
-        </div>
-
         {/* Currently logged in status banner */}
         {user && (
           <div style={{ padding: '0.75rem 1rem', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
