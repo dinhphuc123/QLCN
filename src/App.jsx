@@ -99,15 +99,17 @@ export default function App() {
 
       const localTkb = localStorage.getItem('qlcn_timetable_image') || '';
       const localMap = localStorage.getItem('qlcn_class_map_image') || '';
-      let localAnn = [], localReqs = [], localHomeReqs = [];
+      let localAnn = [], localReqs = [], localHomeReqs = [], localFinance = [], localActivities = [];
       try { localAnn = JSON.parse(localStorage.getItem('qlcn_announcements') || '[]'); } catch {}
       try { localReqs = JSON.parse(localStorage.getItem('qlcn_leave_requests') || '[]'); } catch {}
       try { localHomeReqs = JSON.parse(localStorage.getItem('qlcn_home_requests') || '[]'); } catch {}
+      try { localFinance = JSON.parse(localStorage.getItem('qlcn_finance') || '[]'); } catch {}
+      try { localActivities = JSON.parse(localStorage.getItem('qlcn_activities') || '[]'); } catch {}
 
       const serverAnn = Array.isArray(result.announcements) ? result.announcements : [];
       const mergedAnn = [...serverAnn];
       localAnn.forEach(la => {
-        if (!mergedAnn.some(a => a.id === la.id)) {
+        if (!mergedAnn.some(a => String(a.id) === String(la.id))) {
           mergedAnn.unshift(la);
         }
       });
@@ -115,7 +117,7 @@ export default function App() {
       const serverReqs = Array.isArray(result.leaveRequests) ? result.leaveRequests : [];
       const mergedReqs = [...serverReqs];
       localReqs.forEach(lr => {
-        if (!mergedReqs.some(r => r.id === lr.id)) {
+        if (!mergedReqs.some(r => String(r.id) === String(lr.id))) {
           mergedReqs.unshift(lr);
         }
       });
@@ -123,8 +125,24 @@ export default function App() {
       const serverHomeReqs = Array.isArray(result.homeRequests) ? result.homeRequests : [];
       const mergedHomeReqs = [...serverHomeReqs];
       localHomeReqs.forEach(lhr => {
-        if (!mergedHomeReqs.some(r => r.id === lhr.id)) {
+        if (!mergedHomeReqs.some(r => String(r.id) === String(lhr.id))) {
           mergedHomeReqs.unshift(lhr);
+        }
+      });
+
+      const serverFinance = Array.isArray(result.finance) ? result.finance : [];
+      const mergedFinance = [...serverFinance];
+      localFinance.forEach(lf => {
+        if (!mergedFinance.some(f => String(f.id) === String(lf.id))) {
+          mergedFinance.unshift(lf);
+        }
+      });
+
+      const serverActivities = Array.isArray(result.activities) ? result.activities : [];
+      const mergedActivities = [...serverActivities];
+      localActivities.forEach(la => {
+        if (!mergedActivities.some(a => String(a.id) === String(la.id))) {
+          mergedActivities.unshift(la);
         }
       });
 
@@ -135,6 +153,8 @@ export default function App() {
         announcements: mergedAnn,
         leaveRequests: mergedReqs,
         homeRequests: mergedHomeReqs,
+        finance: mergedFinance,
+        activities: mergedActivities,
         timetableImage: result.timetableImage || localTkb || prev.timetableImage,
         classMapImage: result.classMapImage || localMap || prev.classMapImage,
       }));
@@ -144,16 +164,20 @@ export default function App() {
       }
       const localTkb = localStorage.getItem('qlcn_timetable_image') || '';
       const localMap = localStorage.getItem('qlcn_class_map_image') || '';
-      let localAnn = [], localReqs = [], localHomeReqs = [];
+      let localAnn = [], localReqs = [], localHomeReqs = [], localFinance = [], localActivities = [];
       try { localAnn = JSON.parse(localStorage.getItem('qlcn_announcements') || '[]'); } catch {}
       try { localReqs = JSON.parse(localStorage.getItem('qlcn_leave_requests') || '[]'); } catch {}
       try { localHomeReqs = JSON.parse(localStorage.getItem('qlcn_home_requests') || '[]'); } catch {}
+      try { localFinance = JSON.parse(localStorage.getItem('qlcn_finance') || '[]'); } catch {}
+      try { localActivities = JSON.parse(localStorage.getItem('qlcn_activities') || '[]'); } catch {}
 
       setData(prev => ({
         ...prev,
         announcements: localAnn.length > 0 ? localAnn : prev.announcements,
         leaveRequests: localReqs.length > 0 ? localReqs : prev.leaveRequests,
         homeRequests: localHomeReqs.length > 0 ? localHomeReqs : prev.homeRequests,
+        finance: localFinance.length > 0 ? localFinance : prev.finance,
+        activities: localActivities.length > 0 ? localActivities : prev.activities,
         timetableImage: prev.timetableImage || localTkb,
         classMapImage: prev.classMapImage || localMap,
       }));
