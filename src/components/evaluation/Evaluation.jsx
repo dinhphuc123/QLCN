@@ -107,11 +107,11 @@ export default function Evaluation({ students = [], isTeacher, onRefresh }) {
     }
   };
 
-  // Duyệt vòng giữa (Tổ trưởng / Lớp trưởng)
+  // Vòng 1: Tổ trưởng Duyệt cho thành viên thuộc Tổ
   const handleGroupLeaderReview = async () => {
     setSaving(true);
-    const targetGroup = isGroupLeader ? (user?.groupLeaderOf || user?.group) : null;
-    const groupStudents = targetGroup ? students.filter(s => s.group === targetGroup) : students;
+    const grp = user?.groupLeaderOf || user?.group || 'Tổ 1';
+    const groupStudents = students.filter(s => s.group === grp);
 
     const changes = groupStudents.map(s => {
       const record = competitionData[s.id] || {};
@@ -137,7 +137,7 @@ export default function Evaluation({ students = [], isTeacher, onRefresh }) {
           studentId: sid,
           violations: ch.violations,
           reviewNote: ch.note,
-          reviewedBy: user?.name || 'Cán bộ lớp',
+          reviewedBy: user?.name || 'Tổ trưởng',
           reviewedAt: new Date().toISOString(),
           status: 'reviewed',
         };
@@ -145,7 +145,7 @@ export default function Evaluation({ students = [], isTeacher, onRefresh }) {
       return updated;
     });
 
-    toast.success(`Đã duyệt thi đua vòng 1 cho ${groupStudents.length} học sinh!`);
+    toast.success(`Đã duyệt thi đua Vòng 1 cho ${groupStudents.length} học sinh ${grp}!`);
     setSaving(false);
 
     try {
@@ -156,7 +156,52 @@ export default function Evaluation({ students = [], isTeacher, onRefresh }) {
     }
   };
 
-  // Duyệt cuối (GVCN Chốt / Trả về)
+  // Vòng 2: Lớp trưởng Duyệt cho Toàn lớp sau khi các Tổ trưởng duyệt
+  const handleMonitorReview = async () => {
+    setSaving(true);
+    const changes = students.map(s => {
+      const record = competitionData[s.id] || {};
+      const isCurrent = String(s.id) === selectedStudentId;
+      const violations = isCurrent 
+        ? Object.entries(selectedViolations).map(([id, count]) => ({ criteriaId: parseInt(id, 10), count }))
+        : (record.violations || []);
+
+      return {
+        studentId: s.id,
+        violations,
+        note: reviewNotes[s.id] || record.reviewNote || ''
+      };
+    });
+
+    // Optimistic local state update
+    setCompetitionData(prev => {
+      const updated = { ...prev };
+      changes.forEach(ch => {
+        const sid = ch.studentId;
+        updated[sid] = {
+          ...(updated[sid] || {}),
+          studentId: sid,
+          violations: ch.violations,
+          monitorApprovedBy: user?.name || 'Lớp trưởng',
+          monitorApprovedAt: new Date().toISOString(),
+          status: 'monitor_approved',
+        };
+      });
+      return updated;
+    });
+
+    toast.success(`👑 Lớp trưởng đã duyệt thi đua Vòng 2 cho toàn bộ ${students.length} học sinh!`);
+    setSaving(false);
+
+    try {
+      await api.reviewCompetition(selectedWeek, changes);
+      fetchWeekData();
+    } catch (err) {
+      console.warn('monitorReview API sync failover (saved locally):', err.message);
+    }
+  };
+
+  // Vòng 3: GVCN Chốt / Yêu cầu sửa
   const handleTeacherAction = async (action = 'approve') => {
     setSaving(true);
     const changes = students.map(s => {
@@ -193,7 +238,7 @@ export default function Evaluation({ students = [], isTeacher, onRefresh }) {
       return updated;
     });
 
-    toast.success(action === 'approve' ? 'GVCN đã phê duyệt chốt điểm!' : 'Đã yêu cầu học sinh làm lại phiếu!');
+    toast.success(action === 'approve' ? '🚀 GVCN đã phê duyệt chốt điểm thi đua tuần!' : 'Đã yêu cầu làm lại phiếu!');
     setSaving(false);
 
     try {
@@ -328,10 +373,11 @@ export default function Evaluation({ students = [], isTeacher, onRefresh }) {
   // Trạng thái hiển thị badge
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'approved': return <span style={{ background: '#dcfce7', color: '#15803d', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 800 }}>✅ GVCN Đã Duyệt</span>;
-      case 'reviewed': return <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 800 }}>⏳ Tổ Trưởng Đã Duyệt (Chờ GVCN)</span>;
-      case 'submitted': return <span style={{ background: '#fef3c7', color: '#b45309', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 800 }}>⏳ Đã Nộp (Chờ Tổ Trưởng)</span>;
-      case 'rejected': return <span style={{ background: '#fee2e2', color: '#b91c1c', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 800 }}>❌ GVCN Yêu Cầu Sửa Lại</span>;
+      case 'approved': return <span style={{ background: '#dcfce7', color: '#15803d', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 800 }}>✅ GVCN Đã Duyệt Chốt Điểm</span>;
+      case 'monitor_approved': return <span style={{ background: '#fef3c7', color: '#b45309', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 800 }}>👑 Lớp Trưởng Đã Duyệt Vòng 2 (Chờ GVCN)</span>;
+      case 'reviewed': return <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 800 }}>⏳ Tổ Trưởng Đã Duyệt Vòng 1 (Chờ Lớp Trưởng)</span>;
+      case 'submitted': return <span style={{ background: '#fef3c7', color: '#b45309', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 800 }}>📩 Đã Nộp (Chờ Tổ Trưởng)</span>;
+      case 'rejected': return <span style={{ background: '#fee2e2', color: '#b91c1c', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 800 }}>❌ Yêu Cầu Sửa Lại</span>;
       default: return <span style={{ background: '#f3f4f6', color: '#4b5563', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 700 }}>📝 Đang Tự Kê Khai</span>;
     }
   };
@@ -546,8 +592,9 @@ export default function Evaluation({ students = [], isTeacher, onRefresh }) {
           {/* Action Row — Depending on Role & Status */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid #f3f4f6', flexWrap: 'wrap', gap: '0.75rem' }}>
             <div style={{ fontSize: '0.78rem', color: '#6b7280' }}>
-              {currentRecord.reviewedBy && <div>👤 Tổ trưởng đã duyệt: <strong>{currentRecord.reviewedBy}</strong></div>}
-              {currentRecord.approvedBy && <div>👑 GVCN đã chốt: <strong>{currentRecord.approvedBy}</strong></div>}
+              {currentRecord.reviewedBy && <div>👤 Tổ trưởng đã duyệt Vòng 1: <strong>{currentRecord.reviewedBy}</strong></div>}
+              {currentRecord.monitorApprovedBy && <div>👑 Lớp trưởng đã duyệt Vòng 2: <strong>{currentRecord.monitorApprovedBy}</strong></div>}
+              {currentRecord.approvedBy && <div>🚀 GVCN đã chốt điểm: <strong>{currentRecord.approvedBy}</strong></div>}
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -558,21 +605,28 @@ export default function Evaluation({ students = [], isTeacher, onRefresh }) {
                 </button>
               )}
 
-              {/* Tổ trưởng / Lớp trưởng Duyệt */}
-              {canApproveCompetition && (
+              {/* Vòng 1: Tổ trưởng Duyệt */}
+              {isGroupLeader && !isMonitor && (
                 <button className="btn-primary" style={{ background: '#0284c7' }} onClick={handleGroupLeaderReview} disabled={saving}>
-                  {saving ? 'Đang duyệt...' : `⭐ Duyệt Vòng 1 (${isGroupLeader ? (user?.groupLeaderOf || user?.group || 'Tổ') : 'Toàn lớp'})`}
+                  {saving ? 'Đang duyệt...' : `⭐ Tổ Trưởng Duyệt Vòng 1 (${user?.groupLeaderOf || user?.group || 'Tổ'})`}
                 </button>
               )}
 
-              {/* GVCN Chốt */}
+              {/* Vòng 2: Lớp trưởng Duyệt */}
+              {isMonitor && (
+                <button className="btn-primary" style={{ background: '#d97706' }} onClick={handleMonitorReview} disabled={saving}>
+                  {saving ? 'Đang duyệt...' : '👑 Lớp Trưởng Duyệt Vòng 2 (Toàn Lớp)'}
+                </button>
+              )}
+
+              {/* Vòng 3: GVCN Chốt */}
               {isTeacher && (
                 <>
                   <button className="btn-primary" style={{ background: '#dc2626' }} onClick={() => handleTeacherAction('reject')} disabled={saving}>
                     ❌ Yêu cầu sửa
                   </button>
                   <button className="btn-primary" style={{ background: '#059669' }} onClick={() => handleTeacherAction('approve')} disabled={saving}>
-                    ✅ GVCN Chốt Điểm
+                    🚀 GVCN Chốt Điểm Thi Đua
                   </button>
                 </>
               )}

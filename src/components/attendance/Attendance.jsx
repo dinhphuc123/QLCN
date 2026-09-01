@@ -295,14 +295,22 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
   let scopeTitle = 'Toàn bộ lớp 12.7';
   let canQuickConfirm = false;
 
-  if (!isTeacher && !isMonitor) {
-    if (currentSessionDef.type === 'school' && isGroupLeader && user?.groupLeaderOf) {
-      displayStudents = students.filter(s => s.group === user.groupLeaderOf);
-      scopeTitle = `Danh sách ${user.groupLeaderOf}`;
+  if (isMonitor) {
+    displayStudents = students;
+    scopeTitle = 'Toàn bộ lớp 12.7 (Lớp trưởng điểm danh & duyệt)';
+    canQuickConfirm = true;
+  } else if (isGroupLeader) {
+    const grp = user?.groupLeaderOf || user?.group;
+    if (grp && currentSessionDef.type === 'school') {
+      displayStudents = students.filter(s => s.group === grp);
+      scopeTitle = `Danh sách ${grp} (Tổ trưởng quản lý)`;
       canQuickConfirm = true;
-    } else if (currentSessionDef.type === 'dorm' && isDormLeader && user?.dormLeaderOf) {
-      displayStudents = students.filter(s => s.dormRoom === user.dormLeaderOf);
-      scopeTitle = `Danh sách Phòng KTX ${user.dormLeaderOf}`;
+    }
+  } else if (isDormLeader) {
+    const rm = user?.dormLeaderOf || user?.dormRoom;
+    if (rm && currentSessionDef.type === 'dorm') {
+      displayStudents = students.filter(s => s.dormRoom === rm);
+      scopeTitle = `Danh sách Phòng KTX ${rm} (Trưởng phòng quản lý)`;
       canQuickConfirm = true;
     }
   }
