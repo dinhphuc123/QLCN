@@ -15,28 +15,35 @@ export default function Activities({ activities = [], onRefresh }) {
 
   const categories = ['Tất cả', 'Học tập', 'Phong trào', 'Thể thao / Văn nghệ', 'Hoạt động KTX', 'Sinh hoạt lớp'];
 
-  const handleFileUpload = async (e) => {
+  const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    try {
-      const res = await api.uploadFile(formData);
-      setImageUrl(res.url);
-      toast.success('Đã tải ảnh lên!');
-    } catch {
-      // Fallback base64
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setImageUrl(ev.target.result);
-        toast.success('Đã chọn ảnh!');
-      };
-      reader.readAsDataURL(file);
-    } finally {
+
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const dataUrl = ev.target.result;
+      setImageUrl(dataUrl);
       setUploading(false);
-    }
+      toast.success('Đã chọn ảnh kỷ niệm!');
+
+      // Background server upload
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await api.uploadFile(formData);
+        if (res?.url) setImageUrl(res.url);
+      } catch (err) {
+        console.warn('Server upload fallback to Base64 Data URL:', err.message);
+      }
+    };
+    reader.onerror = () => {
+      setUploading(false);
+      toast.error('Không thể đọc file ảnh này');
+    };
+    reader.readAsDataURL(file);
   };
+
 
   const handleCreate = async (e) => {
     e.preventDefault();

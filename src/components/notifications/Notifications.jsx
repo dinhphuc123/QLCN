@@ -21,33 +21,39 @@ function NewAnnouncementModal({ onClose, onSave }) {
   const [fileName, setFileName] = useState('');
   const [uploading, setUploading] = useState(false);
 
-  const handleFileUpload = async (e) => {
+  const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await api.uploadFile(formData);
-      setFileUrl(res.url);
-      setFileName(res.filename || file.name);
-      toast.success('Đã nạp file đính kèm!');
-    } catch (apiErr) {
-      console.warn('Server upload failed, converting to Data URL:', apiErr.message);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setFileUrl(event.target.result);
-        setFileName(file.name);
-        toast.success('Đã đính kèm file!');
-      };
-      reader.onerror = () => {
-        toast.error('Không thể đọc file này');
-      };
-      reader.readAsDataURL(file);
-    } finally {
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const dataUrl = event.target.result;
+      setFileUrl(dataUrl);
+      setFileName(file.name);
       setUploading(false);
-    }
+      toast.success('Đã đính kèm file!');
+
+      // Try background server upload
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await api.uploadFile(formData);
+        if (res?.url) {
+          setFileUrl(res.url);
+          setFileName(res.filename || file.name);
+        }
+      } catch (apiErr) {
+        console.warn('Server upload fallback to Data URL:', apiErr.message);
+      }
+    };
+    reader.onerror = () => {
+      setUploading(false);
+      toast.error('Không thể đọc file này');
+    };
+    reader.readAsDataURL(file);
   };
+
 
   const handleSave = () => {
     if (!title.trim() || !content.trim()) { toast.error('Vui lòng nhập đầy đủ tiêu đề và nội dung!'); return; }
