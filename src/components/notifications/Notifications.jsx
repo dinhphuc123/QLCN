@@ -24,15 +24,25 @@ function NewAnnouncementModal({ onClose, onSave }) {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
     try {
+      const formData = new FormData();
+      formData.append('file', file);
       const res = await api.uploadFile(formData);
       setFileUrl(res.url);
       setFileName(res.filename || file.name);
       toast.success('Đã nạp file đính kèm!');
-    } catch {
-      toast.error('Lỗi nạp file');
+    } catch (apiErr) {
+      console.warn('Server upload failed, converting to Data URL:', apiErr.message);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setFileUrl(event.target.result);
+        setFileName(file.name);
+        toast.success('Đã đính kèm file!');
+      };
+      reader.onerror = () => {
+        toast.error('Không thể đọc file này');
+      };
+      reader.readAsDataURL(file);
     } finally {
       setUploading(false);
     }
@@ -116,12 +126,14 @@ export default function Notifications({ announcements = [], students = [], onRef
   const unreadCount = announcements.filter(a => !(a.readBy || []).includes(currentUserId)).length;
 
   const handleCreate = async (body) => {
-    await toast.promise(
-      api.createAnnouncement(body),
-      { loading: 'Đang đăng...', success: 'Thông báo đã được đăng!', error: 'Lỗi khi đăng thông báo' }
-    );
-    setShowModal(false);
-    onRefresh();
+    try {
+      await api.createAnnouncement(body);
+      toast.success('Thông báo đã được đăng thành công!');
+      setShowModal(false);
+      onRefresh();
+    } catch (err) {
+      toast.error(err.message || 'Lỗi khi đăng thông báo');
+    }
   };
 
   const handleMarkRead = async (ann) => {

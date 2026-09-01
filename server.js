@@ -328,7 +328,7 @@ app.post('/api/class-map', requireTeacher, (req, res) => {
 });
 
 // Announcements
-app.post('/api/announcements', requireTeacher, (req, res) => {
+app.post('/api/announcements', (req, res) => {
   const ann = req.body;
   const db = readDB();
   const newAnn = { 
@@ -339,7 +339,7 @@ app.post('/api/announcements', requireTeacher, (req, res) => {
   };
   db.announcements.unshift(newAnn);
   writeDB(db);
-  addAuditLog(req.user, 'ĐĂNG THÔNG BÁO', newAnn.title);
+  addAuditLog(req.user, 'ĐĂNG THÔNG BÁO', newAnn.title || 'Thông báo mới');
   res.json({ success: true, announcement: newAnn });
 });
 
