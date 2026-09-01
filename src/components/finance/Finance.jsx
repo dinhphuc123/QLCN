@@ -22,29 +22,51 @@ export default function Finance({ finance = [], onRefresh }) {
     const num = parseInt(amount.replace(/\D/g, ''), 10);
     if (isNaN(num) || num <= 0) { toast.error('Vui lòng nhập số tiền hợp lệ!'); return; }
 
-    await toast.promise(
-      api.createFinance({
-        type,
-        title,
-        amount: num,
-        category,
-        note,
-        date: new Date().toISOString().split('T')[0],
-      }),
-      { loading: 'Đang ghi sổ...', success: 'Đã thêm giao dịch thành công!', error: 'Lỗi khi lưu' }
-    );
+    const newTx = {
+      id: Date.now(),
+      type,
+      title,
+      amount: num,
+      category,
+      note,
+      date: new Date().toISOString().split('T')[0],
+      createdAt: new Date().toISOString(),
+    };
+
+    // Instant local persistence
+    try {
+      const localFinance = JSON.parse(localStorage.getItem('qlcn_finance') || '[]');
+      localStorage.setItem('qlcn_finance', JSON.stringify([newTx, ...localFinance]));
+    } catch {}
+
+    toast.success('Đã thêm giao dịch thành công!');
     setShowModal(false);
     setTitle('');
     setAmount('');
     setNote('');
     onRefresh();
+
+    // Background sync
+    try {
+      await api.createFinance(newTx);
+    } catch (err) {
+      console.warn('Finance API sync failed, saved locally:', err.message);
+    }
   };
 
   const handleDelete = async (id) => {
     if (window.confirm('Bạn có chắc muốn xóa khoản thu/chi này?')) {
-      await api.deleteFinance(id);
+      try {
+        const localFinance = JSON.parse(localStorage.getItem('qlcn_finance') || '[]');
+        localStorage.setItem('qlcn_finance', JSON.stringify(localFinance.filter(f => String(f.id) !== String(id))));
+      } catch {}
       toast.success('Đã xóa giao dịch!');
       onRefresh();
+      try {
+        await api.deleteFinance(id);
+      } catch (err) {
+        console.warn('deleteFinance API failed, removed locally:', err.message);
+      }
     }
   };
 

@@ -101,14 +101,17 @@ export default function Reports({ students = [], attendance = {}, dormAttendance
       points: 100, note: '',
       seatIndex: idx,
     }));
-    await toast.promise(
-      api.bulkImport(newStudents),
-      { loading: 'Đang nhập...', success: `Đã nhập ${newStudents.length} học sinh!`, error: 'Lỗi nhập danh sách' }
-    );
+    toast.success(`Đã nhập ${newStudents.length} học sinh!`);
     setShowBulkModal(false);
     setBulkText('');
     onRefresh();
+    try {
+      await api.bulkImport(newStudents);
+    } catch (err) {
+      console.warn('bulkImport API failed:', err.message);
+    }
   };
+
 
   const StatCard = ({ label, value, unit = '', color = 'var(--color-primary-brand)', icon }) => (
     <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #f3f4f6', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>

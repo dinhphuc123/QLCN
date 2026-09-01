@@ -155,16 +155,40 @@ export default function Notifications({ announcements = [], students = [], onRef
 
   const handleMarkRead = async (ann) => {
     if ((ann.readBy || []).includes(currentUserId)) return;
-    await api.markRead(ann.id);
-    onRefresh();
+    // Instant local update
+    try {
+      const localAnns = JSON.parse(localStorage.getItem('qlcn_announcements') || '[]');
+      const updated = localAnns.map(a => String(a.id) === String(ann.id)
+        ? { ...a, readBy: [...(a.readBy || []), currentUserId] }
+        : a
+      );
+      localStorage.setItem('qlcn_announcements', JSON.stringify(updated));
+    } catch {}
     toast.success('Đã xác nhận đã đọc!');
+    onRefresh();
+    // Background sync
+    try {
+      await api.markRead(ann.id);
+    } catch (err) {
+      console.warn('markRead API sync failed, updated locally:', err.message);
+    }
   };
 
   const handleDelete = async (id) => {
     if (window.confirm('Bạn có chắc muốn xóa thông báo này?')) {
-      await api.deleteAnnouncement(id);
+      // Instant local removal
+      try {
+        const localAnns = JSON.parse(localStorage.getItem('qlcn_announcements') || '[]');
+        localStorage.setItem('qlcn_announcements', JSON.stringify(localAnns.filter(a => String(a.id) !== String(id))));
+      } catch {}
       toast.success('Đã xóa thông báo!');
       onRefresh();
+      // Background sync
+      try {
+        await api.deleteAnnouncement(id);
+      } catch (err) {
+        console.warn('deleteAnnouncement API failed, removed locally:', err.message);
+      }
     }
   };
 

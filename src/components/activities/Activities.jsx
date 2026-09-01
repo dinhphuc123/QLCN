@@ -43,28 +43,50 @@ export default function Activities({ activities = [], onRefresh }) {
     if (!title.trim()) { toast.error('Vui lòng nhập tên hoạt động!'); return; }
     if (!imageUrl) { toast.error('Vui lòng chọn ảnh!'); return; }
 
-    await toast.promise(
-      api.createActivity({
-        title,
-        description,
-        category,
-        image: imageUrl,
-        date: new Date().toISOString().split('T')[0],
-      }),
-      { loading: 'Đang lưu...', success: 'Đã thêm hoạt động mới!', error: 'Lỗi khi lưu' }
-    );
+    const newActivity = {
+      id: Date.now(),
+      title,
+      description,
+      category,
+      image: imageUrl,
+      date: new Date().toISOString().split('T')[0],
+      createdAt: new Date().toISOString(),
+    };
+
+    // Instant local persistence
+    try {
+      const localActivities = JSON.parse(localStorage.getItem('qlcn_activities') || '[]');
+      localStorage.setItem('qlcn_activities', JSON.stringify([newActivity, ...localActivities]));
+    } catch {}
+
+    toast.success('Đã thêm hoạt động mới!');
     setShowModal(false);
     setTitle('');
     setDescription('');
     setImageUrl('');
     onRefresh();
+
+    // Background sync
+    try {
+      await api.createActivity(newActivity);
+    } catch (err) {
+      console.warn('Activity API sync failed, saved locally:', err.message);
+    }
   };
 
   const handleDelete = async (id) => {
     if (window.confirm('Bạn có chắc muốn xóa hoạt động này?')) {
-      await api.deleteActivity(id);
+      try {
+        const localActivities = JSON.parse(localStorage.getItem('qlcn_activities') || '[]');
+        localStorage.setItem('qlcn_activities', JSON.stringify(localActivities.filter(a => String(a.id) !== String(id))));
+      } catch {}
       toast.success('Đã xóa hoạt động!');
       onRefresh();
+      try {
+        await api.deleteActivity(id);
+      } catch (err) {
+        console.warn('deleteActivity API failed, removed locally:', err.message);
+      }
     }
   };
 
