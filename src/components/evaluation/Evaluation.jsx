@@ -385,27 +385,33 @@ export default function Evaluation({ students = [], onRefresh }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       
-      {/* Top Banner & Control Row */}
-      <div className="glass-panel" style={{ padding: '1.5rem 2rem' }}>
+      {/* Top Banner & Control Row (Minimal & Refined Design) */}
+      <div className="glass-panel" style={{ padding: '1.25rem 1.75rem', borderRadius: '1.25rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-              <h3 style={{ margin: 0 }}>📈 Đánh Giá Thi Đua Nề Nếp & Vinh Danh</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'var(--color-primary-dark)' }}>
+                📈 Đánh Giá Thi Đua Nề Nếp & Vinh Danh
+              </h3>
               {getStatusBadge(currentRecord.status)}
             </div>
-            <p style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.3rem' }}>
-              HS nộp trước <strong>Thứ 6 23:59</strong> ➔ Tổ trưởng duyệt <strong>Thứ 7 12:00</strong> ➔ GVCN chốt <strong>Chủ Nhật 20:00</strong>
-            </p>
+            <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '0.35rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span style={{ background: '#f1f5f9', color: '#475569', padding: '0.12rem 0.5rem', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 700 }}>
+                ⏱️ Hạn chốt:
+              </span>
+              <span>HS nộp T6 23:59 • Tổ trưởng duyệt T7 12:00 • GVCN chốt CN 20:00</span>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ background: '#f1f5f9', padding: '0.25rem', borderRadius: '9999px', display: 'flex', gap: '0.2rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ background: '#f8fafc', padding: '0.2rem', borderRadius: '9999px', border: '1px solid #e2e8f0', display: 'flex', gap: '0.2rem' }}>
               <button
                 onClick={() => setViewMode('weekly')}
                 style={{
-                  padding: '0.35rem 0.85rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 700, border: 'none', cursor: 'pointer',
-                  background: viewMode === 'weekly' ? 'var(--color-primary-dark)' : 'transparent',
-                  color: viewMode === 'weekly' ? 'white' : '#475569'
+                  padding: '0.35rem 0.9rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 800, border: 'none', cursor: 'pointer',
+                  background: viewMode === 'weekly' ? '#1B4D53' : 'transparent',
+                  color: viewMode === 'weekly' ? 'white' : '#64748b',
+                  transition: 'all 0.15s ease'
                 }}
               >
                 📊 Đánh Giá Tuần
@@ -413,18 +419,19 @@ export default function Evaluation({ students = [], onRefresh }) {
               <button
                 onClick={() => setViewMode('monthly_audit')}
                 style={{
-                  padding: '0.35rem 0.85rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 700, border: 'none', cursor: 'pointer',
-                  background: viewMode === 'monthly_audit' ? 'var(--color-primary-dark)' : 'transparent',
-                  color: viewMode === 'monthly_audit' ? 'white' : '#475569'
+                  padding: '0.35rem 0.9rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 800, border: 'none', cursor: 'pointer',
+                  background: viewMode === 'monthly_audit' ? '#1B4D53' : 'transparent',
+                  color: viewMode === 'monthly_audit' ? 'white' : '#64748b',
+                  transition: 'all 0.15s ease'
                 }}
               >
-                🗓️ Bảng Đối Soát Tháng
+                🗓️ Đối Soát Tháng
               </button>
             </div>
 
             <select
               className="form-input"
-              style={{ width: '120px', fontWeight: 700 }}
+              style={{ width: '110px', fontWeight: 800, padding: '0.35rem 0.6rem', fontSize: '0.78rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
               value={selectedWeek}
               onChange={e => setSelectedWeek(e.target.value)}
             >
@@ -438,8 +445,9 @@ export default function Evaluation({ students = [], onRefresh }) {
               <button
                 onClick={handleExportCompetitionPDF}
                 style={{
-                  padding: '0.45rem 0.95rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 700,
-                  background: '#16a34a', color: 'white', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem'
+                  padding: '0.4rem 0.9rem', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800,
+                  background: '#16a34a', color: 'white', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                  boxShadow: '0 2px 6px rgba(22,163,74,0.15)'
                 }}
               >
                 📄 Xuất Báo Cáo PDF
@@ -449,22 +457,22 @@ export default function Evaluation({ students = [], onRefresh }) {
         </div>
 
         {/* Weekly Badges Row: Best Group & Star Students */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-          <div style={{ background: 'linear-gradient(135deg, #fef9c3, #fef08a)', padding: '0.85rem 1.1rem', borderRadius: '0.85rem', border: '1px solid #fde047', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-            <span style={{ fontSize: '1.8rem' }}>🏆</span>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9' }}>
+          <div style={{ background: '#fefce8', padding: '0.85rem 1.15rem', borderRadius: '0.85rem', border: '1.5px solid #fef08a', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+            <span style={{ fontSize: '1.75rem' }}>🏆</span>
             <div>
-              <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#854d0e', textTransform: 'uppercase' }}>TỔ XUẤT SẮC NHẤT TUẦN</div>
-              <div style={{ fontSize: '1.05rem', fontWeight: 900, color: '#713f12' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#a16207', textTransform: 'uppercase', letterSpacing: '0.04em' }}>TỔ XUẤT SẮC NHẤT TUẦN</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 900, color: '#854d0e', marginTop: '0.1rem' }}>
                 {bestGroup ? `${bestGroup.name} (${bestGroup['Điểm TB']} điểm)` : 'Tổ 1'}
               </div>
             </div>
           </div>
 
-          <div style={{ background: 'linear-gradient(135deg, #dcfce7, #bbf7d0)', padding: '0.85rem 1.1rem', borderRadius: '0.85rem', border: '1px solid #86efac', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-            <span style={{ fontSize: '1.8rem' }}>⭐</span>
+          <div style={{ background: '#f0fdf4', padding: '0.85rem 1.15rem', borderRadius: '0.85rem', border: '1.5px solid #bbf7d0', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+            <span style={{ fontSize: '1.75rem' }}>⭐</span>
             <div>
-              <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#166534', textTransform: 'uppercase' }}>NGÔI SAO TUẦN (100 ĐIỂM TUYỆT ĐỐI)</div>
-              <div style={{ fontSize: '1rem', fontWeight: 900, color: '#14532d' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#15803d', textTransform: 'uppercase', letterSpacing: '0.04em' }}>NGÔI SAO TUẦN (100 ĐIỂM TUYỆT ĐỐI)</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 900, color: '#166534', marginTop: '0.1rem' }}>
                 {starStudents.length} / {students.length} Học Sinh
               </div>
             </div>
