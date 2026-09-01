@@ -424,15 +424,17 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
               />
             </div>
 
-            <button
-              onClick={handleExportAttendancePDF}
-              style={{
-                padding: '0.45rem 1rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 700,
-                background: '#0284c7', color: 'white', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem'
-              }}
-            >
-              📄 Xuất Báo Cáo Sĩ Số PDF
-            </button>
+            {isTeacher && (
+              <button
+                onClick={handleExportAttendancePDF}
+                style={{
+                  padding: '0.45rem 1rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 700,
+                  background: '#0284c7', color: 'white', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem'
+                }}
+              >
+                📄 Xuất Báo Cáo Sĩ Số PDF
+              </button>
+            )}
           </div>
           
           {/* Section 1: Student Check-in Card */}

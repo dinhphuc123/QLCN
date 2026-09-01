@@ -205,13 +205,15 @@ export default function Finance({ finance = [], onRefresh }) {
                   </td>
                   <td style={{ padding: '0.75rem', textAlign: 'center' }}>
                     <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
-                      <button
-                        onClick={() => handleExportVoucherPDF(item)}
-                        style={{ background: '#e0f2fe', color: '#0369a1', border: 'none', padding: '0.25rem 0.55rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700 }}
-                        title="In Phiếu Thu/Chi PDF"
-                      >
-                        📄 Phiếu
-                      </button>
+                      {isTeacher && (
+                        <button
+                          onClick={() => handleExportVoucherPDF(item)}
+                          style={{ background: '#e0f2fe', color: '#0369a1', border: 'none', padding: '0.25rem 0.55rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700 }}
+                          title="In Phiếu Thu/Chi PDF"
+                        >
+                          📄 Phiếu
+                        </button>
+                      )}
                       {isTeacher && (
                         <button
                           onClick={() => handleDelete(item.id)}

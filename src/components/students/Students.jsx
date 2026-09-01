@@ -180,15 +180,17 @@ function StudentDetailModal({ student, onClose, isTeacher, onUpdateNote }) {
 
 
         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-          <button
-            onClick={handleExportStudentReportPDF}
-            style={{
-              padding: '0.5rem 1rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 700,
-              background: '#0284c7', color: 'white', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem'
-            }}
-          >
-            📄 In Phiếu Họp Phụ Huynh PDF
-          </button>
+          {isTeacher && (
+            <button
+              onClick={handleExportStudentReportPDF}
+              style={{
+                padding: '0.5rem 1rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 700,
+                background: '#0284c7', color: 'white', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem'
+              }}
+            >
+              📄 In Phiếu Họp Phụ Huynh PDF
+            </button>
+          )}
 
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button onClick={onClose} style={{ padding: '0.6rem 1.5rem', borderRadius: '9999px', border: '1.5px solid #d1d5db', background: 'white', cursor: 'pointer', fontWeight: 600 }}>Đóng</button>
