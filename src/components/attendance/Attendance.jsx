@@ -437,11 +437,83 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
             )}
           </div>
           
-          {/* Section 1: Student Check-in Card (Hidden for Teacher/GVCN) */}
+          {/* 5-Session Selection Timeline Bar (Visible to both Students & Officers) */}
+          <div className="glass-panel" style={{ padding: '1.25rem 1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#1B4D53', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                ⏱️ Chọn Buổi Học & Sinh Hoạt Nội Trú ({sessions.length} Buổi):
+              </div>
+
+              {/* Student Daily 5/5 Check-in Tracker */}
+              {!isTeacher && user && (() => {
+                const checkedInCount = sessions.filter(s => {
+                  const sRec = (dateRecord.sessions && dateRecord.sessions[s.id]) || (s.id === 'morning' && !dateRecord.sessions ? dateRecord : {});
+                  const st = sRec[user.id];
+                  return st && (st === 'present' || (typeof st === 'object' && st.status === 'present'));
+                }).length;
+                const pct = Math.round((checkedInCount / sessions.length) * 100);
+
+                return (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#047857' }}>
+                      🎯 Tiến độ Check-in: <strong>{checkedInCount}/{sessions.length} Buổi</strong> ({pct}%)
+                    </span>
+                    <div style={{ width: '80px', height: '7px', background: '#e2e8f0', borderRadius: '9999px', overflow: 'hidden' }}>
+                      <div style={{ width: `${pct}%`, height: '100%', background: '#10b981', transition: 'width 0.3s ease' }} />
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* 5 Session Horizontal Pill Tabs */}
+            <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
+              {sessions.map(s => {
+                const isSelected = session === s.id;
+                // Check if current user checked in for this session
+                const sRec = (dateRecord.sessions && dateRecord.sessions[s.id]) || (s.id === 'morning' && !dateRecord.sessions ? dateRecord : {});
+                const userSt = user?.id ? sRec[user.id] : null;
+                const isCheckedIn = userSt && (userSt === 'present' || (typeof userSt === 'object' && userSt.status === 'present'));
+
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => setSession(s.id)}
+                    style={{
+                      flex: 1, minWidth: '140px', padding: '0.65rem 0.75rem', borderRadius: '0.75rem',
+                      border: isSelected ? '2px solid #1B4D53' : '1.5px solid #e2e8f0',
+                      cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s ease',
+                      background: isSelected ? '#1B4D53' : 'white',
+                      color: isSelected ? 'white' : '#1e293b',
+                      boxShadow: isSelected ? '0 4px 12px rgba(27,77,83,0.2)' : 'none',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ fontWeight: 800, fontSize: '0.82rem' }}>{s.label}</div>
+                      {!isTeacher && user && (
+                        <span style={{
+                          fontSize: '0.68rem', fontWeight: 800, padding: '0.08rem 0.4rem', borderRadius: '9999px',
+                          background: isCheckedIn ? (isSelected ? '#dcfce7' : '#10b981') : (isSelected ? 'rgba(255,255,255,0.2)' : '#f1f5f9'),
+                          color: isCheckedIn ? (isSelected ? '#166534' : 'white') : (isSelected ? 'white' : '#64748b')
+                        }}>
+                          {isCheckedIn ? '✓' : '⏳'}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: '0.68rem', opacity: isSelected ? 0.9 : 0.65, marginTop: '0.2rem', fontWeight: 600 }}>
+                      {s.time}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          
+          {/* Section 1: Student Check-in Card (Dynamic for currently selected session) */}
           {!isTeacher && user && (
             <div className="glass-panel" style={{
               margin: '0.5rem 0 1rem 0',
-              padding: '1rem 1.25rem',
+              padding: '1.1rem 1.35rem',
               background: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)',
               border: '1.5px solid #7dd3fc',
               display: 'flex',
@@ -450,15 +522,16 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
               flexWrap: 'wrap',
               gap: '0.75rem',
               position: 'relative',
-              zIndex: 10
+              zIndex: 10,
+              borderRadius: '1rem',
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
                 <h4 style={{ margin: 0, color: '#0369a1', fontSize: '0.95rem', fontWeight: 800 }}>
-                  📍 Check-in Cá Nhân ({currentSessionDef.label})
+                  📍 Check-in Cá Nhân: {currentSessionDef.label} ({currentSessionDef.time})
                 </h4>
                 {myCheckInObj?.checkedInAt && (
-                  <span style={{ fontSize: '0.72rem', background: '#dcfce7', color: '#166534', padding: '0.15rem 0.55rem', borderRadius: '9999px', fontWeight: 800 }}>
-                    ✓ Lúc {myCheckInObj.checkedInAt}
+                  <span style={{ fontSize: '0.72rem', background: '#dcfce7', color: '#166534', padding: '0.18rem 0.6rem', borderRadius: '9999px', fontWeight: 800 }}>
+                    ✓ Đã Check-in lúc {myCheckInObj.checkedInAt}
                   </span>
                 )}
               </div>
@@ -469,8 +542,8 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
                 disabled={isLocked && !isTeacher}
                 style={{
                   background: myCheckInObj?.checkedInAt ? '#0284c7' : '#0369a1',
-                  padding: '0.55rem 1.35rem',
-                  fontSize: '0.85rem',
+                  padding: '0.6rem 1.5rem',
+                  fontSize: '0.88rem',
                   fontWeight: 800,
                   cursor: (isLocked && !isTeacher) ? 'not-allowed' : 'pointer',
                   boxShadow: '0 4px 12px rgba(3, 105, 161, 0.25)',
@@ -481,7 +554,7 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
                   justifyContent: 'center',
                 }}
               >
-                {myCheckInObj?.checkedInAt ? `✓ Đã Check-in (${myCheckInObj.checkedInAt})` : '📍 Bấm Check-in Có Mặt'}
+                {myCheckInObj?.checkedInAt ? `✓ Đã Check-in (${myCheckInObj.checkedInAt})` : `📍 Check-in ${currentSessionDef.label}`}
               </button>
             </div>
           )}
