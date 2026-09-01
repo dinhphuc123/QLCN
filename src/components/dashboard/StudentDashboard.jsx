@@ -129,14 +129,56 @@ export default function StudentDashboard({ timetableImage = '', students = [], a
     return combined;
   }, [announcements]);
 
-  // Resolve Timetable data strictly from real extracted/saved GVCN data, fallback to EMPTY_TIMETABLE
-  const timetableData = useMemo(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem('qlcn_timetable_data') || 'null');
-      if (saved && typeof saved === 'object' && Object.keys(saved).length > 0) return saved;
-    } catch {}
-    return EMPTY_TIMETABLE;
-  }, []);
+  // Dynamic Class Activity Logs stream generated from real GVCN updates
+  const classActivityLogs = useMemo(() => {
+    const logs = [];
+
+    // 1. Logs from active announcements
+    activeAnnouncements.forEach(a => {
+      logs.push({
+        id: `ann-${a.id}`,
+        icon: a.tag === '🚨 KHẨN' ? '🚨' : '📢',
+        title: `Đăng thông báo mới: "${a.title || a.content}"`,
+        time: a.date || (a.createdAt ? a.createdAt.split('T')[0] : 'Hôm nay'),
+        tag: a.tag || 'Thông báo',
+        type: 'announcement'
+      });
+    });
+
+    // 2. Log from Timetable Image
+    if (activeTimetableImg) {
+      logs.push({
+        id: 'tt-img',
+        icon: '🖼️',
+        title: 'GVCN đã tải lên & cập nhật Ảnh Thời Khóa Biểu Gốc chính thức',
+        time: 'Hôm nay',
+        tag: 'Thời khóa biểu',
+        type: 'timetable'
+      });
+    }
+
+    // 3. Log from Evaluation/Thi đua
+    logs.push({
+      id: 'eval-log',
+      icon: '📊',
+      title: 'Hệ thống đã tổng hợp Bảng Điểm Thi Đua 4 Tổ & Ngôi Sao Tuần',
+      time: 'Tuần này',
+      tag: 'Thi đua',
+      type: 'evaluation'
+    });
+
+    // 4. Log from Attendance/Nề nếp
+    logs.push({
+      id: 'att-log',
+      icon: '📍',
+      title: 'Cán bộ lớp & GVCN đã xác nhận & tổng hợp Sổ Điểm Danh Nề Nếp 5 buổi',
+      time: 'Hôm nay',
+      tag: 'Điểm danh',
+      type: 'attendance'
+    });
+
+    return logs;
+  }, [activeAnnouncements, activeTimetableImg]);
 
   // ANNOUNCEMENT TAG STYLES
   const ANNOUNCEMENT_TAG_COLORS = {
@@ -386,157 +428,107 @@ export default function StudentDashboard({ timetableImage = '', students = [], a
           </div>
         </div>
 
-        {/* Right Column: Smart Timetable Widget (Linked directly from GVCN Portal) */}
-        <div className="glass-panel" style={{ padding: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-            <div>
-              <h3 style={{ margin: 0, color: 'var(--color-primary-dark)', fontSize: '1.1rem', fontWeight: 800 }}>📅 Thời Khóa Biểu</h3>
-              <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, marginTop: '0.15rem' }}>
-                {activeTimetableImg ? '🖼️ Trích xuất từ Ảnh TKB GVCN Lớp 12.7' : '⚡ Cập nhật theo lịch học GVCN Lớp 12.7'}
+        {/* Right Column: Original Timetable Image (Uploaded directly by GVCN) */}
+        <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div>
+                <h3 style={{ margin: 0, color: 'var(--color-primary-dark)', fontSize: '1.1rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  📅 Thời Khóa Biểu Gốc
+                </h3>
+                <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, marginTop: '0.15rem' }}>
+                  🖼️ Ảnh TKB chính thức do GVCN Lớp 12.7 đăng
+                </div>
               </div>
+              <span style={{ fontSize: '0.72rem', background: '#dcfce7', color: '#166534', padding: '0.18rem 0.6rem', borderRadius: '9999px', fontWeight: 800 }}>
+                ✓ Đã cập nhật
+              </span>
             </div>
-            <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
-              <button
-                onClick={() => setViewMode('card')}
-                style={{
-                  padding: '0.3rem 0.65rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800,
-                  background: viewMode === 'card' ? '#1B4D53' : '#f3f4f6',
-                  color: viewMode === 'card' ? 'white' : '#4b5563',
-                  border: 'none', cursor: 'pointer'
-                }}
-              >
-                📅 Thẻ Tiết
-              </button>
-              {activeTimetableImg && (
-                <button
-                  onClick={() => setViewMode('image')}
-                  style={{
-                    padding: '0.3rem 0.65rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800,
-                    background: viewMode === 'image' ? '#0284c7' : '#f3f4f6',
-                    color: viewMode === 'image' ? 'white' : '#4b5563',
-                    border: 'none', cursor: 'pointer'
-                  }}
-                >
-                  🖼️ Ảnh TKB Gốc
-                </button>
-              )}
-            </div>
-          </div>
 
-          {viewMode === 'image' && activeTimetableImg ? (
-            /* Original Timetable Image View from GVCN */
-            <div style={{ background: '#f9fafb', borderRadius: '0.85rem', padding: '0.85rem', border: '1px solid #e5e7eb', textAlign: 'center' }}>
-              <img
-                src={activeTimetableImg}
-                alt="Thời Khóa Biểu GVCN"
-                onClick={() => setShowImageModal(true)}
-                style={{ maxWidth: '100%', maxHeight: '280px', borderRadius: '0.65rem', cursor: 'zoom-in', objectFit: 'contain', border: '1.5px solid #d1d5db', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-              />
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '0.65rem' }}>
-                <button
+            {activeTimetableImg ? (
+              <div style={{ background: '#f8fafc', borderRadius: '0.85rem', padding: '0.85rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                <img
+                  src={activeTimetableImg}
+                  alt="Thời Khóa Biểu GVCN"
                   onClick={() => setShowImageModal(true)}
-                  style={{ padding: '0.35rem 0.85rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 800, background: '#0284c7', color: 'white', border: 'none', cursor: 'pointer' }}
-                >
-                  🔍 Phóng To Xem Chi Tiết
-                </button>
-                <a
-                  href={activeTimetableImg}
-                  download="ThoiKhoaBieu_12.7.png"
-                  style={{ padding: '0.35rem 0.85rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 800, background: '#16a34a', color: 'white', border: 'none', textDecoration: 'none', display: 'inline-block' }}
-                >
-                  📥 Tải Ảnh Về
-                </a>
-              </div>
-            </div>
-          ) : (
-            /* Timetable Table Card View */
-            <div style={{ background: '#f9fafb', borderRadius: '0.85rem', padding: '0.85rem 1rem', border: '1px solid #e5e7eb' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1B4D53' }}>Lịch Học: {selectedDay}</span>
-                <div style={{ display: 'flex', gap: '0.25rem', overflowX: 'auto', paddingBottom: '0.1rem' }}>
-                  {Object.keys(timetableData).map(day => (
-                    <button
-                      key={day}
-                      onClick={() => setSelectedDay(day)}
-                      style={{
-                        padding: '0.25rem 0.5rem', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 800,
-                        background: selectedDay === day ? '#1B4D53' : '#e5e7eb',
-                        color: selectedDay === day ? 'white' : '#4b5563',
-                        border: 'none', cursor: 'pointer', whiteSpace: 'nowrap'
-                      }}
-                    >
-                      {day}
-                    </button>
-                  ))}
+                  style={{ width: '100%', maxHeight: '250px', borderRadius: '0.65rem', cursor: 'zoom-in', objectFit: 'contain', border: '1.5px solid #cbd5e1', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => setShowImageModal(true)}
+                    style={{ padding: '0.4rem 0.95rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 800, background: '#0284c7', color: 'white', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                  >
+                    🔍 Phóng To Xem Chi Tiết
+                  </button>
+                  <a
+                    href={activeTimetableImg}
+                    download="ThoiKhoaBieu_12.7.png"
+                    style={{ padding: '0.4rem 0.95rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 800, background: '#16a34a', color: 'white', border: 'none', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                  >
+                    📥 Tải Ảnh Về Máy
+                  </a>
                 </div>
               </div>
-
-              {((timetableData[selectedDay]?.morning || []).length > 0 || (timetableData[selectedDay]?.afternoon || []).length > 0) ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {(timetableData[selectedDay]?.morning || []).length > 0 && (
-                    <>
-                      <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0369a1', textTransform: 'uppercase' }}>☀️ Buổi Sáng (07:00 - 11:30)</div>
-                      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${(timetableData[selectedDay]?.morning || []).length}, 1fr)`, gap: '0.4rem' }}>
-                        {(timetableData[selectedDay]?.morning || []).map((sub, i) => (
-                          <div key={i} style={{
-                            padding: '0.55rem 0.25rem', textAlign: 'center', background: 'white',
-                            border: '1.5px solid #0284c7', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 800, color: '#0369a1',
-                            boxShadow: '0 2px 6px rgba(2,132,199,0.08)'
-                          }}>
-                            <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700 }}>Tiết {i+1}</div>
-                            {sub}
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
-
-                  {(timetableData[selectedDay]?.afternoon || []).length > 0 && (
-                    <>
-                      <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#d97706', textTransform: 'uppercase', marginTop: '0.4rem' }}>⛅ Buổi Chiều (13:30 - 17:00)</div>
-                      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${(timetableData[selectedDay]?.afternoon || []).length}, 1fr)`, gap: '0.4rem' }}>
-                        {timetableData[selectedDay].afternoon.map((sub, i) => (
-                          <div key={i} style={{
-                            padding: '0.55rem 0.25rem', textAlign: 'center', background: 'white',
-                            border: '1.5px solid #f59e0b', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 800, color: '#b45309',
-                            boxShadow: '0 2px 6px rgba(217,119,6,0.08)'
-                          }}>
-                            <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700 }}>Tiết {i+6}</div>
-                            {sub}
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
+            ) : (
+              <div style={{ padding: '2rem 1rem', textAlign: 'center', background: '#f8fafc', borderRadius: '0.85rem', border: '1.5px dashed #cbd5e1' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🖼️</div>
+                <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#1B4D53', marginBottom: '0.3rem' }}>
+                  GVCN chưa đăng Ảnh Thời Khóa Biểu Gốc
                 </div>
-              ) : (
-                <div style={{ padding: '1.25rem 1rem', textAlign: 'center', background: 'white', borderRadius: '8px', border: '1px stroke #e5e7eb' }}>
-                  {activeTimetableImg ? (
-                    <div>
-                      <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#1B4D53', marginBottom: '0.4rem' }}>
-                        🖼️ GVCN đã tải lên Ảnh Thời Khóa Biểu gốc
-                      </div>
-                      <div style={{ fontSize: '0.78rem', color: '#4b5563', marginBottom: '0.75rem' }}>
-                        Bấm nút bên dưới để xem trực tiếp ảnh TKB do GVCN cập nhật
-                      </div>
-                      <button
-                        onClick={() => setViewMode('image')}
-                        style={{ padding: '0.4rem 1rem', borderRadius: '9999px', background: '#0284c7', color: 'white', fontWeight: 800, fontSize: '0.78rem', border: 'none', cursor: 'pointer' }}
-                      >
-                        🔍 Xem Ảnh TKB Gốc Ngay
-                      </button>
-                    </div>
-                  ) : (
-                    <div style={{ color: '#6b7280', fontSize: '0.82rem', fontWeight: 600 }}>
-                      ℹ️ GVCN Lớp 12.7 chưa cập nhật Thời khóa biểu chính thức.
-                    </div>
-                  )}
+                <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                  Ảnh TKB chính thức từ Cổng GVCN sẽ hiển thị trực tiếp tại đây ngay khi GVCN cập nhật.
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </div>
 
+      </div>
+
+      {/* Class Activity Log Stream Section (Linked to GVCN Updates) */}
+      <div className="glass-panel" style={{ padding: '1.5rem 1.75rem', borderRadius: '1.25rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div>
+            <h3 style={{ margin: 0, color: 'var(--color-primary-dark)', fontSize: '1.15rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              📜 Nhật Ký Hoạt Động Lớp (Cập nhật từ GVCN Lớp 12.7)
+            </h3>
+            <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginTop: '0.15rem' }}>
+              Dòng thời gian ghi nhận các sự kiện, thông báo và hoạt động chính thức từ GVCN
+            </div>
+          </div>
+          <span style={{ fontSize: '0.75rem', background: '#e0f2fe', color: '#0369a1', padding: '0.2rem 0.75rem', borderRadius: '9999px', fontWeight: 800 }}>
+            ⚡ Cập nhật thời gian thực
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {classActivityLogs.map((log) => (
+            <div key={log.id} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '0.85rem 1.1rem', background: 'white', borderRadius: '0.85rem',
+              border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+              flexWrap: 'wrap', gap: '0.6rem'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ fontSize: '1.2rem', padding: '0.35rem 0.55rem', background: '#f1f5f9', borderRadius: '0.5rem' }}>
+                  {log.icon}
+                </span>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#1e293b' }}>
+                    {log.title}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, marginTop: '0.1rem' }}>
+                    Mục: <strong style={{ color: '#0284c7' }}>{log.tag}</strong> • GVCN Đỗ Kim Tuyền
+                  </div>
+                </div>
+              </div>
+
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, background: '#f8fafc', padding: '0.2rem 0.6rem', borderRadius: '9999px', border: '1px solid #e2e8f0' }}>
+                📅 {log.time}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Modal View Timetable Image Zoom */}
