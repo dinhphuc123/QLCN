@@ -265,15 +265,48 @@ app.get('/api/audit-logs', requireTeacher, (req, res) => {
   res.json(db.auditLogs);
 });
 
-// Serverless File Upload endpoint (Converts memory buffer to Data URL)
-app.post('/api/upload', upload.single('file'), (req, res) => {
+// Serverless File Upload endpoint (Supabase Storage Cloud + Base64 Fallback)
+app.post('/api/upload', upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Không có file nào được tải lên' });
   const mime = req.file.mimetype;
+  const originalName = req.file.originalname;
+  const ext = path.extname(originalName).toLowerCase();
+  const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}${ext}`;
+
+  // Attempt upload to Supabase Free Storage if configured
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.storage
+        .from('qlcn-files')
+        .upload(`uploads/${fileName}`, req.file.buffer, {
+          contentType: mime,
+          upsert: true,
+        });
+
+      if (!error && data) {
+        const { data: publicData } = supabase.storage
+          .from('qlcn-files')
+          .getPublicUrl(`uploads/${fileName}`);
+
+        if (publicData?.publicUrl) {
+          addAuditLog(req.user, 'UPLOAD FILE (SUPABASE)', originalName, publicData.publicUrl);
+          return res.json({ success: true, url: publicData.publicUrl, filename: originalName });
+        }
+      } else {
+        console.warn('Supabase storage upload fallback:', error?.message);
+      }
+    } catch (supabaseErr) {
+      console.warn('Supabase storage exception fallback:', supabaseErr.message);
+    }
+  }
+
+  // Fallback to Data URL base64 if Supabase is not connected
   const base64 = req.file.buffer.toString('base64');
   const fileUrl = `data:${mime};base64,${base64}`;
-  addAuditLog(req.user, 'UPLOAD FILE', req.file.originalname, 'In-memory Base64');
-  res.json({ success: true, url: fileUrl, filename: req.file.originalname });
+  addAuditLog(req.user, 'UPLOAD FILE (LOCAL DATA-URL)', originalName, 'In-memory Base64');
+  res.json({ success: true, url: fileUrl, filename: originalName });
 });
+
 
 // ── Students Endpoints ───────────────────────────────────────────────────────
 app.post('/api/students', requireTeacher, (req, res) => {
