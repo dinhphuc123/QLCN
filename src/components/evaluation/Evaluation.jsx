@@ -388,15 +388,17 @@ export default function Evaluation({ students = [], isTeacher, onRefresh }) {
               })}
             </select>
 
-            <button
-              onClick={handleExportCompetitionPDF}
-              style={{
-                padding: '0.45rem 0.95rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 700,
-                background: '#16a34a', color: 'white', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem'
-              }}
-            >
-              📄 Xuất Báo Cáo PDF
-            </button>
+            {isTeacher && (
+              <button
+                onClick={handleExportCompetitionPDF}
+                style={{
+                  padding: '0.45rem 0.95rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 700,
+                  background: '#16a34a', color: 'white', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem'
+                }}
+              >
+                📄 Xuất Báo Cáo PDF
+              </button>
+            )}
           </div>
         </div>
 
@@ -559,7 +561,7 @@ export default function Evaluation({ students = [], isTeacher, onRefresh }) {
               {/* Tổ trưởng / Lớp trưởng Duyệt */}
               {canApproveCompetition && (
                 <button className="btn-primary" style={{ background: '#0284c7' }} onClick={handleGroupLeaderReview} disabled={saving}>
-                  {saving ? 'Đang duyệt...' : `⭐ Duyệt Vòng 1 (${isGroupLeader ? user.groupLeaderOf || user.group : 'Toàn lớp'})`}
+                  {saving ? 'Đang duyệt...' : `⭐ Duyệt Vòng 1 (${isGroupLeader ? (user?.groupLeaderOf || user?.group || 'Tổ') : 'Toàn lớp'})`}
                 </button>
               )}
 
