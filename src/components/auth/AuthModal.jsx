@@ -66,22 +66,22 @@ export default function AuthModal({ onClose }) {
               👑 GVCN Kim Tuyền
             </button>
             <button
-              onClick={() => { loginStudent('1', '01'); onClose(); }}
+              onClick={() => { loginStudent('7', '07'); onClose(); }}
               style={{ padding: '0.45rem', borderRadius: '0.5rem', background: '#0284c7', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer' }}
             >
-              👑 Lớp Trưởng (01)
+              👑 Lớp Trưởng (07)
             </button>
             <button
-              onClick={() => { loginStudent('2', '02'); onClose(); }}
+              onClick={() => { loginStudent('11', '11'); onClose(); }}
               style={{ padding: '0.45rem', borderRadius: '0.5rem', background: '#059669', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer' }}
             >
-              ⭐ Tổ Trưởng (02)
+              ⭐ Tổ Trưởng T4 (11)
             </button>
             <button
-              onClick={() => { loginStudent('3', '03'); onClose(); }}
+              onClick={() => { loginStudent('22', '22'); onClose(); }}
               style={{ padding: '0.45rem', borderRadius: '0.5rem', background: '#d97706', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer' }}
             >
-              👨‍🎓 Học Sinh (03)
+              ⭐ Tổ Trưởng T1 (22)
             </button>
           </div>
         </div>

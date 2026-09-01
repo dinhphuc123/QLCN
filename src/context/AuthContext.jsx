@@ -123,13 +123,13 @@ export function AuthProvider({ children }) {
 
   // ── Permissions ─────────────────────────────────────────────────────────
   const isTeacher     = user?.role === 'teacher';
-  const isGroupLeader = user?.role === 'group_leader';
-  const isMonitor     = user?.role === 'monitor';
-  const isDormLeader  = !!user?.isDormLeader;
-  const isStudent     = ['student', 'group_leader', 'monitor'].includes(user?.role);
+  const isGroupLeader = user?.role === 'group_leader' || (user?.position && user.position.toLowerCase().includes('tổ trưởng'));
+  const isMonitor     = user?.role === 'monitor' || (user?.position && (user.position.toLowerCase().includes('lớp trưởng') || user.position.toLowerCase().includes('lớp phó')));
+  const isDormLeader  = !!user?.isDormLeader || (user?.position && user.position.toLowerCase().includes('trưởng phòng'));
+  const isStudent     = !isTeacher;
 
-  const canApproveCompetition = isGroupLeader || isTeacher;
-  const canMarkAttendance      = isGroupLeader || isMonitor || isDormLeader; // Officers mark, GVCN approves/locks
+  const canApproveCompetition = isGroupLeader || isMonitor || isTeacher;
+  const canMarkAttendance      = isGroupLeader || isMonitor || isDormLeader || isTeacher; // Officers & Teacher can mark
   const canManageAnnouncements = isTeacher;
   const canViewOthers          = isTeacher || isGroupLeader || isMonitor || isDormLeader;
 

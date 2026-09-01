@@ -307,12 +307,12 @@ export default function LoginGate() {
               👑 GVCN Kim Tuyền
             </button>
             <button className="quick-btn" style={{ background: 'linear-gradient(135deg,#0284c7,#0369a1)', boxShadow: '0 3px 10px rgba(2,132,199,0.35)' }}
-              onClick={() => loginStudent('1', '01')}>
-              ⭐ Lớp Trưởng (01)
+              onClick={() => loginStudent('7', '07')}>
+              👑 Lớp Trưởng (07)
             </button>
-            <button className="quick-btn" style={{ background: 'linear-gradient(135deg,#d97706,#b45309)', boxShadow: '0 3px 10px rgba(217,119,6,0.35)' }}
-              onClick={() => loginStudent('3', '03')}>
-              🎓 Học Sinh (03)
+            <button className="quick-btn" style={{ background: 'linear-gradient(135deg,#059669,#047857)', boxShadow: '0 3px 10px rgba(5,150,105,0.35)' }}
+              onClick={() => loginStudent('11', '11')}>
+              ⭐ Tổ Trưởng T4 (11)
             </button>
           </div>
         </div>
