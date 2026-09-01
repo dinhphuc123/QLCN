@@ -49,7 +49,7 @@ export default function AdminDocExporter({ students = [], settings = {} }) {
   </ul>
 
   <h3>II. ĐÁNH GIÁ NỀ NẾP THI ĐƯA & CHUYÊN CẦN</h3>
-  <p style="text-indent: 2rem;">Lớp duy trì công tác điểm danh 5 buổi/ngày (Sáng, Chiều, Tối tự học, KTX 21:30 tắt đèn, HĐ Tập thể). Kết quả xếp loại thi đua nề nếp đạt <strong>Top đầu khối 12</strong> với 100% học sinh chấp hành tốt quy chế.</p>
+  <p style="text-indent: 2rem;">Lớp duy trì công tác điểm danh 5 buổi/ngày (Sáng, Chiều, Tối tự học, KTX 22:30 tắt đèn, HĐ Tập thể). Kết quả xếp loại thi đua nề nếp đạt <strong>Top đầu khối 12</strong> với 100% học sinh chấp hành tốt quy chế.</p>
 
   <h3>III. KẾT QUẢ ÔN THI THPT QUỐC GIA & ĐỊNH HƯỚNG XÉT TUYỂN ĐẠI HỌC</h3>
   <p style="text-indent: 2rem;">Đã tổ chức phân tích tổ hợp môn thế mạnh (A00, A01, B00, C00, D01) cho 100% học sinh trong lớp. Tỷ lệ học sinh đạt điểm dự kiến xét tuyển ĐH trên 22.0 điểm đạt 85%.</p>
@@ -90,7 +90,7 @@ export default function AdminDocExporter({ students = [], settings = {} }) {
   <ol>
     <li>GVCN báo cáo tình hình nề nếp chuyên cần 5 buổi, điểm thi đua 47 tiêu chí và kết quả học tập ${semester}.</li>
     <li>Báo cáo thu - chi quỹ lớp công khai minh bạch.</li>
-    <li>Thảo luận phương hướng phối hợp đôn đốc học sinh tự học tối KTX (21:30 tắt đèn) chuẩn bị kỳ thi THPT Quốc gia.</li>
+    <li>Thảo luận phương hướng phối hợp đôn đốc học sinh tự học tối KTX (22:30 tắt đèn) chuẩn bị kỳ thi THPT Quốc gia.</li>
     <li>Ý kiến đóng góp của Phụ huynh học sinh: Thống nhất 100% với các nội dung GVCN triển khai.</li>
   </ol>
 

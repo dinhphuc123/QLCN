@@ -86,7 +86,7 @@ export default function ParentPortal() {
           </div>
           <div style={{ fontSize: '0.8rem', color: '#4b5563', marginTop: '0.75rem' }}>
             - Điểm danh 5 buổi: <strong>Đủ 100%</strong><br />
-            - Điểm danh KTX 21:30 tắt đèn: <strong>Đúng giờ</strong><br />
+            - Điểm danh KTX 22:30 tắt đèn: <strong>Đúng giờ</strong><br />
             - Lịch sử vi phạm tuần: <strong>Không có</strong>
           </div>
         </div>

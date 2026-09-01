@@ -37,12 +37,12 @@ Chức vụ: ${student.position || 'Thành viên'}
 - Nguyện vọng ĐH: ${student.aspirations || 'Đại học Bách Khoa / Sư Phạm'}
 
 3. ĐỀ XUẤT CỦA GVCN:
-- Kính mong Phụ huynh tiếp tục phối hợp với GVCN Đỗ Kim Tuyền đôn đốc giờ tự học tại nhà/KTX vào buổi tối từ 19:30 - 21:30.`;
+- Kính mong Phụ huynh tiếp tục phối hợp với GVCN Đỗ Kim Tuyền đôn đốc giờ tự học tại nhà/KTX vào buổi tối từ 19:30 - 22:30.`;
       } else if (reportType === 'zalo_sms') {
         content = `📱 TIN NHẮN THÔNG BÁO GỬI PHỤ HUYNH (ZALO/SMS):
 
 "Trân trọng gửi Phụ huynh em ${student.name} (Lớp 12.7 - GVCN Đỗ Kim Tuyền):
-Tuần qua em ${student.name} đạt điểm thi đua ${student.points || 95}/100 điểm (${student.points >= 90 ? 'Tốt' : 'Khá'}). Học lực năm cũ ĐTB ${gpa}. Kính mong Phụ huynh nhắc nhở em duy trì giờ tự học tối KTX (21:30 tắt đèn) để chuẩn bị tốt cho kỳ thi THPT Quốc gia 2027. Trân trọng!"`;
+Tuần qua em ${student.name} đạt điểm thi đua ${student.points || 95}/100 điểm (${student.points >= 90 ? 'Tốt' : 'Khá'}). Học lực năm cũ ĐTB ${gpa}. Kính mong Phụ huynh nhắc nhở em duy trì giờ tự học tối KTX (22:30 tắt đèn) để chuẩn bị tốt cho kỳ thi THPT Quốc gia 2027. Trân trọng!"`;
       } else {
         content = `💡 TƯ VẤN ĐỊNH HƯỚNG TỔ HỢP THI ĐẠI HỌC — ${student.name.toUpperCase()}
 

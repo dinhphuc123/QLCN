@@ -18,8 +18,8 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
   const sessions = [
     { id: 'morning', label: '🌅 Buổi Sáng', time: '07:00 - 11:30', type: 'school' },
     { id: 'afternoon', label: '☀️ Buổi Chiều', time: '13:30 - 17:00', type: 'school' },
-    { id: 'evening_study', label: '🌙 Tự Học Tối', time: '19:00 - 21:00', type: 'school' },
-    { id: 'sleeping', label: '🛌 Đi Ngủ KTX', time: '21:30 Tắt đèn', type: 'dorm' },
+    { id: 'evening_study', label: '🌙 Tự Học Tối', time: '19:30 - 21:30', type: 'school' },
+    { id: 'sleeping', label: '🛌 Đi Ngủ KTX', time: '22:30 Tắt đèn', type: 'dorm' },
     { id: 'group_activity', label: '🏃 HĐ Tập Thể', time: 'Ngoại khóa', type: 'school' },
   ];
 
