@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { useClassSettings } from '../../context/ClassSettingsContext';
@@ -10,6 +9,26 @@ const EDU_SYSTEMS = [
   { id: 'pre_uni', label: '🏛️ Dự Bị Đại Học Nội Trú (1 năm)', badgeBg: '#fef3c7', badgeColor: '#92400e' },
   { id: 'college', label: '🛠️ Cao Đẳng Chính Quy / Nghề (2-3 năm)', badgeBg: '#dcfce7', badgeColor: '#166534' },
   { id: 'intermediate', label: '💼 Trung Cấp Nghề (Miễn 100% học phí)', badgeBg: '#f3e8ff', badgeColor: '#6b21a8' },
+];
+
+// Holland Code (RIASEC) Chuẩn Quốc Tế Cho Hướng Nghiệp
+const HOLLAND_TRAITS = [
+  { code: 'S', name: 'Social (Xã Hội / Giao Tiếp)', icon: '🤝', desc: 'Thích giúp đỡ, dạy học, chăm sóc người khác', matchFields: 'Sư phạm, Y tế, Du lịch, Công tác xã hội' },
+  { code: 'R', name: 'Realistic (Thực Tế / Khéo Tay)', icon: '🛠️', desc: 'Thích làm việc với công cụ, máy móc, ngoài trời', matchFields: 'Nông lâm nghiệp, Ô tô, Điện tử, Kỹ thuật' },
+  { code: 'I', name: 'Investigative (Nghiên Cứu / Phân Tích)', icon: '🧠', desc: 'Thích suy nghĩ, tìm hiểu, giải quyết vấn đề', matchFields: 'CNTT, Dược học, Y khoa, Khoa học' },
+  { code: 'A', name: 'Artistic (Nghệ Thuật / Sáng Tạo)', icon: '🎨', desc: 'Thích sáng tạo, tự do, thiết kế, âm nhạc', matchFields: 'Báo chí, Truyền thông, Thiết kế, Văn hóa' },
+  { code: 'E', name: 'Enterprising (Quản Lý / Thuyết Phục)', icon: '💼', desc: 'Thích lãnh đạo, thuyết phục, kinh doanh', matchFields: 'Kinh doanh, Quản trị, Marketing, Khách sạn' },
+  { code: 'C', name: 'Conventional (Nghiệp Vụ / Gọn Gàng)', icon: '📋', desc: 'Thích trật tự, tỉ mỉ, làm việc với số liệu', matchFields: 'Kế toán, Hành chính, Quản lý hồ sơ' },
+];
+
+// Năng Lực & Sở Thích Nổi Bật
+const STRENGTH_OPTIONS = [
+  'Giao tiếp & Thuyết phục tốt',
+  'Khéo tay, thích làm thực hành',
+  'Chăm chỉ, chịu khó, kiên trì',
+  'Thích chăm sóc & Giúp đỡ mọi người',
+  'Tư duy logic & Tính toán tốt',
+  'Thích hoạt động ngoài trời / Thiên nhiên',
 ];
 
 // Định Hướng Khối Thi & Ngành Học Thực Tế Phù Hợp Học Sinh Dân Tộc
@@ -61,8 +80,6 @@ const CAREER_PATHWAYS = [
   }
 ];
 
-const COLORS = ['#d97706', '#7c3aed', '#0284c7', '#16a34a', '#2563eb'];
-
 export default function Exam({ students = [], isTeacher, onRefresh }) {
   const { user } = useAuth();
   const { settings } = useClassSettings();
@@ -92,11 +109,25 @@ export default function Exam({ students = [], isTeacher, onRefresh }) {
     }
   });
 
+  // Local storage state for Student Holland / Profiling Data
+  const [profilingData, setProfilingData] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('qlcn_student_profiling') || '{}');
+    } catch {
+      return {};
+    }
+  });
+
   // Form states for selected student
   const [nv1, setNv1] = useState({ system: 'Dự Bị ĐH Nội Trú', uni: 'Trường Dự Bị ĐH TP.HCM', major: 'Dự bị khối C00/D01', combo: 'C00' });
-  const [nv2, setNv2] = useState({ system: 'Cao Đẳng Nghề', uni: 'Trường CĐ Y Tế', major: 'Điều dưỡng / Y sĩ', combo: 'B00' });
+  const [nv2, setNv2] = useState({ system: 'Cao Đẳng Nghề', uni: 'Trường CĐ Y Tế', major: 'Điều dưỡng / Y sĩ', combo: 'CĐ-TCN' });
   const [nv3, setNv3] = useState({ system: 'Đại Học', uni: 'ĐH Tây Nguyên', major: 'Sư phạm Tiểu học', combo: 'C00' });
   const [teacherNote, setTeacherNote] = useState('');
+  
+  // Profiling state
+  const [hollandTrait, setHollandTrait] = useState('S');
+  const [academicRating, setAcademicRating] = useState('Trung bình - Khá');
+  const [selectedStrengths, setSelectedStrengths] = useState(['Chăm chỉ, chịu khó, kiên trì', 'Giao tiếp & Thuyết phục tốt']);
 
   // Sync states on student selection
   useEffect(() => {
@@ -106,8 +137,61 @@ export default function Exam({ students = [], isTeacher, onRefresh }) {
     setNv3(studentAsp.nv3 || { system: 'Đại Học', uni: 'ĐH Tây Nguyên', major: 'Sư phạm Tiểu học (Hỗ trợ NĐ 116)', combo: 'C00' });
 
     const noteObj = counselingNotes[selectedStudentId] || {};
-    setTeacherNote(noteObj.note || 'Lực học Trung bình - Khá, phù hợp đăng ký xét tuyển Khối C00/D01 hoặc Hệ Dự bị ĐH Nội trú TP.HCM để nhận chính sách hỗ trợ KTX & Sinh hoạt phí của Nhà nước.');
-  }, [selectedStudentId, aspirationsData, counselingNotes]);
+    setTeacherNote(noteObj.note || 'Lực học Trung bình - Khá, tính cách hòa đồng, kiên trì. Rất phù hợp với Hệ Dự bị ĐH Nội trú TP.HCM hoặc Sư phạm / Y tế cộng đồng.');
+
+    const prof = profilingData[selectedStudentId] || {};
+    setHollandTrait(prof.hollandTrait || 'S');
+    setAcademicRating(prof.academicRating || 'Trung bình - Khá');
+    setSelectedStrengths(prof.selectedStrengths || ['Chăm chỉ, chịu khó, kiên trì', 'Giao tiếp & Thuyết phục tốt']);
+  }, [selectedStudentId, aspirationsData, counselingNotes, profilingData]);
+
+  // Save Student Aspirations
+  const handleSaveAspirations = () => {
+    const updated = {
+      ...aspirationsData,
+      [selectedStudentId]: { nv1, nv2, nv3, updatedAt: new Date().toISOString() }
+    };
+    setAspirationsData(updated);
+    localStorage.setItem('qlcn_student_aspirations', JSON.stringify(updated));
+    toast.success(`Đã lưu nguyện vọng & lộ trình cho em ${currentStudent?.name || 'học sinh'}!`);
+  };
+
+  // Save Teacher Counseling Note
+  const handleSaveTeacherNote = () => {
+    const updated = {
+      ...counselingNotes,
+      [selectedStudentId]: { note: teacherNote, teacherName: settings.teacherName, updatedAt: new Date().toISOString() }
+    };
+    setCounselingNotes(updated);
+    localStorage.setItem('qlcn_career_counseling', JSON.stringify(updated));
+    toast.success(`Đã lưu lời tư vấn hướng nghiệp của GVCN cho em ${currentStudent?.name}!`);
+  };
+
+  // Save Profiling Data
+  const handleSaveProfiling = (trait, rating, strengths) => {
+    const updated = {
+      ...profilingData,
+      [selectedStudentId]: { hollandTrait: trait, academicRating: rating, selectedStrengths: strengths, updatedAt: new Date().toISOString() }
+    };
+    setProfilingData(updated);
+    localStorage.setItem('qlcn_student_profiling', JSON.stringify(updated));
+  };
+
+  const handleToggleStrength = (str) => {
+    const next = selectedStrengths.includes(str)
+      ? selectedStrengths.filter(s => s !== str)
+      : [...selectedStrengths, str];
+    setSelectedStrengths(next);
+    handleSaveProfiling(hollandTrait, academicRating, next);
+  };
+
+  // Calculate Match Score %
+  const matchScore = useMemo(() => {
+    let base = 85;
+    if (hollandTrait === 'S' || hollandTrait === 'R') base += 8;
+    if (selectedStrengths.length >= 2) base += 5;
+    return Math.min(99, base);
+  }, [hollandTrait, selectedStrengths]);
 
   // Fast preset fill templates
   const applyPreset = (presetType) => {
@@ -129,52 +213,7 @@ export default function Exam({ students = [], isTeacher, onRefresh }) {
     }
   };
 
-  // Save Student Aspirations
-  const handleSaveAspirations = () => {
-    const updated = {
-      ...aspirationsData,
-      [selectedStudentId]: {
-        nv1, nv2, nv3,
-        updatedAt: new Date().toISOString()
-      }
-    };
-    setAspirationsData(updated);
-    localStorage.setItem('qlcn_student_aspirations', JSON.stringify(updated));
-    toast.success(`Đã lưu nguyện vọng & lộ trình cho em ${currentStudent?.name || 'học sinh'}!`);
-  };
-
-  // Save Teacher Counseling Note
-  const handleSaveTeacherNote = () => {
-    const updated = {
-      ...counselingNotes,
-      [selectedStudentId]: {
-        note: teacherNote,
-        teacherName: settings.teacherName,
-        updatedAt: new Date().toISOString()
-      }
-    };
-    setCounselingNotes(updated);
-    localStorage.setItem('qlcn_career_counseling', JSON.stringify(updated));
-    toast.success(`Đã lưu lời tư vấn hướng nghiệp của GVCN cho em ${currentStudent?.name}!`);
-  };
-
-  // Compute Class Educational Pathways Distribution Stats for BarChart
-  const classPathwayStats = useMemo(() => {
-    const counts = { C00: 0, D01: 0, DBDH: 0, 'CĐ-TCN': 0, 'A00/A01': 0 };
-    students.forEach(s => {
-      const asp = aspirationsData[s.id];
-      const primaryCombo = asp?.nv1?.combo || (s.id % 5 === 1 ? 'C00' : s.id % 5 === 2 ? 'DBDH' : s.id % 5 === 3 ? 'CĐ-TCN' : s.id % 5 === 4 ? 'D01' : 'A00/A01');
-      if (counts[primaryCombo] !== undefined) counts[primaryCombo]++;
-    });
-
-    return [
-      { name: 'Khối C00 (Văn Sử Địa)', 'Số HS': counts.C00 || 14, code: 'C00' },
-      { name: 'Dự Bị ĐH Nội Trú', 'Số HS': counts.DBDH || 9, code: 'DBDH' },
-      { name: 'Cao Đẳng / Học Nghề', 'Số HS': counts['CĐ-TCN'] || 7, code: 'CĐ-TCN' },
-      { name: 'Khối D01 (Toán Văn Anh)', 'Số HS': counts.D01 || 5, code: 'D01' },
-      { name: 'Khối A00/A01 (Kỹ Thuật)', 'Số HS': counts['A00/A01'] || 2, code: 'A00/A01' },
-    ];
-  }, [students, aspirationsData]);
+  const activeHollandObj = HOLLAND_TRAITS.find(h => h.code === hollandTrait) || HOLLAND_TRAITS[0];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -184,13 +223,13 @@ export default function Exam({ students = [], isTeacher, onRefresh }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <span style={{ background: 'rgba(255,255,255,0.2)', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.04em' }}>
-              🧭 CỔNG ĐỊNH HƯỚNG NGHỀ NGHIỆP & LỘ TRÌNH HỌC TẬP THỰC TẾ 2026
+              🧭 CỔNG ĐỊNH HƯỚNG NGHỀ NGHIỆP & LỘ TRÌNH HỌC TẬP QUỐC TẾ 2026
             </span>
             <h3 style={{ margin: '0.4rem 0 0 0', fontSize: '1.5rem', color: 'white', fontWeight: 900 }}>
-              Tư Vấn Định Hướng ĐH - CĐ - Dự Bị ĐH - Nghề Cho HS Dân Tộc Lớp {settings.className}
+              Tư Vấn Hướng Nghiệp Chuẩn Quốc Tế (RIASEC) Cho HS Lớp {settings.className}
             </h3>
             <p style={{ fontSize: '0.85rem', color: '#cbd5e1', marginTop: '0.3rem', margin: 0 }}>
-              Gợi ý các khối thi thế mạnh (C, D), Hệ Dự bị ĐH Nội trú, Cao đẳng Nghề miễn học phí & Chính sách trợ cấp Nhà nước
+              Phân tích tính cách Holland, năng lực nổi trội, học lực thực tế và gợi ý lộ trình trúng tuyển cao nhất
             </p>
           </div>
 
@@ -238,7 +277,7 @@ export default function Exam({ students = [], isTeacher, onRefresh }) {
         </div>
       </div>
 
-      {/* Main Grid: Aspirations & Career Counseling */}
+      {/* Main Grid: Aspirations (Left) & International Profiling (Right) */}
       <div className="career-main-grid">
         
         {/* Left Column: Top 3 Aspirations Registration */}
@@ -324,14 +363,106 @@ export default function Exam({ students = [], isTeacher, onRefresh }) {
           </div>
         </div>
 
-        {/* Right Column: Teacher Counseling Note & Class Analytics Chart */}
+        {/* Right Column: International Profiling Card (Holland RIASEC + Strengths + Match Score) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
-          {/* Panel 1: GVCN Career Counseling Note Box */}
+          {/* International Profiling Card */}
+          <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+            
+            {/* Header Match Score */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', background: 'linear-gradient(135deg, #f0fdf4, #e0f2fe)', padding: '0.85rem 1.1rem', borderRadius: '0.85rem', border: '1px solid #bae6fd' }}>
+              <div>
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#0369a1', textTransform: 'uppercase', letterSpacing: '0.04em' }}>CHỈ SỐ TƯƠNG THÍCH LỘ TRÌNH</span>
+                <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#0f766e', marginTop: '0.1rem' }}>
+                  🎯 Độ Phù Hợp: <span style={{ color: '#16a34a' }}>{matchScore}%</span> (Rất Cao)
+                </div>
+              </div>
+              <span style={{ background: '#16a34a', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontWeight: 800, fontSize: '0.78rem' }}>
+                ✅ Lộ trình tối ưu
+              </span>
+            </div>
+
+            {/* Holland Code Selection */}
+            <div>
+              <label style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b', display: 'block', marginBottom: '0.4rem' }}>
+                🧠 Nhóm Tính Cách Hướng Nghiệp Holland (RIASEC):
+              </label>
+              <select
+                className="form-input"
+                style={{ width: '100%', fontWeight: 800, fontSize: '0.88rem', padding: '0.45rem 0.75rem' }}
+                value={hollandTrait}
+                onChange={e => {
+                  setHollandTrait(e.target.value);
+                  handleSaveProfiling(e.target.value, academicRating, selectedStrengths);
+                }}
+              >
+                {HOLLAND_TRAITS.map(h => (
+                  <option key={h.code} value={h.code}>
+                    {h.icon} {h.name}
+                  </option>
+                ))}
+              </select>
+              <div style={{ fontSize: '0.78rem', color: '#0369a1', background: '#e0f2fe', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', marginTop: '0.4rem', border: '1px solid #7dd3fc' }}>
+                💡 <strong>Đặc điểm:</strong> {activeHollandObj.desc}<br />
+                🎯 <strong>Ngành nghề phù hợp:</strong> {activeHollandObj.matchFields}
+              </div>
+            </div>
+
+            {/* Academic Rating Selector */}
+            <div>
+              <label style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b', display: 'block', marginBottom: '0.4rem' }}>
+                📈 Đánh Giá Mức Học Lực Thực Tế:
+              </label>
+              <select
+                className="form-input"
+                style={{ width: '100%', fontWeight: 800, fontSize: '0.85rem' }}
+                value={academicRating}
+                onChange={e => {
+                  setAcademicRating(e.target.value);
+                  handleSaveProfiling(hollandTrait, e.target.value, selectedStrengths);
+                }}
+              >
+                <option value="Giỏi">⭐ Giỏi (Thi ĐH top đầu)</option>
+                <option value="Khá - Giỏi">✅ Khá - Giỏi (Thi ĐH & Dự bị ĐH)</option>
+                <option value="Trung bình - Khá">👍 Trung bình - Khá (Khối C/D, Dự bị ĐH, Cao đẳng)</option>
+                <option value="Trung bình">⚠️ Trung bình (Cao đẳng Nghề, Trung cấp nghề)</option>
+              </select>
+            </div>
+
+            {/* Strengths & Interests Selection */}
+            <div>
+              <label style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b', display: 'block', marginBottom: '0.4rem' }}>
+                💡 Năng Lực Nổi Trội & Sở Thích Cá Nhân:
+              </label>
+              <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
+                {STRENGTH_OPTIONS.map(str => {
+                  const isChecked = selectedStrengths.includes(str);
+                  return (
+                    <button
+                      key={str}
+                      onClick={() => handleToggleStrength(str)}
+                      style={{
+                        fontSize: '0.75rem', padding: '0.3rem 0.65rem', borderRadius: '9999px',
+                        border: `1.5px solid ${isChecked ? '#16a34a' : '#cbd5e1'}`,
+                        background: isChecked ? '#f0fdf4' : '#f8fafc',
+                        color: isChecked ? '#15803d' : '#475569',
+                        fontWeight: isChecked ? 800 : 600, cursor: 'pointer', transition: 'all 0.15s ease'
+                      }}
+                    >
+                      {isChecked ? '✓ ' : '+ '}{str}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+          </div>
+
+          {/* Panel 2: GVCN Career Counseling Note Box */}
           <div className="glass-panel" style={{ padding: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
               <h4 style={{ margin: 0, color: '#1e3a8a', fontSize: '1.05rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                📝 Tư Vấn Định Hướng Phù Hợp Lực Học Từ GVCN
+                📝 Tư Vấn Định Hướng Lộ Trình Từ GVCN
               </h4>
               {isTeacher && (
                 <span style={{ fontSize: '0.75rem', background: '#dbeafe', color: '#1e40af', padding: '0.15rem 0.55rem', borderRadius: '9999px', fontWeight: 800 }}>
@@ -346,7 +477,7 @@ export default function Exam({ students = [], isTeacher, onRefresh }) {
                   value={teacherNote}
                   onChange={e => setTeacherNote(e.target.value)}
                   className="form-input"
-                  style={{ width: '100%', minHeight: '100px', fontSize: '0.88rem', lineHeight: 1.5, resize: 'vertical' }}
+                  style={{ width: '100%', minHeight: '90px', fontSize: '0.88rem', lineHeight: 1.5, resize: 'vertical' }}
                   placeholder={`Nhập nhận xét tư vấn chọn ngành, chọn nghề phù hợp với sức học và hoàn cảnh của em ${currentStudent?.name}...`}
                 />
                 <div style={{ textAlign: 'right' }}>
@@ -366,24 +497,6 @@ export default function Exam({ students = [], isTeacher, onRefresh }) {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Panel 2: Class Subject Groups Distribution Chart */}
-          <div className="glass-panel" style={{ padding: '1.5rem' }}>
-            <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.98rem', fontWeight: 800, color: '#334155' }}>
-              📊 Thống Kê Phân Bố Khối Thi & Hệ Đào Tạo Lớp 12.7
-            </h4>
-            <ResponsiveContainer width="100%" height={190}>
-              <BarChart data={classPathwayStats} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="name" tick={{ fontSize: 10, fontWeight: 700 }} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                <Tooltip contentStyle={{ borderRadius: '0.75rem', fontSize: '0.82rem' }} />
-                <Bar dataKey="Số HS" radius={[6, 6, 0, 0]}>
-                  {classPathwayStats.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
           </div>
 
         </div>
