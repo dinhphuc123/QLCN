@@ -129,56 +129,7 @@ export default function StudentDashboard({ timetableImage = '', students = [], a
     return combined;
   }, [announcements]);
 
-  // Dynamic Class Activity Logs stream generated from real GVCN updates
-  const classActivityLogs = useMemo(() => {
-    const logs = [];
 
-    // 1. Logs from active announcements
-    activeAnnouncements.forEach(a => {
-      logs.push({
-        id: `ann-${a.id}`,
-        icon: a.tag === '🚨 KHẨN' ? '🚨' : '📢',
-        title: `Đăng thông báo mới: "${a.title || a.content}"`,
-        time: a.date || (a.createdAt ? a.createdAt.split('T')[0] : 'Hôm nay'),
-        tag: a.tag || 'Thông báo',
-        type: 'announcement'
-      });
-    });
-
-    // 2. Log from Timetable Image
-    if (activeTimetableImg) {
-      logs.push({
-        id: 'tt-img',
-        icon: '🖼️',
-        title: 'GVCN đã tải lên & cập nhật Ảnh Thời Khóa Biểu Gốc chính thức',
-        time: 'Hôm nay',
-        tag: 'Thời khóa biểu',
-        type: 'timetable'
-      });
-    }
-
-    // 3. Log from Evaluation/Thi đua
-    logs.push({
-      id: 'eval-log',
-      icon: '📊',
-      title: 'Hệ thống đã tổng hợp Bảng Điểm Thi Đua 4 Tổ & Ngôi Sao Tuần',
-      time: 'Tuần này',
-      tag: 'Thi đua',
-      type: 'evaluation'
-    });
-
-    // 4. Log from Attendance/Nề nếp
-    logs.push({
-      id: 'att-log',
-      icon: '📍',
-      title: 'Cán bộ lớp & GVCN đã xác nhận & tổng hợp Sổ Điểm Danh Nề Nếp 5 buổi',
-      time: 'Hôm nay',
-      tag: 'Điểm danh',
-      type: 'attendance'
-    });
-
-    return logs;
-  }, [activeAnnouncements, activeTimetableImg]);
 
   // ANNOUNCEMENT TAG STYLES
   const ANNOUNCEMENT_TAG_COLORS = {
@@ -478,51 +429,7 @@ export default function StudentDashboard({ timetableImage = '', students = [], a
 
       </div>
 
-      {/* Class Activity Log Stream Section (Linked to GVCN Updates) */}
-      <div className="glass-panel" style={{ padding: '1.5rem 1.75rem', borderRadius: '1.25rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-          <div>
-            <h3 style={{ margin: 0, color: 'var(--color-primary-dark)', fontSize: '1.15rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              📜 Nhật Ký Hoạt Động Lớp (Cập nhật từ GVCN Lớp 12.7)
-            </h3>
-            <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginTop: '0.15rem' }}>
-              Dòng thời gian ghi nhận các sự kiện, thông báo và hoạt động chính thức từ GVCN
-            </div>
-          </div>
-          <span style={{ fontSize: '0.75rem', background: '#e0f2fe', color: '#0369a1', padding: '0.2rem 0.75rem', borderRadius: '9999px', fontWeight: 800 }}>
-            ⚡ Cập nhật thời gian thực
-          </span>
-        </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {classActivityLogs.map((log) => (
-            <div key={log.id} style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '0.85rem 1.1rem', background: 'white', borderRadius: '0.85rem',
-              border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
-              flexWrap: 'wrap', gap: '0.6rem'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span style={{ fontSize: '1.2rem', padding: '0.35rem 0.55rem', background: '#f1f5f9', borderRadius: '0.5rem' }}>
-                  {log.icon}
-                </span>
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#1e293b' }}>
-                    {log.title}
-                  </div>
-                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, marginTop: '0.1rem' }}>
-                    Mục: <strong style={{ color: '#0284c7' }}>{log.tag}</strong> • GVCN Đỗ Kim Tuyền
-                  </div>
-                </div>
-              </div>
-
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, background: '#f8fafc', padding: '0.2rem 0.6rem', borderRadius: '9999px', border: '1px solid #e2e8f0' }}>
-                📅 {log.time}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Modal View Timetable Image Zoom */}
       {showImageModal && activeTimetableImg && (
