@@ -56,6 +56,10 @@ export default function Evaluation({ students = [], onRefresh }) {
   const currentRecord = competitionData[selectedStudentId] || {};
 
   const handleToggleCriterion = (criteriaId, delta = 1) => {
+    if (isTeacher) {
+      toast('Chế độ GVCN chỉ xem & xét duyệt. Vui lòng nhập ghi chú yêu cầu thay đổi bên dưới nếu cần!', { icon: '👁️' });
+      return;
+    }
     if (currentRecord.status === 'approved' && !isTeacher) {
       toast.error('Phiếu đã được GVCN duyệt chính thức, không thể sửa!');
       return;
@@ -582,10 +586,11 @@ export default function Evaluation({ students = [], onRefresh }) {
                     <button
                       className="criteria-btn"
                       onClick={() => handleToggleCriterion(item.id, -1)}
-                      disabled={count === 0}
+                      disabled={isTeacher || count === 0}
+                      title={isTeacher ? "Chế độ GVCN chỉ xét duyệt" : "Trừ 1"}
                       style={{
                         width: '44px', height: '44px', borderRadius: '50%', border: '1.5px solid #d1d5db',
-                        background: 'white', cursor: count === 0 ? 'not-allowed' : 'pointer', opacity: count === 0 ? 0.35 : 1,
+                        background: 'white', cursor: (isTeacher || count === 0) ? 'not-allowed' : 'pointer', opacity: (isTeacher || count === 0) ? 0.35 : 1,
                         fontWeight: 800, fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
                       }}
                     >
@@ -597,11 +602,14 @@ export default function Evaluation({ students = [], onRefresh }) {
                     <button
                       className="criteria-btn"
                       onClick={() => handleToggleCriterion(item.id, 1)}
+                      disabled={isTeacher}
+                      title={isTeacher ? "Chế độ GVCN chỉ xét duyệt" : "Cộng 1"}
                       style={{
                         width: '44px', height: '44px', borderRadius: '50%', border: 'none',
-                        background: item.isBonus ? '#16a34a' : 'var(--color-primary-dark)', color: 'white', cursor: 'pointer',
+                        background: isTeacher ? '#94a3b8' : (item.isBonus ? '#16a34a' : 'var(--color-primary-dark)'),
+                        color: 'white', cursor: isTeacher ? 'not-allowed' : 'pointer', opacity: isTeacher ? 0.45 : 1,
                         fontWeight: 800, fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+                        boxShadow: isTeacher ? 'none' : '0 2px 6px rgba(0,0,0,0.15)'
                       }}
                     >
                       +
@@ -612,6 +620,27 @@ export default function Evaluation({ students = [], onRefresh }) {
             })}
           </div>
 
+          {/* Special GVCN Approval & Adjustment Panel */}
+          {isTeacher && (
+            <div style={{ background: '#f8fafc', borderRadius: '0.875rem', padding: '1.1rem', border: '1.5px solid #e2e8f0', marginTop: '0.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                <h4 style={{ margin: 0, color: 'var(--color-primary-dark)', fontSize: '0.92rem', fontWeight: 800 }}>
+                  ⚖️ GVCN Phê Duyệt & Yêu Cầu Thay Đổi (Nếu Có)
+                </h4>
+                <span style={{ fontSize: '0.72rem', background: '#dbeafe', color: '#1e40af', padding: '0.15rem 0.5rem', borderRadius: '9999px', fontWeight: 800 }}>
+                  👁️ Chế độ Xét Duyệt
+                </span>
+              </div>
+              <textarea
+                className="form-input"
+                style={{ width: '100%', minHeight: '65px', fontSize: '0.82rem', marginBottom: '0.75rem', resize: 'vertical' }}
+                placeholder={`Nhập nhận xét hoặc yêu cầu điều chỉnh đặc biệt cho ${currentStudent?.name || 'học sinh'} (ví dụ: Khen thưởng đột xuất, Nhắc nhở quy định...)...`}
+                value={teacherNotes[selectedStudentId] || currentRecord.teacherNote || ''}
+                onChange={e => setTeacherNotes({ ...teacherNotes, [selectedStudentId]: e.target.value })}
+              />
+            </div>
+          )}
+
           {/* Action Row — Depending on Role & Status */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid #f3f4f6', flexWrap: 'wrap', gap: '0.75rem' }}>
             <div style={{ fontSize: '0.78rem', color: '#6b7280' }}>
@@ -620,7 +649,7 @@ export default function Evaluation({ students = [], onRefresh }) {
               {currentRecord.approvedBy && <div>🚀 GVCN đã chốt điểm: <strong>{currentRecord.approvedBy}</strong></div>}
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               {/* HS Nộp */}
               {(!user || user.role === 'student' || String(user.id) === selectedStudentId) && currentRecord.status !== 'approved' && (
                 <button className="btn-primary" onClick={handleStudentSubmit} disabled={saving}>
@@ -646,10 +675,10 @@ export default function Evaluation({ students = [], onRefresh }) {
               {isTeacher && (
                 <>
                   <button className="btn-primary" style={{ background: '#dc2626' }} onClick={() => handleTeacherAction('reject')} disabled={saving}>
-                    ❌ Yêu cầu sửa
+                    💬 Yêu cầu thay đổi / làm lại
                   </button>
                   <button className="btn-primary" style={{ background: '#059669' }} onClick={() => handleTeacherAction('approve')} disabled={saving}>
-                    🚀 GVCN Chốt Điểm Thi Đua
+                    🚀 Phê duyệt & Chốt điểm
                   </button>
                 </>
               )}
