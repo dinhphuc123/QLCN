@@ -8,8 +8,8 @@ import EvaluationHistoryModal from './EvaluationHistoryModal';
 
 const COLORS = ['#16a34a', '#2563eb', '#d97706', '#dc2626'];
 
-export default function Evaluation({ students = [], isTeacher, onRefresh }) {
-  const { user, isGroupLeader, canApproveCompetition } = useAuth();
+export default function Evaluation({ students = [], onRefresh }) {
+  const { user, isTeacher, isGroupLeader, isMonitor, canApproveCompetition } = useAuth();
   
   const [selectedWeek, setSelectedWeek] = useState('tuan_01');
   const [selectedStudentId, setSelectedStudentId] = useState(

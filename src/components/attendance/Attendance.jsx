@@ -3,8 +3,8 @@ import toast from 'react-hot-toast';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 
-export default function Attendance({ students = [], attendance = {}, homeRequests = [], isTeacher, onRefresh }) {
-  const { user, isGroupLeader, isMonitor, isDormLeader } = useAuth();
+export default function Attendance({ students = [], attendance = {}, homeRequests = [], onRefresh }) {
+  const { user, isTeacher, isGroupLeader, isMonitor, isDormLeader } = useAuth();
   const [activeSubTab, setActiveSubTab] = useState('attendance5'); // 'attendance5' | 'home_requests'
   const [session, setSession] = useState('morning'); // morning, afternoon, evening_study, sleeping, group_activity
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);

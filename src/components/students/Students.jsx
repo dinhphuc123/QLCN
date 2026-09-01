@@ -4,11 +4,13 @@ import ConfirmModal from '../ui/ConfirmModal';
 import SearchFilterBar from '../ui/SearchFilterBar';
 import { api } from '../../lib/api';
 import { maskPhone, maskParentInfo } from '../../utils/privacy';
+import { useAuth } from '../../context/AuthContext';
 
 const DORM_ROOMS = ['A1-07', 'A1-08', 'A1-09', 'A1-10', 'A1-11', 'C08'];
 const GROUPS = ['Tổ 1', 'Tổ 2', 'Tổ 3', 'Tổ 4'];
 
-function StudentDetailModal({ student, onClose, isTeacher, onUpdateNote }) {
+function StudentDetailModal({ student, onClose, onUpdateNote }) {
+  const { isTeacher } = useAuth();
   const [note, setNote] = useState(student ? student.note || '' : '');
 
   const handleExportStudentReportPDF = () => {
@@ -301,7 +303,8 @@ function AddStudentModal({ onClose, onSave }) {
   );
 }
 
-export default function Students({ students, isTeacher, attendance, onRefresh, handleExcelUpload }) {
+export default function Students({ students, attendance, onRefresh, handleExcelUpload }) {
+  const { isTeacher } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState([]);
   const [confirmDelete, setConfirmDelete] = useState(null);
