@@ -233,25 +233,26 @@ export default function StudentDashboard({ students = [], attendance = {}, setAc
                 </div>
               </div>
 
-              {/* 6 Cành cây rèn luyện (6 Branches Grid) */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.6rem', marginBottom: '1rem' }}>
+              {/* 6 Cành cây rèn luyện (6 Branches Balanced 3x2 Grid) */}
+              <div className="branches-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '1rem' }}>
                 {TREE_BRANCHES.map(b => (
                   <div
                     key={b.id}
                     onClick={() => setActiveBranch(activeBranch === b.id ? null : b.id)}
                     style={{
-                      background: 'white', border: `1.5px solid ${b.color}`, borderRadius: '0.75rem',
-                      padding: '0.6rem', cursor: 'pointer', transition: 'all 0.2s ease',
-                      boxShadow: activeBranch === b.id ? `0 0 0 2px ${b.color}` : 'none'
+                      background: 'white', border: `1.5px solid ${b.color}`, borderRadius: '0.85rem',
+                      padding: '0.75rem 0.85rem', cursor: 'pointer', transition: 'all 0.2s ease',
+                      boxShadow: activeBranch === b.id ? `0 0 0 2.5px ${b.color}` : '0 2px 6px rgba(0,0,0,0.04)',
+                      display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '1.1rem' }}>{b.icon}</span>
-                      <span style={{ fontSize: '0.7rem', fontWeight: 800, background: `${b.color}15`, color: b.color, padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                      <span style={{ fontSize: '1.3rem' }}>{b.icon}</span>
+                      <span style={{ fontSize: '0.72rem', fontWeight: 800, background: `${b.color}15`, color: b.color, padding: '0.15rem 0.5rem', borderRadius: '9999px' }}>
                         {b.maxScore}đ
                       </span>
                     </div>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#1f2937', marginTop: '0.3rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1f2937', lineHeight: 1.35 }}>
                       {b.title}
                     </div>
                   </div>
@@ -260,16 +261,16 @@ export default function StudentDashboard({ students = [], attendance = {}, setAc
 
               {/* Branch Detail Popup Modal / Expanded Info */}
               {activeBranch && (
-                <div style={{ background: 'white', padding: '0.85rem 1rem', borderRadius: '0.75rem', border: '1px solid #d1d5db', marginBottom: '1rem', animation: 'fadeIn 0.2s' }}>
+                <div style={{ background: 'white', padding: '0.9rem 1.1rem', borderRadius: '0.85rem', border: '1.5px solid #0284c7', marginBottom: '1rem', animation: 'fadeIn 0.2s', boxShadow: '0 4px 14px rgba(2,132,199,0.12)' }}>
                   {(() => {
                     const b = TREE_BRANCHES.find(item => item.id === activeBranch);
                     if (!b) return null;
                     return (
                       <div>
-                        <div style={{ fontWeight: 800, fontSize: '0.85rem', color: b.color, marginBottom: '0.35rem' }}>
-                          {b.icon} Tiêu chí cành "{b.title}" ({b.maxScore} điểm/tuần):
+                        <div style={{ fontWeight: 800, fontSize: '0.88rem', color: b.color, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                          <span>{b.icon}</span> Tiêu chí cành "{b.title}" ({b.maxScore} điểm/tuần):
                         </div>
-                        <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.78rem', color: '#4b5563', lineHeight: 1.5 }}>
+                        <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.8rem', color: '#374151', lineHeight: 1.6 }}>
                           {b.items.map((it, idx) => <li key={idx}>{it}</li>)}
                         </ul>
                       </div>
@@ -279,15 +280,15 @@ export default function StudentDashboard({ students = [], attendance = {}, setAc
               )}
 
               {/* Visual Markers Legend (Lá xanh, Lá vàng, Hoa, Quả, Chồi) */}
-              <div style={{ background: 'white', borderRadius: '0.75rem', padding: '0.75rem 1rem', border: '1px solid #e5e7eb' }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#374151', marginBottom: '0.4rem' }}>
-                  🍃 Hệ thống biểu tượng ghi nhận:
+              <div style={{ background: 'white', borderRadius: '0.85rem', padding: '0.85rem 1.1rem', border: '1px solid #e5e7eb' }}>
+                <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#374151', marginBottom: '0.5rem' }}>
+                  🍃 Hệ thống 5 biểu tượng ghi nhận sự tiến bộ:
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.4rem', textAlign: 'center' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem', textAlign: 'center' }}>
                   {GROWTH_MARKERS.map((m, idx) => (
-                    <div key={idx} style={{ background: '#f9fafb', padding: '0.35rem 0.2rem', borderRadius: '6px', border: '1px solid #f3f4f6' }}>
-                      <div style={{ fontSize: '1.1rem' }}>{m.icon}</div>
-                      <div style={{ fontSize: '0.68rem', fontWeight: 800, color: m.color }}>{m.name}</div>
+                    <div key={idx} style={{ background: '#f9fafb', padding: '0.5rem 0.3rem', borderRadius: '8px', border: '1px solid #f3f4f6' }}>
+                      <div style={{ fontSize: '1.25rem' }}>{m.icon}</div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 800, color: m.color, marginTop: '0.15rem' }}>{m.name}</div>
                     </div>
                   ))}
                 </div>
@@ -295,10 +296,10 @@ export default function StudentDashboard({ students = [], attendance = {}, setAc
 
               {/* Motto Footer Banner under Tree */}
               <div style={{
-                marginTop: '1rem', padding: '0.75rem 1rem', borderRadius: '0.75rem',
+                marginTop: '1rem', padding: '0.85rem 1.1rem', borderRadius: '0.85rem',
                 background: 'linear-gradient(135deg, #1B4D53, #166534)', color: 'white',
-                textAlign: 'center', fontSize: '0.82rem', fontWeight: 700, fontStyle: 'italic',
-                boxShadow: '0 4px 12px rgba(27,77,83,0.15)'
+                textAlign: 'center', fontSize: '0.88rem', fontWeight: 700, fontStyle: 'italic',
+                boxShadow: '0 4px 14px rgba(27,77,83,0.2)', letterSpacing: '0.01em'
               }}>
                 💬 “Rời xa gia đình để học cách tự lập, sống cùng tập thể để trưởng thành.”
               </div>
@@ -307,14 +308,14 @@ export default function StudentDashboard({ students = [], attendance = {}, setAc
 
             {/* Monthly Titles Section */}
             <div>
-              <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--color-primary-dark)', marginBottom: '0.6rem' }}>
+              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--color-primary-dark)', marginBottom: '0.75rem' }}>
                 🏆 6 Danh Hiệu Tuyên Dương Học Sinh Nội Trú Theo Tháng:
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem' }}>
+              <div className="titles-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
                 {MONTHLY_TITLES.map((t, idx) => (
-                  <div key={idx} style={{ background: t.bg, border: `1px solid ${t.color}30`, borderRadius: '0.65rem', padding: '0.55rem 0.75rem' }}>
-                    <div style={{ fontWeight: 800, fontSize: '0.78rem', color: t.color }}>{t.title}</div>
-                    <div style={{ fontSize: '0.68rem', color: '#4b5563', marginTop: '0.15rem' }}>{t.desc}</div>
+                  <div key={idx} style={{ background: t.bg, border: `1.5px solid ${t.color}35`, borderRadius: '0.85rem', padding: '0.75rem 0.85rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div style={{ fontWeight: 800, fontSize: '0.82rem', color: t.color, lineHeight: 1.3 }}>{t.title}</div>
+                    <div style={{ fontSize: '0.72rem', color: '#4b5563', marginTop: '0.3rem', lineHeight: 1.35 }}>{t.desc}</div>
                   </div>
                 ))}
               </div>
