@@ -23,8 +23,25 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
     { id: 'group_activity', label: '🏃 HĐ Tập Thể', time: 'Ngoại khóa', type: 'school' },
   ];
 
-  // Resolve attendance record for date and session
-  const dateRecord = attendance[selectedDate] || {};
+  // Local state for 0ms reactive UI updates & instant offline persistence
+  const [localStore, setLocalStore] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('qlcn_attendance_records') || '{}');
+      return saved;
+    } catch {}
+    return {};
+  });
+
+  // Keep localStore in sync when prop attendance changes
+  React.useEffect(() => {
+    if (attendance && Object.keys(attendance).length > 0) {
+      setLocalStore(prev => ({ ...prev, ...attendance }));
+    }
+  }, [attendance]);
+
+  // Resolve attendance record for date and session from localStore + props
+  const activeAtt = { ...attendance, ...localStore };
+  const dateRecord = activeAtt[selectedDate] || {};
   const isLocked = !!dateRecord.isLocked;
   const sessionRecord = (dateRecord.sessions && dateRecord.sessions[session]) 
     ? dateRecord.sessions[session] 
@@ -46,10 +63,31 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
       return;
     }
     if (!user?.id) return;
-    // Optimistic UI - show success immediately
     const nowTime = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
     toast.success(`📍 Đã Check-in có mặt lúc ${nowTime}!`);
-    onRefresh();
+
+    // Instant local state update
+    const updatedObj = { status: 'present', checkedInAt: nowTime, confirmedBy: user?.name || 'Học sinh' };
+    const updatedSessionRecord = { ...sessionRecord, [user.id]: updatedObj };
+    setLocalStore(prev => {
+      const prevDate = prev[selectedDate] || {};
+      const prevSessions = prevDate.sessions || {};
+      const nextStore = {
+        ...prev,
+        [selectedDate]: {
+          ...prevDate,
+          sessions: {
+            ...prevSessions,
+            [session]: updatedSessionRecord
+          }
+        }
+      };
+      try { localStorage.setItem('qlcn_attendance_records', JSON.stringify(nextStore)); } catch {}
+      return nextStore;
+    });
+
+    if (onRefresh) onRefresh();
+
     // Background sync
     try {
       await api.checkInAttendance(selectedDate, session, user.id);
@@ -58,22 +96,41 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
     }
   };
 
-  // Officer Mark / Status Change Handler
+  // Officer Mark / Status Change Handler (0ms instant reactive update)
   const setStatus = async (studentId, status) => {
     if (isLocked && !isTeacher) {
       toast.error('Sổ điểm danh đã được GVCN khóa, không thể sửa!');
       return;
     }
     const currentObj = getStudentStatus(studentId);
+    const nowTime = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
     const updatedObj = {
       status,
-      checkedInAt: currentObj.checkedInAt,
+      checkedInAt: currentObj.checkedInAt || (status === 'present' || status === 'late' ? nowTime : null),
       confirmedBy: user?.name || user?.position || 'Cán bộ lớp',
     };
 
     const updatedSessionRecord = { ...sessionRecord, [studentId]: updatedObj };
 
-    // Explicit Toast feedback for Class Officer / Teacher
+    // 1. Instant 0ms Local State Update
+    setLocalStore(prev => {
+      const prevDate = prev[selectedDate] || {};
+      const prevSessions = prevDate.sessions || {};
+      const nextStore = {
+        ...prev,
+        [selectedDate]: {
+          ...prevDate,
+          sessions: {
+            ...prevSessions,
+            [session]: updatedSessionRecord
+          }
+        }
+      };
+      try { localStorage.setItem('qlcn_attendance_records', JSON.stringify(nextStore)); } catch {}
+      return nextStore;
+    });
+
+    // 2. Toast feedback
     const STATUS_NAMES = {
       present: '✅ Có mặt',
       permit: '📝 Có phép',
@@ -83,9 +140,9 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
     const targetStudent = students.find(s => s.id === studentId);
     toast.success(`Đã chọn ${targetStudent?.name || 'Học sinh'}: ${STATUS_NAMES[status] || status}`);
 
-    onRefresh();
+    if (onRefresh) onRefresh();
 
-    // Background sync - don't block UI
+    // 3. Background sync - don't block UI
     try {
       await api.saveAttendance(selectedDate, session, updatedSessionRecord);
     } catch (err) {
@@ -330,25 +387,38 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
   // Current student's own status for Check-in card
   const myCheckInObj = user?.id ? getStudentStatus(user.id) : null;
 
-  const StatusBtn = ({ active, color, label, onClick, disabled }) => (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        padding: '0.4rem 0.65rem', fontSize: '0.78rem', borderRadius: '0.5rem',
-        fontWeight: 800, border: active ? `1.5px solid ${color}` : '1.5px solid transparent',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled && !active ? 0.4 : 1,
-        background: active ? color : '#f1f5f9',
-        color: active ? 'white' : '#475569',
-        transition: 'all 0.15s ease',
-        minHeight: '36px',
-        boxShadow: active ? `0 2px 8px ${color}44` : 'none',
-      }}
-    >
-      {label}
-    </button>
-  );
+  const StatusBtn = ({ active, color, label, onClick, disabled }) => {
+    const [pressed, setPressed] = useState(false);
+
+    return (
+      <button
+        onClick={(e) => {
+          setPressed(true);
+          setTimeout(() => setPressed(false), 150);
+          onClick(e);
+        }}
+        disabled={disabled}
+        style={{
+          padding: '0.4rem 0.7rem', fontSize: '0.78rem', borderRadius: '0.6rem',
+          fontWeight: 800, border: active ? `2px solid ${color}` : '1.5px solid transparent',
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          opacity: disabled && !active ? 0.35 : 1,
+          background: active ? color : '#f1f5f9',
+          color: active ? 'white' : '#475569',
+          transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+          transform: pressed ? 'scale(0.92)' : active ? 'scale(1.03)' : 'scale(1)',
+          minHeight: '38px',
+          boxShadow: active ? `0 4px 14px ${color}66` : 'none',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.2rem',
+          userSelect: 'none'
+        }}
+      >
+        {label}
+      </button>
+    );
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
