@@ -471,19 +471,22 @@ export default function App() {
         }}
       />
 
-      <Sidebar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onLoginClick={() => setShowAuth(true)}
-      />
+      {isTeacher && (
+        <Sidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onLoginClick={() => setShowAuth(true)}
+        />
+      )}
 
-      <div className="main-content">
+      <div className="main-content" style={{ width: isTeacher ? undefined : '100%' }}>
         <Header
           activeTab={activeTab}
+          setActiveTab={setActiveTab}
           isTeacher={isTeacher}
           onLoginClick={() => setShowAuth(true)}
         />
-        <main style={{ padding: '1.5rem', minHeight: 'calc(100vh - 64px)' }}>
+        <main style={{ padding: '1.25rem', minHeight: 'calc(100vh - 64px)' }}>
           {renderPage()}
         </main>
       </div>

@@ -20,7 +20,7 @@ const TAB_LABELS = {
   cms_admin:     'Quản trị CMS',
 };
 
-export default function Header({ activeTab, onMenuClick, onLoginClick }) {
+export default function Header({ activeTab, setActiveTab, onMenuClick, onLoginClick }) {
   const { user, isTeacher, logout } = useAuth();
   const { settings } = useClassSettings();
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -53,8 +53,22 @@ export default function Header({ activeTab, onMenuClick, onLoginClick }) {
       gap: '0.75rem',
       minHeight: '56px',
     }}>
-      {/* Left: current tab title */}
+      {/* Left: current tab title & Home button for students */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 0, flex: 1 }}>
+        {!isTeacher && activeTab !== 'dashboard' && setActiveTab && (
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            style={{
+              padding: '0.25rem 0.65rem', borderRadius: '9999px',
+              background: '#e0f2fe', border: '1px solid #7dd3fc',
+              color: '#0369a1', fontSize: '0.75rem', fontWeight: 800,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem',
+              whiteSpace: 'nowrap', flexShrink: 0
+            }}
+          >
+            🏠 Trang chủ
+          </button>
+        )}
         <h2 style={{
           fontFamily: 'var(--font-serif)',
           fontSize: 'clamp(0.95rem, 2.5vw, 1.2rem)',
@@ -140,19 +154,21 @@ export default function Header({ activeTab, onMenuClick, onLoginClick }) {
                 ? `👑 Lớp Trưởng (${user.name})`
                 : `👨‍🎓 ${user.name}`}
             </span>
-            {/* Mini avatar — mobile only */}
-            <div className="header-user-mini" style={{
-              display: 'none',
-              width: '34px', height: '34px', borderRadius: '50%',
-              background: avatarBg, color: 'white',
-              alignItems: 'center', justifyContent: 'center',
-              fontSize: '0.85rem', fontWeight: 800, flexShrink: 0,
-              cursor: 'pointer',
-            }}
-              title={user.name}
+
+            {/* Logout button */}
+            <button
+              onClick={logout}
+              style={{
+                padding: '0.35rem 0.75rem', borderRadius: '9999px',
+                background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: 'white',
+                border: 'none', fontSize: '0.78rem', fontWeight: 800,
+                cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                boxShadow: '0 4px 10px rgba(220,38,38,0.25)', whiteSpace: 'nowrap'
+              }}
+              title="Đăng xuất khỏi ứng dụng"
             >
-              {userInitial}
-            </div>
+              🚪 Đăng xuất
+            </button>
           </>
         ) : (
           <button

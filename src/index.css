@@ -188,9 +188,8 @@ h1, h2, h3, .font-serif { font-family: var(--font-serif); color: var(--color-pri
   /* Tighter panel padding on mobile */
   .glass-panel { border-radius: 1rem !important; }
 
-  /* Buttons: minimum 44px tap target */
-  .btn-primary { min-height: 44px; padding: 0.6rem 1.25rem !important; font-size: 0.85rem !important; }
-  button { min-height: 44px; }
+  /* Buttons: minimum 44px tap target for action buttons */
+  .btn-primary, .action-btn { min-height: 44px; padding: 0.6rem 1.25rem !important; font-size: 0.85rem !important; }
 
   /* Tables: smaller font on mobile, but still scrollable */
   table { font-size: 0.8rem; }
@@ -262,8 +261,7 @@ h1, h2, h3, .font-serif { font-family: var(--font-serif); color: var(--color-pri
 
   /* Header compact */
   .header-week-badge { display: none !important; }
-  .header-user-full { display: none !important; }
-  .header-user-mini { display: flex !important; }
+  .header-user-full { display: inline-block !important; font-size: 0.68rem !important; padding: 0.2rem 0.5rem !important; }
 }
 
 /* ── SMALL PHONE (<= 480px) ─────────────────────────────────────────────── */
