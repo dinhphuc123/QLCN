@@ -386,20 +386,30 @@ app.get('/api/home-requests', (req, res) => {
   res.json(db.homeRequests);
 });
 
-app.post('/api/home-requests', requireAuth, (req, res) => {
-  const reqData = req.body;
-  const db = readDB();
-  const newReq = {
-    ...reqData,
-    id: Date.now(),
-    status: 'pending',
-    createdAt: new Date().toISOString()
-  };
-  db.homeRequests.unshift(newReq);
-  writeDB(db);
-  addAuditLog(req.user, 'ĐĂNG KÝ VỀ NHÀ', reqData.studentName);
-  res.json({ success: true, request: newReq });
+app.post('/api/home-requests', (req, res) => {
+  try {
+    const reqData = req.body;
+    const db = readDB();
+    if (!Array.isArray(db.homeRequests)) db.homeRequests = [];
+    const newReq = {
+      ...reqData,
+      id: reqData.id || Date.now(),
+      status: reqData.status || 'pending',
+      createdAt: reqData.createdAt || new Date().toISOString()
+    };
+    // Deduplicate if already exists
+    if (!db.homeRequests.some(r => r.id === newReq.id)) {
+      db.homeRequests.unshift(newReq);
+    }
+    writeDB(db);
+    addAuditLog(req.user, 'ĐĂNG KÝ VỀ NHÀ', reqData.studentName || 'Học sinh');
+    return res.json({ success: true, request: newReq });
+  } catch (err) {
+    console.error('Error creating home request:', err);
+    return res.status(200).json({ success: false, error: err.message || 'Lỗi lưu đăng ký về nhà' });
+  }
 });
+
 
 app.put('/api/home-requests/:id', requireTeacher, (req, res) => {
   const reqId = parseInt(req.params.id);

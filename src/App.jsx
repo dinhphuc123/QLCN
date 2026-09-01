@@ -99,9 +99,10 @@ export default function App() {
 
       const localTkb = localStorage.getItem('qlcn_timetable_image') || '';
       const localMap = localStorage.getItem('qlcn_class_map_image') || '';
-      let localAnn = [], localReqs = [];
+      let localAnn = [], localReqs = [], localHomeReqs = [];
       try { localAnn = JSON.parse(localStorage.getItem('qlcn_announcements') || '[]'); } catch {}
       try { localReqs = JSON.parse(localStorage.getItem('qlcn_leave_requests') || '[]'); } catch {}
+      try { localHomeReqs = JSON.parse(localStorage.getItem('qlcn_home_requests') || '[]'); } catch {}
 
       const serverAnn = Array.isArray(result.announcements) ? result.announcements : [];
       const mergedAnn = [...serverAnn];
@@ -119,12 +120,21 @@ export default function App() {
         }
       });
 
+      const serverHomeReqs = Array.isArray(result.homeRequests) ? result.homeRequests : [];
+      const mergedHomeReqs = [...serverHomeReqs];
+      localHomeReqs.forEach(lhr => {
+        if (!mergedHomeReqs.some(r => r.id === lhr.id)) {
+          mergedHomeReqs.unshift(lhr);
+        }
+      });
+
       setData(prev => ({
         ...prev,
         ...result,
         students: (result.students && result.students.length > 0) ? result.students : INITIAL_STUDENTS,
         announcements: mergedAnn,
         leaveRequests: mergedReqs,
+        homeRequests: mergedHomeReqs,
         timetableImage: result.timetableImage || localTkb || prev.timetableImage,
         classMapImage: result.classMapImage || localMap || prev.classMapImage,
       }));
@@ -134,14 +144,16 @@ export default function App() {
       }
       const localTkb = localStorage.getItem('qlcn_timetable_image') || '';
       const localMap = localStorage.getItem('qlcn_class_map_image') || '';
-      let localAnn = [], localReqs = [];
+      let localAnn = [], localReqs = [], localHomeReqs = [];
       try { localAnn = JSON.parse(localStorage.getItem('qlcn_announcements') || '[]'); } catch {}
       try { localReqs = JSON.parse(localStorage.getItem('qlcn_leave_requests') || '[]'); } catch {}
+      try { localHomeReqs = JSON.parse(localStorage.getItem('qlcn_home_requests') || '[]'); } catch {}
 
       setData(prev => ({
         ...prev,
         announcements: localAnn.length > 0 ? localAnn : prev.announcements,
         leaveRequests: localReqs.length > 0 ? localReqs : prev.leaveRequests,
+        homeRequests: localHomeReqs.length > 0 ? localHomeReqs : prev.homeRequests,
         timetableImage: prev.timetableImage || localTkb,
         classMapImage: prev.classMapImage || localMap,
       }));

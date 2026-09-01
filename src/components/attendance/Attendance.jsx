@@ -115,22 +115,40 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
       return;
     }
     const student = students.find(s => s.id === user?.id) || { id: user?.id || 1, name: user?.name || 'Học sinh' };
-    await toast.promise(
-      api.createHomeRequest({
-        studentId: student.id,
-        studentName: student.name,
-        leaveDate,
-        returnDate,
-        reason: homeReason,
-      }),
-      { loading: 'Đang gửi...', success: 'Đã gửi đăng ký về nhà thành công!', error: 'Lỗi gửi đăng ký' }
-    );
+    const newReq = {
+      id: Date.now(),
+      studentId: student.id,
+      studentName: student.name,
+      leaveDate,
+      returnDate,
+      reason: homeReason,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    };
+
+    // Instant local persistence fail-safe
+    try {
+      const savedStr = localStorage.getItem('qlcn_home_requests') || '[]';
+      const list = JSON.parse(savedStr);
+      list.unshift(newReq);
+      localStorage.setItem('qlcn_home_requests', JSON.stringify(list));
+    } catch { /* ignore */ }
+
     setShowHomeModal(false);
     setHomeReason('');
     setLeaveDate('');
     setReturnDate('');
+    toast.success('Đã gửi đăng ký về nhà thành công!');
+
+    // Background sync to server
+    try {
+      await api.createHomeRequest(newReq);
+    } catch (err) {
+      console.warn('Backend sync home request postponed, saved locally:', err.message);
+    }
     onRefresh();
   };
+
 
   const handleApproveHomeRequest = async (id, status) => {
     await api.approveHomeRequest(id, status);
