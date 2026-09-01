@@ -111,6 +111,8 @@ export default function Notifications({ announcements = [], students = [], onRef
   const { user, isTeacher } = useAuth();
   const [activeTag, setActiveTag] = useState('All');
   const [showModal, setShowModal] = useState(false);
+  const [trackingAnn, setTrackingAnn] = useState(null);
+
 
   // Sort urgent announcements first
   const sortedAnnouncements = [...announcements].sort((a, b) => {
