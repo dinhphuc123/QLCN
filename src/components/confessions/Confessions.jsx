@@ -47,32 +47,34 @@ export default function Confessions({ confessions, isTeacher, onRefresh }) {
         Kênh kết nối an toàn — học sinh nội trú chia sẻ áp lực ôn thi và tâm tư đời sống với GVCN.
       </p>
 
-      {/* Send form */}
-      <div style={{ background: 'linear-gradient(135deg, #f9f9f9, #f0fdf4)', padding: '1.75rem', borderRadius: '1rem', border: '1px solid #e5e7eb', marginBottom: '2rem' }}>
-        <h4 style={{ marginBottom: '1rem' }}>✍️ Gửi lời tâm sự của bạn</h4>
-        <textarea
-          value={content}
-          onChange={e => setContent(e.target.value)}
-          className="form-input"
-          style={{ width: '100%', minHeight: '120px', resize: 'vertical', marginBottom: '1rem' }}
-          placeholder={`Bạn đang nghĩ gì? Hãy chia sẻ với cô ${settings.teacherName}...`}
-        />
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
-            <input type="checkbox" checked={anonymous} onChange={e => setAnonymous(e.target.checked)}
-              style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
-            <span>🎭 Gửi ẩn danh (không hiện danh tính)</span>
-          </label>
-          <button
-            className="btn-primary"
-            onClick={handleSend}
-            disabled={sending}
-            style={{ padding: '0.6rem 1.75rem', opacity: sending ? 0.7 : 1 }}
-          >
-            {sending ? '⏳ Đang gửi...' : '💌 Gửi ngay'}
-          </button>
+      {/* Send form (Only visible for Students / non-Teacher) */}
+      {!isTeacher && (
+        <div style={{ background: 'linear-gradient(135deg, #f9f9f9, #f0fdf4)', padding: '1.75rem', borderRadius: '1rem', border: '1px solid #e5e7eb', marginBottom: '2rem' }}>
+          <h4 style={{ marginBottom: '1rem' }}>✍️ Gửi lời tâm sự của bạn</h4>
+          <textarea
+            value={content}
+            onChange={e => setContent(e.target.value)}
+            className="form-input"
+            style={{ width: '100%', minHeight: '120px', resize: 'vertical', marginBottom: '1rem' }}
+            placeholder={`Bạn đang nghĩ gì? Hãy chia sẻ với cô ${settings.teacherName}...`}
+          />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+              <input type="checkbox" checked={anonymous} onChange={e => setAnonymous(e.target.checked)}
+                style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
+              <span>🎭 Gửi ẩn danh (không hiện danh tính)</span>
+            </label>
+            <button
+              className="btn-primary"
+              onClick={handleSend}
+              disabled={sending}
+              style={{ padding: '0.6rem 1.75rem', opacity: sending ? 0.7 : 1 }}
+            >
+              {sending ? '⏳ Đang gửi...' : '💌 Gửi ngay'}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Teacher view */}
       {isTeacher ? (
