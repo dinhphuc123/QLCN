@@ -480,8 +480,9 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
             </div>
           )}
 
-          {/* Section 2: Main Panel */}
-          <div className="glass-panel" style={{ padding: '2rem' }}>
+          {/* Section 2: Main Panel (Only visible to Officers: GVCN, Lớp trưởng, Tổ trưởng, Trưởng phòng KTX) */}
+          {(isTeacher || isMonitor || isGroupLeader || isDormLeader) && (
+            <div className="glass-panel" style={{ padding: '2rem' }}>
             
             {/* Header Controls */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -599,6 +600,7 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
             </div>
 
           </div>
+        )}
         </div>
       ) : (
         /* Home Requests List */
