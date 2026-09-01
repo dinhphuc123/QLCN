@@ -15,7 +15,7 @@ export default function Dashboard({ students, attendance, announcements, timetab
   const [showMapModal, setShowMapModal] = useState(false);
 
   if (!isTeacher) {
-    return <StudentDashboard announcements={announcements} students={students} attendance={attendance} setActiveTab={setActiveTab} onRefresh={onRefresh} />;
+    return <StudentDashboard timetableImage={timetableImage} announcements={announcements} students={students} attendance={attendance} setActiveTab={setActiveTab} onRefresh={onRefresh} />;
   }
 
   const today = new Date().toISOString().split('T')[0];

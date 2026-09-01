@@ -84,12 +84,17 @@ const MONTHLY_TITLES = [
   { title: '🏆 Tập thể tiến bộ', desc: 'Đồng lòng cùng phòng/tổ hoàn thành xuất sắc mục tiêu', bg: '#ccfbf1', color: '#0f766e' }
 ];
 
-export default function StudentDashboard({ students = [], attendance = {}, setActiveTab, announcements = [], onRefresh }) {
+export default function StudentDashboard({ timetableImage = '', students = [], attendance = {}, setActiveTab, announcements = [], onRefresh }) {
   const { user } = useAuth();
   const { settings } = useClassSettings();
 
   const [wateredToday, setWateredToday] = useState(false);
   const [activeBranch, setActiveBranch] = useState(null);
+  const [viewMode, setViewMode] = useState('card');
+  const [showImageModal, setShowImageModal] = useState(false);
+
+  const activeTimetableImg = timetableImage || localStorage.getItem('qlcn_timetable_image') || '';
+
   // Combine prop announcements with localStorage announcements posted by GVCN
   const activeAnnouncements = useMemo(() => {
     let localAnns = [];
@@ -361,71 +366,137 @@ export default function StudentDashboard({ students = [], attendance = {}, setAc
             <div>
               <h3 style={{ margin: 0, color: 'var(--color-primary-dark)', fontSize: '1.1rem', fontWeight: 800 }}>📅 Thời Khóa Biểu</h3>
               <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, marginTop: '0.15rem' }}>
-                ⚡ Cập nhật theo lịch học GVCN Lớp 12.7
+                {activeTimetableImg ? '🖼️ Trích xuất từ Ảnh TKB GVCN Lớp 12.7' : '⚡ Cập nhật theo lịch học GVCN Lớp 12.7'}
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '0.3rem', overflowX: 'auto', paddingBottom: '0.2rem' }}>
-              {Object.keys(timetableData).map(day => (
+            <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+              <button
+                onClick={() => setViewMode('card')}
+                style={{
+                  padding: '0.3rem 0.65rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800,
+                  background: viewMode === 'card' ? '#1B4D53' : '#f3f4f6',
+                  color: viewMode === 'card' ? 'white' : '#4b5563',
+                  border: 'none', cursor: 'pointer'
+                }}
+              >
+                📅 Thẻ Tiết
+              </button>
+              {activeTimetableImg && (
                 <button
-                  key={day}
-                  onClick={() => setSelectedDay(day)}
+                  onClick={() => setViewMode('image')}
                   style={{
-                    padding: '0.35rem 0.65rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800,
-                    background: selectedDay === day ? '#1B4D53' : '#f3f4f6',
-                    color: selectedDay === day ? 'white' : '#4b5563',
-                    border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s ease'
+                    padding: '0.3rem 0.65rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800,
+                    background: viewMode === 'image' ? '#0284c7' : '#f3f4f6',
+                    color: viewMode === 'image' ? 'white' : '#4b5563',
+                    border: 'none', cursor: 'pointer'
                   }}
                 >
-                  {day}
+                  🖼️ Ảnh TKB Gốc
                 </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Timetable Table */}
-          <div style={{ background: '#f9fafb', borderRadius: '0.85rem', padding: '0.85rem 1rem', border: '1px solid #e5e7eb' }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1B4D53', marginBottom: '0.6rem', display: 'flex', justifyContent: 'space-between' }}>
-              <span>Lịch Học: {selectedDay}</span>
-              <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 700 }}>
-                Sáng {(timetableData[selectedDay]?.morning || []).length} Tiết • Chiều {(timetableData[selectedDay]?.afternoon || []).length} Tiết
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0369a1', textTransform: 'uppercase' }}>☀️ Buổi Sáng (07:00 - 11:30)</div>
-              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max((timetableData[selectedDay]?.morning || []).length, 1)}, 1fr)`, gap: '0.4rem' }}>
-                {(timetableData[selectedDay]?.morning || []).map((sub, i) => (
-                  <div key={i} style={{
-                    padding: '0.5rem 0.2rem', textAlign: 'center', background: 'white',
-                    border: '1.5px solid #e5e7eb', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800, color: '#1f2937'
-                  }}>
-                    <div style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 700 }}>T{i+1}</div>
-                    {sub}
-                  </div>
-                ))}
-              </div>
-
-              {(timetableData[selectedDay]?.afternoon || []).length > 0 && (
-                <>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#d97706', textTransform: 'uppercase', marginTop: '0.4rem' }}>⛅ Buổi Chiều (13:30 - 17:00)</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max((timetableData[selectedDay]?.afternoon || []).length, 1)}, 1fr)`, gap: '0.4rem' }}>
-                    {timetableData[selectedDay].afternoon.map((sub, i) => (
-                      <div key={i} style={{
-                        padding: '0.5rem 0.2rem', textAlign: 'center', background: 'white',
-                        border: '1.5px solid #e5e7eb', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800, color: '#1f2937'
-                      }}>
-                        <div style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 700 }}>T{i+6}</div>
-                        {sub}
-                      </div>
-                    ))}
-                  </div>
-                </>
               )}
             </div>
           </div>
+
+          {viewMode === 'image' && activeTimetableImg ? (
+            /* Original Timetable Image View from GVCN */
+            <div style={{ background: '#f9fafb', borderRadius: '0.85rem', padding: '0.85rem', border: '1px solid #e5e7eb', textAlign: 'center' }}>
+              <img
+                src={activeTimetableImg}
+                alt="Thời Khóa Biểu GVCN"
+                onClick={() => setShowImageModal(true)}
+                style={{ maxWidth: '100%', maxHeight: '280px', borderRadius: '0.65rem', cursor: 'zoom-in', objectFit: 'contain', border: '1.5px solid #d1d5db', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '0.65rem' }}>
+                <button
+                  onClick={() => setShowImageModal(true)}
+                  style={{ padding: '0.35rem 0.85rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 800, background: '#0284c7', color: 'white', border: 'none', cursor: 'pointer' }}
+                >
+                  🔍 Phóng To Xem Chi Tiết
+                </button>
+                <a
+                  href={activeTimetableImg}
+                  download="ThoiKhoaBieu_12.7.png"
+                  style={{ padding: '0.35rem 0.85rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 800, background: '#16a34a', color: 'white', border: 'none', textDecoration: 'none', display: 'inline-block' }}
+                >
+                  📥 Tải Ảnh Về
+                </a>
+              </div>
+            </div>
+          ) : (
+            /* Timetable Table Card View */
+            <div style={{ background: '#f9fafb', borderRadius: '0.85rem', padding: '0.85rem 1rem', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1B4D53' }}>Lịch Học: {selectedDay}</span>
+                <div style={{ display: 'flex', gap: '0.25rem', overflowX: 'auto', paddingBottom: '0.1rem' }}>
+                  {Object.keys(timetableData).map(day => (
+                    <button
+                      key={day}
+                      onClick={() => setSelectedDay(day)}
+                      style={{
+                        padding: '0.25rem 0.5rem', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 800,
+                        background: selectedDay === day ? '#1B4D53' : '#e5e7eb',
+                        color: selectedDay === day ? 'white' : '#4b5563',
+                        border: 'none', cursor: 'pointer', whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {day}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0369a1', textTransform: 'uppercase' }}>☀️ Buổi Sáng (07:00 - 11:30)</div>
+                <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max((timetableData[selectedDay]?.morning || []).length, 1)}, 1fr)`, gap: '0.4rem' }}>
+                  {(timetableData[selectedDay]?.morning || []).map((sub, i) => (
+                    <div key={i} style={{
+                      padding: '0.5rem 0.2rem', textAlign: 'center', background: 'white',
+                      border: '1.5px solid #e5e7eb', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800, color: '#1f2937'
+                    }}>
+                      <div style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 700 }}>T{i+1}</div>
+                      {sub}
+                    </div>
+                  ))}
+                </div>
+
+                {(timetableData[selectedDay]?.afternoon || []).length > 0 && (
+                  <>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#d97706', textTransform: 'uppercase', marginTop: '0.4rem' }}>⛅ Buổi Chiều (13:30 - 17:00)</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max((timetableData[selectedDay]?.afternoon || []).length, 1)}, 1fr)`, gap: '0.4rem' }}>
+                      {timetableData[selectedDay].afternoon.map((sub, i) => (
+                        <div key={i} style={{
+                          padding: '0.5rem 0.2rem', textAlign: 'center', background: 'white',
+                          border: '1.5px solid #e5e7eb', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800, color: '#1f2937'
+                        }}>
+                          <div style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 700 }}>T{i+6}</div>
+                          {sub}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
       </div>
+
+      {/* Modal View Timetable Image Zoom */}
+      {showImageModal && activeTimetableImg && (
+        <div onClick={() => setShowImageModal(false)} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '1.25rem', padding: '1.5rem', maxWidth: '90vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#1B4D53' }}>🖼️ Ảnh Thời Khóa Biểu Gốc Từ GVCN</h3>
+              <button onClick={() => setShowImageModal(false)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '50%', width: '32px', height: '32px', fontWeight: 900, cursor: 'pointer' }}>✕</button>
+            </div>
+            <img src={activeTimetableImg} alt="TKB Gốc" style={{ maxWidth: '100%', maxHeight: '75vh', borderRadius: '0.75rem', objectFit: 'contain', border: '1px solid #e5e7eb' }} />
+            <a href={activeTimetableImg} download="ThoiKhoaBieu_12.7.png" style={{ padding: '0.5rem 1.5rem', borderRadius: '9999px', background: '#0284c7', color: 'white', fontWeight: 800, textDecoration: 'none' }}>
+              📥 Tải Ảnh Về Máy
+            </a>
+          </div>
+        </div>
+      )}
 
     </div>
   );
