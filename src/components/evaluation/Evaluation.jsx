@@ -472,32 +472,41 @@ export default function Evaluation({ students = [], onRefresh }) {
         </div>
       </div>
 
-      {/* Main 2-Col layout */}
-      <div className="eval-main-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(0, 1.2fr)', gap: '1.5rem' }}>
+      {/* Main Grid: 100% width for students, 2-col for officers */}
+      <div className="eval-main-grid" style={{ display: 'grid', gridTemplateColumns: (isTeacher || isMonitor || isGroupLeader || canApproveCompetition) ? 'minmax(0, 1.8fr) minmax(0, 1.2fr)' : '1fr', gap: '1.5rem' }}>
         
         {/* Left Column: 47 Criteria Form */}
         <div className="glass-panel" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
-            <div>
-              <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', color: '#374151' }}>Chọn Học Sinh:</label>
-              <select
-                className="form-input"
-                style={{ width: '100%', maxWidth: '300px', marginTop: '0.2rem', fontWeight: 600 }}
-                value={selectedStudentId}
-                onChange={e => setSelectedStudentId(e.target.value)}
-              >
-                {students.map(s => {
-                  const rec = competitionData[s.id] || {};
-                  const stBadge = rec.status === 'approved' ? '✅' : rec.status === 'reviewed' ? '⏳' : rec.status === 'submitted' ? '📩' : '📝';
-                  return (
-                    <option key={s.id} value={s.id}>
-                      {stBadge} {String(s.id).padStart(2, '0')} - {s.name} ({s.group})
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
+            {(isTeacher || isMonitor || isGroupLeader || canApproveCompetition) ? (
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', color: '#374151' }}>Chọn Học Sinh:</label>
+                <select
+                  className="form-input"
+                  style={{ width: '100%', maxWidth: '300px', marginTop: '0.2rem', fontWeight: 600 }}
+                  value={selectedStudentId}
+                  onChange={e => setSelectedStudentId(e.target.value)}
+                >
+                  {students.map(s => {
+                    const rec = competitionData[s.id] || {};
+                    const stBadge = rec.status === 'approved' ? '✅' : rec.status === 'reviewed' ? '⏳' : rec.status === 'submitted' ? '📩' : '📝';
+                    return (
+                      <option key={s.id} value={s.id}>
+                        {stBadge} {String(s.id).padStart(2, '0')} - {s.name} ({s.group})
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            ) : (
+              <div>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#6b7280' }}>Phiếu Tự Đánh Giá Cá Nhân:</label>
+                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1B4D53', marginTop: '0.15rem' }}>
+                  👨‍🎓 {currentStudent?.name || user?.name} ({currentStudent?.group || user?.group || 'Tổ 1'})
+                </div>
+              </div>
+            )}
 
             {/* Live Score & History Button */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
