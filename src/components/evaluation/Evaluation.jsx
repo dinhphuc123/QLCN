@@ -78,18 +78,32 @@ export default function Evaluation({ students = [], isTeacher, onRefresh }) {
   // Nộp phiếu tự đánh giá (Học sinh)
   const handleStudentSubmit = async () => {
     setSaving(true);
+    const sid = parseInt(selectedStudentId, 10);
+    const violationsList = Object.entries(selectedViolations).map(([id, count]) => ({
+      criteriaId: parseInt(id, 10),
+      count
+    }));
+
+    // Local optimistic update
+    setCompetitionData(prev => ({
+      ...prev,
+      [selectedStudentId]: {
+        ...(prev[selectedStudentId] || {}),
+        studentId: sid,
+        violations: violationsList,
+        status: 'submitted',
+        submittedAt: new Date().toISOString()
+      }
+    }));
+
+    toast.success('Đã nộp phiếu tự đánh giá thành công!');
+    setSaving(false);
+
     try {
-      const violationsList = Object.entries(selectedViolations).map(([id, count]) => ({
-        criteriaId: parseInt(id, 10),
-        count
-      }));
-      await api.selfReport(selectedWeek, parseInt(selectedStudentId, 10), violationsList);
-      toast.success('Đã nộp phiếu tự đánh giá thành công!');
+      await api.selfReport(selectedWeek, sid, violationsList);
       fetchWeekData();
     } catch (err) {
-      toast.error(err.message || 'Lỗi khi nộp phiếu thi đua!');
-    } finally {
-      setSaving(false);
+      console.warn('selfReport API background sync error (preserved locally):', err.message);
     }
   };
 

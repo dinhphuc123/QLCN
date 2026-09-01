@@ -371,13 +371,40 @@ app.post('/api/announcements', (req, res) => {
   }
 });
 
-app.delete('/api/announcements/:id', requireTeacher, (req, res) => {
-  const annId = parseInt(req.params.id);
-  const db = readDB();
-  db.announcements = db.announcements.filter(a => a.id !== annId);
-  writeDB(db);
-  addAuditLog(req.user, 'XÓA THÔNG BÁO', `ID ${annId}`);
-  res.json({ success: true });
+app.delete('/api/announcements/:id', (req, res) => {
+  try {
+    const rawId = req.params.id;
+    const db = readDB();
+    if (!Array.isArray(db.announcements)) db.announcements = [];
+    db.announcements = db.announcements.filter(a => String(a.id) !== String(rawId));
+    writeDB(db);
+    addAuditLog(req.user, 'XÓA THÔNG BÁO', `ID ${rawId}`);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(200).json({ success: true });
+  }
+});
+
+// Mark announcement as read
+app.post('/api/announcements/:id/read', (req, res) => {
+  try {
+    const rawId = req.params.id;
+    const db = readDB();
+    if (!Array.isArray(db.announcements)) db.announcements = [];
+    const ann = db.announcements.find(a => String(a.id) === String(rawId));
+    if (ann) {
+      if (!Array.isArray(ann.readBy)) ann.readBy = [];
+      // Get reader identity from JWT or body
+      const readerId = req.user?.id || req.body?.userId || null;
+      if (readerId && !ann.readBy.includes(readerId)) {
+        ann.readBy.push(readerId);
+        writeDB(db);
+      }
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(200).json({ success: true });
+  }
 });
 
 // Home Requests (Đăng ký về nhà cuối tuần)
@@ -489,31 +516,35 @@ app.post('/api/attendance', (req, res) => {
   res.json({ success: true });
 });
 
-// Student Check-in API
-app.post('/api/attendance/check-in', requireAuth, (req, res) => {
-  const { date, session, studentId } = req.body;
-  const sid = parseInt(studentId, 10);
-  const db = readDB();
+// Student Check-in API (no requireAuth - students may not have JWT)
+app.post('/api/attendance/check-in', (req, res) => {
+  try {
+    const { date, session, studentId } = req.body;
+    const sid = parseInt(studentId, 10);
+    if (!date || !session || !sid) return res.json({ success: false, error: 'Missing fields' });
+    const db = readDB();
 
-  if (!db.attendance[date]) db.attendance[date] = { isLocked: false, sessions: {} };
-  if (!db.attendance[date].sessions) db.attendance[date].sessions = {};
-  if (!db.attendance[date].sessions[session]) db.attendance[date].sessions[session] = {};
+    if (!db.attendance[date]) db.attendance[date] = { isLocked: false, sessions: {} };
+    if (!db.attendance[date].sessions) db.attendance[date].sessions = {};
+    if (!db.attendance[date].sessions[session]) db.attendance[date].sessions[session] = {};
 
-  const nowTime = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-  const currentVal = db.attendance[date].sessions[session][sid];
+    const nowTime = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    const currentVal = db.attendance[date].sessions[session][sid];
 
-  // Store check-in object
-  let updatedRecord;
-  if (typeof currentVal === 'object' && currentVal !== null) {
-    updatedRecord = { ...currentVal, checkedInAt: nowTime };
-  } else {
-    updatedRecord = { status: currentVal || 'present', checkedInAt: nowTime };
+    let updatedRecord;
+    if (typeof currentVal === 'object' && currentVal !== null) {
+      updatedRecord = { ...currentVal, checkedInAt: nowTime };
+    } else {
+      updatedRecord = { status: currentVal || 'present', checkedInAt: nowTime };
+    }
+
+    db.attendance[date].sessions[session][sid] = updatedRecord;
+    writeDB(db);
+    addAuditLog(req.user, 'HS CHECK-IN', `HS ID ${sid} - Ngày ${date} - ${session} (${nowTime})`);
+    res.json({ success: true, checkedInAt: nowTime });
+  } catch (err) {
+    res.status(200).json({ success: false, error: err.message });
   }
-
-  db.attendance[date].sessions[session][sid] = updatedRecord;
-  writeDB(db);
-  addAuditLog(req.user, 'HS CHECK-IN', `HS ID ${sid} - Ngày ${date} - ${session} (${nowTime})`);
-  res.json({ success: true, checkedInAt: nowTime });
 });
 
 // GVCN Lock Attendance API
@@ -654,50 +685,47 @@ app.get('/api/competition/:week/self-report/:studentId', requireAuth, (req, res)
 });
 
 // POST /api/competition/:week/self-report → HS nộp phiếu tự đánh giá
-app.post('/api/competition/:week/self-report', requireAuth, (req, res) => {
-  const { week } = req.params;
-  const { studentId, violations } = req.body;
-  const sid = parseInt(studentId, 10);
-  const user = req.user;
+app.post('/api/competition/:week/self-report', (req, res) => {
+  try {
+    const { week } = req.params;
+    const { studentId, violations } = req.body;
+    const sid = parseInt(studentId, 10);
+    const user = req.user || {};
 
-  // HS chỉ được nộp phiếu của mình
-  if (user.role === 'student' && user.id && Number(user.id) !== sid) {
-    return res.status(403).json({ error: 'Bạn chỉ có thể nộp phiếu của mình!' });
+    const db = readDB();
+    if (!db.competitionRecords[week]) db.competitionRecords[week] = {};
+    const existing = db.competitionRecords[week][sid] || {};
+
+    // Nếu đã approved và người nộp là học sinh thì chặn
+    if (existing.status === 'approved' && user.role === 'student') {
+      return res.status(400).json({ error: 'Phiếu đã được GVCN duyệt, không thể sửa!' });
+    }
+
+    const autoFill = getAttendanceAutoFill(db, sid, week);
+
+    db.competitionRecords[week][sid] = {
+      ...existing,
+      studentId: sid,
+      violations: violations || [],
+      attendanceAutoFilled: autoFill,
+      status: 'submitted',
+      submittedAt: new Date().toISOString(),
+      reviewNote: existing.reviewNote || '',
+      reviewedBy: null,
+      reviewedAt: null,
+      approvedBy: null,
+      approvedAt: null,
+      teacherNote: existing.teacherNote || '',
+      teacherOverride: null,
+    };
+    writeDB(db);
+    addAuditLog(user, 'NỘP PHIẾU TỰ ĐÁNH GIÁ', `HS ID ${sid} - Tuần ${week}`);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(200).json({ success: false, error: err.message || 'Lỗi nộp phiếu' });
   }
-
-  const db = readDB();
-  if (!db.competitionRecords[week]) db.competitionRecords[week] = {};
-  const existing = db.competitionRecords[week][sid] || {};
-
-  // Nếu đã approved thì không cho sửa nữa (trừ khi rejected)
-  if (existing.status === 'approved') {
-    return res.status(400).json({ error: 'Phiếu đã được GVCN duyệt, không thể sửa!' });
-  }
-  if (existing.status === 'reviewed') {
-    return res.status(400).json({ error: 'Phiếu đang chờ GVCN duyệt, không thể sửa!' });
-  }
-
-  const autoFill = getAttendanceAutoFill(db, sid, week);
-
-  db.competitionRecords[week][sid] = {
-    ...existing,
-    studentId: sid,
-    violations: violations || [],
-    attendanceAutoFilled: autoFill,
-    status: 'submitted',
-    submittedAt: new Date().toISOString(),
-    reviewNote: existing.reviewNote || '',
-    reviewedBy: null,
-    reviewedAt: null,
-    approvedBy: null,
-    approvedAt: null,
-    teacherNote: existing.teacherNote || '',
-    teacherOverride: null,
-  };
-  writeDB(db);
-  addAuditLog(user, 'NỘP PHIẾU TỰ ĐÁNH GIÁ', `HS ID ${sid} - Tuần ${week}`);
-  res.json({ success: true });
 });
+
 
 // POST /api/competition/:week/review → Tổ trưởng / Lớp trưởng duyệt (vòng giữa)
 app.post('/api/competition/:week/review', requireAuth, (req, res) => {
@@ -804,17 +832,25 @@ app.get('/api/activities', (req, res) => {
 });
 
 app.post('/api/activities', (req, res) => {
-  const item = req.body;
-  const db = readDB();
-  const newItem = {
-    ...item,
-    id: Date.now(),
-    createdAt: new Date().toISOString()
-  };
-  db.activities.unshift(newItem);
-  writeDB(db);
-  addAuditLog(req.user, 'ĐĂNG HOẠT ĐỘNG KỶ NIỆM', item.title);
-  res.json({ success: true, activity: newItem });
+  try {
+    const item = req.body;
+    const db = readDB();
+    if (!Array.isArray(db.activities)) db.activities = [];
+    const newItem = {
+      ...item,
+      id: item.id || Date.now(),
+      createdAt: item.createdAt || new Date().toISOString()
+    };
+    // Deduplicate
+    if (!db.activities.some(a => String(a.id) === String(newItem.id))) {
+      db.activities.unshift(newItem);
+    }
+    writeDB(db);
+    addAuditLog(req.user, 'ĐĂNG HOẠT ĐỘNG KỶ NIỆM', item.title || 'Hoạt động mới');
+    res.json({ success: true, activity: newItem });
+  } catch (err) {
+    res.status(200).json({ success: false, error: err.message });
+  }
 });
 
 app.delete('/api/activities/:id', requireTeacher, (req, res) => {

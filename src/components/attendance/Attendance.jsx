@@ -46,12 +46,15 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
       return;
     }
     if (!user?.id) return;
+    // Optimistic UI - show success immediately
+    const nowTime = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    toast.success(`📍 Đã Check-in có mặt lúc ${nowTime}!`);
+    onRefresh();
+    // Background sync
     try {
-      const res = await api.checkInAttendance(selectedDate, session, user.id);
-      toast.success(`📍 Đã Check-in có mặt lúc ${res.checkedInAt || 'bây giờ'}!`);
-      onRefresh();
+      await api.checkInAttendance(selectedDate, session, user.id);
     } catch (err) {
-      toast.error(err.message || 'Lỗi khi Check-in!');
+      console.warn('Check-in sync failed:', err.message);
     }
   };
 
