@@ -723,8 +723,8 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
                 const status = stObj.status;
                 const checkedInAt = stObj.checkedInAt;
                 
-                // Enable attendance editing for GVCN and Officers (Lớp trưởng, Tổ trưởng, Trưởng phòng KTX)
-                const canOfficerEdit = isTeacher || (!isLocked && (isMonitor || isGroupLeader || isDormLeader));
+                // Enable attendance editing for Officers (Lớp trưởng, Tổ trưởng, Trưởng phòng KTX) when not locked
+                const canOfficerEdit = !isLocked && (isMonitor || isGroupLeader || isDormLeader);
 
                 return (
                   <div key={student.id} style={{
@@ -750,13 +750,27 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
                       </div>
                     </div>
 
-                    {/* Display Interactive Attendance Buttons */}
-                    <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-                      <StatusBtn active={status === 'present'} color="#16a34a" label="✓ Có mặt" onClick={() => setStatus(student.id, 'present')} disabled={!canOfficerEdit} />
-                      <StatusBtn active={status === 'permit'} color="#2563eb" label="📝 Phép" onClick={() => setStatus(student.id, 'permit')} disabled={!canOfficerEdit} />
-                      <StatusBtn active={status === 'late'} color="#d97706" label="⏰ Trễ" onClick={() => setStatus(student.id, 'late')} disabled={!canOfficerEdit} />
-                      <StatusBtn active={status === 'absent'} color="#dc2626" label="🔴 KP" onClick={() => setStatus(student.id, 'absent')} disabled={!canOfficerEdit} />
-                    </div>
+                    {/* Display Status: Read-Only Badge for GVCN vs Interactive Buttons for Class Officers */}
+                    {isTeacher ? (
+                      <span style={{
+                        padding: '0.4rem 0.85rem', fontSize: '0.8rem', borderRadius: '9999px',
+                        fontWeight: 800,
+                        background: status === 'absent' ? '#fee2e2' : status === 'permit' ? '#dbeafe' : status === 'late' ? '#fef3c7' : '#dcfce7',
+                        color: status === 'absent' ? '#dc2626' : status === 'permit' ? '#1e40af' : status === 'late' ? '#b45309' : '#166534',
+                        border: `1.5px solid ${status === 'absent' ? '#fca5a5' : status === 'permit' ? '#93c5fd' : status === 'late' ? '#fde68a' : '#86efac'}`,
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+                        display: 'inline-flex', alignItems: 'center', gap: '0.3rem'
+                      }}>
+                        {status === 'absent' ? '🔴 KP (Vắng không phép)' : status === 'permit' ? '📝 Có phép' : status === 'late' ? '⏰ Đi trễ' : '✓ Có mặt'}
+                      </span>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                        <StatusBtn active={status === 'present'} color="#16a34a" label="✓ Có mặt" onClick={() => setStatus(student.id, 'present')} disabled={!canOfficerEdit} />
+                        <StatusBtn active={status === 'permit'} color="#2563eb" label="📝 Phép" onClick={() => setStatus(student.id, 'permit')} disabled={!canOfficerEdit} />
+                        <StatusBtn active={status === 'late'} color="#d97706" label="⏰ Trễ" onClick={() => setStatus(student.id, 'late')} disabled={!canOfficerEdit} />
+                        <StatusBtn active={status === 'absent'} color="#dc2626" label="🔴 KP" onClick={() => setStatus(student.id, 'absent')} disabled={!canOfficerEdit} />
+                      </div>
+                    )}
                   </div>
                 );
               })}
