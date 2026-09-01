@@ -90,11 +90,22 @@ export default function App() {
       const result = await api.getData();
       const localTkb = localStorage.getItem('qlcn_timetable_image') || '';
       const localMap = localStorage.getItem('qlcn_class_map_image') || '';
+      let localAnn = [];
+      try { localAnn = JSON.parse(localStorage.getItem('qlcn_announcements') || '[]'); } catch {}
+
+      const serverAnn = Array.isArray(result.announcements) ? result.announcements : [];
+      const mergedAnn = [...serverAnn];
+      localAnn.forEach(la => {
+        if (!mergedAnn.some(a => a.id === la.id)) {
+          mergedAnn.unshift(la);
+        }
+      });
 
       setData(prev => ({
         ...prev,
         ...result,
         students: (result.students && result.students.length > 0) ? result.students : INITIAL_STUDENTS,
+        announcements: mergedAnn,
         timetableImage: result.timetableImage || localTkb || prev.timetableImage,
         classMapImage: result.classMapImage || localMap || prev.classMapImage,
       }));
@@ -104,8 +115,12 @@ export default function App() {
       }
       const localTkb = localStorage.getItem('qlcn_timetable_image') || '';
       const localMap = localStorage.getItem('qlcn_class_map_image') || '';
+      let localAnn = [];
+      try { localAnn = JSON.parse(localStorage.getItem('qlcn_announcements') || '[]'); } catch {}
+
       setData(prev => ({
         ...prev,
+        announcements: localAnn.length > 0 ? localAnn : prev.announcements,
         timetableImage: prev.timetableImage || localTkb,
         classMapImage: prev.classMapImage || localMap,
       }));
