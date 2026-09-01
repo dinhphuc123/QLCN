@@ -46,7 +46,20 @@ if (isSupabaseConfigured) {
 let inMemoryDB = null;
 
 function readDB() {
-  if (inMemoryDB) return inMemoryDB;
+  if (inMemoryDB) {
+    if (!Array.isArray(inMemoryDB.students)) inMemoryDB.students = [];
+    if (!Array.isArray(inMemoryDB.announcements)) inMemoryDB.announcements = [];
+    if (!Array.isArray(inMemoryDB.leaveRequests)) inMemoryDB.leaveRequests = [];
+    if (!Array.isArray(inMemoryDB.homeRequests)) inMemoryDB.homeRequests = [];
+    if (!Array.isArray(inMemoryDB.confessions)) inMemoryDB.confessions = [];
+    if (!inMemoryDB.attendance || typeof inMemoryDB.attendance !== 'object') inMemoryDB.attendance = {};
+    if (!inMemoryDB.dormAttendance || typeof inMemoryDB.dormAttendance !== 'object') inMemoryDB.dormAttendance = {};
+    if (!inMemoryDB.competitionRecords || typeof inMemoryDB.competitionRecords !== 'object') inMemoryDB.competitionRecords = {};
+    if (!Array.isArray(inMemoryDB.activities)) inMemoryDB.activities = [];
+    if (!Array.isArray(inMemoryDB.finance)) inMemoryDB.finance = [];
+    if (!Array.isArray(inMemoryDB.auditLogs)) inMemoryDB.auditLogs = [];
+    return inMemoryDB;
+  }
   
   let data = {
     students: [],
@@ -73,11 +86,17 @@ function readDB() {
     /* Ignore read restriction in serverless */
   }
 
-  if (!data.homeRequests) data.homeRequests = [];
-  if (!data.competitionRecords) data.competitionRecords = {};
-  if (!data.activities) data.activities = [];
-  if (!data.finance) data.finance = [];
-  if (!data.auditLogs) data.auditLogs = [];
+  if (!Array.isArray(data.students)) data.students = [];
+  if (!Array.isArray(data.announcements)) data.announcements = [];
+  if (!Array.isArray(data.leaveRequests)) data.leaveRequests = [];
+  if (!Array.isArray(data.homeRequests)) data.homeRequests = [];
+  if (!Array.isArray(data.confessions)) data.confessions = [];
+  if (!data.attendance || typeof data.attendance !== 'object') data.attendance = {};
+  if (!data.dormAttendance || typeof data.dormAttendance !== 'object') data.dormAttendance = {};
+  if (!data.competitionRecords || typeof data.competitionRecords !== 'object') data.competitionRecords = {};
+  if (!Array.isArray(data.activities)) data.activities = [];
+  if (!Array.isArray(data.finance)) data.finance = [];
+  if (!Array.isArray(data.auditLogs)) data.auditLogs = [];
 
   inMemoryDB = data;
   return data;
@@ -329,18 +348,27 @@ app.post('/api/class-map', requireTeacher, (req, res) => {
 
 // Announcements
 app.post('/api/announcements', (req, res) => {
-  const ann = req.body;
-  const db = readDB();
-  const newAnn = { 
-    ...ann, 
-    id: Date.now(), 
-    readBy: [], 
-    createdAt: new Date().toISOString() 
-  };
-  db.announcements.unshift(newAnn);
-  writeDB(db);
-  addAuditLog(req.user, 'ĐĂNG THÔNG BÁO', newAnn.title || 'Thông báo mới');
-  res.json({ success: true, announcement: newAnn });
+  try {
+    const ann = req.body;
+    if (!ann || !ann.title || !ann.content) {
+      return res.status(400).json({ error: 'Tiêu đề và nội dung không được để trống' });
+    }
+    const db = readDB();
+    if (!Array.isArray(db.announcements)) db.announcements = [];
+    const newAnn = { 
+      ...ann, 
+      id: Date.now(), 
+      readBy: [], 
+      createdAt: new Date().toISOString() 
+    };
+    db.announcements.unshift(newAnn);
+    writeDB(db);
+    addAuditLog(req.user, 'ĐĂNG THÔNG BÁO', newAnn.title || 'Thông báo mới');
+    return res.json({ success: true, announcement: newAnn });
+  } catch (err) {
+    console.error('Error posting announcement:', err);
+    return res.status(200).json({ success: false, error: err.message || 'Lỗi khi lưu thông báo' });
+  }
 });
 
 app.delete('/api/announcements/:id', requireTeacher, (req, res) => {

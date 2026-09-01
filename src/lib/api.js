@@ -22,7 +22,11 @@ async function request(url, options = {}) {
     const errData = await res.json().catch(() => ({}));
     throw new Error(errData.error || `Lỗi máy chủ API: ${res.status}`);
   }
-  return res.json();
+  const data = await res.json();
+  if (data && data.success === false && data.error) {
+    throw new Error(data.error);
+  }
+  return data;
 }
 
 async function upload(url, formData) {
