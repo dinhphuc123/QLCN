@@ -14,6 +14,18 @@ export default function Reports({ students = [], attendance = {}, dormAttendance
   const [bulkText, setBulkText] = useState('');
   const [showBulkModal, setShowBulkModal] = useState(false);
 
+  if (!isTeacher) {
+    return (
+      <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', margin: '2rem 0' }}>
+        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
+        <h3 style={{ color: '#dc2626', margin: 0 }}>Quyền Truy Cập Dành Riêng Cho GVCN</h3>
+        <p style={{ color: '#6b7280', marginTop: '0.5rem', fontSize: '0.9rem' }}>
+          Tính năng xuất báo cáo và biểu mẫu (.docx / .xlsx) chỉ dành riêng cho Giáo viên chủ nhiệm.
+        </p>
+      </div>
+    );
+  }
+
   // Compute summary metrics
   const stats = useMemo(() => {
     const totalDays = Object.keys(attendance).length;

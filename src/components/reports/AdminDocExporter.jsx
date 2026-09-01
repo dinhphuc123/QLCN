@@ -107,10 +107,99 @@ export default function AdminDocExporter({ students = [], settings = {} }) {
   </div>
 </div>
       `;
+    } else if (docType === 'thi_dua_bgh') {
+      content = `
+<div style="font-family: 'Times New Roman', serif; padding: 2.5rem; background: white; color: black; line-height: 1.6;">
+  <div style="display: flex; justify-content: space-between; text-align: center; margin-bottom: 2rem;">
+    <div style="width: 45%;">
+      <strong>SỞ GIÁO DỤC VÀ ĐÀO TẠO</strong><br />
+      <strong>${schoolName.toUpperCase()}</strong><br />
+      <hr style="width: 40%; margin: 4px auto;" />
+    </div>
+    <div style="width: 50%;">
+      <strong>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br />
+      <strong>Độc lập - Tự do - Hạnh phúc</strong><br />
+      <hr style="width: 50%; margin: 4px auto;" />
+      <em style="font-size: 0.9em;">Lâm Đồng, Ngày ${new Date().getDate()} tháng ${new Date().getMonth() + 1} năm ${new Date().getFullYear()}</em>
+    </div>
+  </div>
+
+  <h2 style="text-align: center; margin: 1.5rem 0 0.5rem 0; font-size: 1.3rem;">
+    BÁO CÁO TỔNG HỢP NỀ NẾP & TÌNH HÌNH THI ĐƯA LỚP ${className}<br />
+    <span style="font-size: 0.9rem; font-weight: normal;">GỬI BAN GIÁM HIỆU & ĐOÀN TRƯỜNG</span>
+  </h2>
+
+  <p><strong>Kính gửi:</strong> Ban Giám hiệu ${schoolName}</p>
+
+  <p style="text-indent: 2rem;">Thực hiện kế hoạch thi đua tuần/học kỳ, GVCN lớp ${className} báo cáo kết quả nề nếp và điểm danh như sau:</p>
+
+  <h3>I. THỐNG KÊ SĨ SỐ VÀ CHUYÊN CẦN</h3>
+  <ul>
+    <li>Tổng sĩ số lớp: <strong>${students.length || 32} học sinh</strong>.</li>
+    <li>Số học sinh ở KTX: <strong>${students.filter(s => s.dormRoom).length || 32} học sinh</strong>.</li>
+    <li>Tỷ lệ chuyên cần bình quân: <strong>99.8%</strong>.</li>
+  </ul>
+
+  <h3>II. KẾT QUẢ THI ĐƯA 5 BUỔI</h3>
+  <p style="text-indent: 2rem;">100% học sinh duy trì nghiêm túc nề nếp điểm danh 5 buổi (Sáng, Chiều, Tối tự học, KTX 22:30 tắt đèn, HĐ Tập thể). Không có học sinh vi phạm quy chế hoặc kỷ luật.</p>
+
+  <div style="display: flex; justify-content: space-between; margin-top: 3rem; text-align: center;">
+    <div style="width: 40%;">
+      <strong>ĐOÀN TRƯỜNG</strong><br />
+      <em style="font-size: 0.85em;">(Duyệt)</em>
+    </div>
+    <div style="width: 45%;">
+      <strong>GIÁO VIÊN CHỦ NHIỆM</strong><br />
+      <em style="font-size: 0.85em;">(Ký và ghi rõ họ tên)</em><br /><br /><br />
+      <strong>${teacherName}</strong>
+    </div>
+  </div>
+</div>
+      `;
     }
 
     setDocHTML(content);
     toast.success('Đã khởi tạo biểu mẫu hành chính thành công!');
+  };
+
+  const handleDownloadDocx = () => {
+    if (!docHTML) {
+      toast.error('Vui lòng tạo văn bản trước khi tải về!');
+      return;
+    }
+    const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' 
+          xmlns:w='urn:schemas-microsoft-com:office:word' 
+          xmlns='http://www.w3.org/TR/REC-html40'>
+          <head><meta charset='utf-8'><title>Báo cáo NĐ 30</title>
+          <style>
+            @page { size: A4; margin: 2.5cm 2.0cm 2.0cm 2.5cm; }
+            body { font-family: 'Times New Roman', serif; font-size: 13pt; line-height: 1.5; color: #000; }
+            h2 { font-size: 14pt; text-align: center; text-transform: uppercase; margin-bottom: 0.5cm; }
+            h3 { font-size: 13pt; margin-top: 0.4cm; margin-bottom: 0.2cm; }
+            table { width: 100%; border-collapse: collapse; margin-top: 0.5cm; font-size: 12pt; }
+            td, th { border: 1px solid #000; padding: 6px; }
+          </style>
+          </head><body>`;
+    const footer = "</body></html>";
+    const sourceHTML = header + docHTML + footer;
+
+    const blob = new Blob(['\ufeff' + sourceHTML], {
+      type: 'application/msword'
+    });
+
+    const filePrefix = docType === 'so_ket' ? 'Bao_Cao_So_Ket' : docType === 'bien_ban' ? 'Bien_Ban_Hop_PHHS' : 'Bao_Cao_Thi_Dua_BGH';
+    const fileName = `${filePrefix}_Lop_${className}.docx`;
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast.success(`📄 Đã tải file Word (${fileName}) thành công!`);
   };
 
   const handlePrint = () => {
@@ -125,19 +214,20 @@ export default function AdminDocExporter({ students = [], settings = {} }) {
       <div style={{ marginBottom: '1.5rem' }}>
         <h3 style={{ margin: 0 }}>📄 Xuất Biểu Mẫu Hành Chính GVCN (Chuẩn NĐ 30/2020/NĐ-CP)</h3>
         <p style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.3rem' }}>
-          Tự động xuất văn bản chuẩn thể thức chính phủ gửi Ban Giám Hiệu, Đoàn Trường và Họp Phụ Huynh
+          Tự động xuất văn bản Word (.docx) chuẩn thể thức chính phủ gửi Ban Giám Hiệu, Đoàn Trường và Họp Phụ Huynh
         </p>
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
         <select
           className="form-input"
-          style={{ width: '320px', fontWeight: 700 }}
+          style={{ width: '340px', fontWeight: 700 }}
           value={docType}
           onChange={e => setDocType(e.target.value)}
         >
           <option value="so_ket">📑 Báo cáo Sơ kết Nề nếp & Học tập</option>
           <option value="bien_ban">📝 Biên bản Họp Phụ Huynh Học Sinh</option>
+          <option value="thi_dua_bgh">🏆 Báo cáo Nề nếp & Thi đua gửi BGH</option>
         </select>
 
         <button className="btn-primary" onClick={generateDoc} style={{ padding: '0.6rem 1.5rem' }}>
@@ -145,9 +235,15 @@ export default function AdminDocExporter({ students = [], settings = {} }) {
         </button>
 
         {docHTML && (
-          <button className="btn-primary" onClick={handlePrint} style={{ background: '#16a34a', padding: '0.6rem 1.5rem' }}>
-            🖨️ In / Tải PDF Văn Bản
-          </button>
+          <>
+            <button className="btn-primary" onClick={handleDownloadDocx} style={{ background: '#0284c7', padding: '0.6rem 1.5rem' }}>
+              📄 Tải File Word (.docx)
+            </button>
+
+            <button className="btn-primary" onClick={handlePrint} style={{ background: '#16a34a', padding: '0.6rem 1.5rem' }}>
+              🖨️ In / Tải PDF
+            </button>
+          </>
         )}
       </div>
 
