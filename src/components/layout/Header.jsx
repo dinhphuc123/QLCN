@@ -12,7 +12,7 @@ const TAB_LABELS = {
   activities:    'Hoạt động',
   finance:       'Quỹ lớp',
   evaluation:    'Thi đua 47',
-  exam:          'Ôn thi THPT',
+  exam:          'Hướng nghiệp & ĐH',
   ai_assistant:  'Trợ lý AI',
   parent_portal: 'Sổ Liên Lạc Điện Tử',
   confessions:   'Hòm tâm sự',
