@@ -34,7 +34,7 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
   const getRoleLabel = () => {
     if (!user) return null;
     if (isTeacher) return { text: `GVCN ${settings.teacherName}`, icon: '👩‍🏫', bg: 'linear-gradient(135deg,#1B4D53,#2d6a70)' };
-    if (user.role === 'group_leader') return { text: `Tổ trưởng ${user.group}`, icon: '⭐', bg: 'linear-gradient(135deg,#0284c7,#0369a1)' };
+    if (user.role === 'group_leader') return { text: `Tổ trưởng ${user.groupLeaderOf || user.group}`, icon: '⭐', bg: 'linear-gradient(135deg,#0284c7,#0369a1)' };
     if (user.role === 'monitor') return { text: 'Lớp trưởng', icon: '👑', bg: 'linear-gradient(135deg,#d97706,#b45309)' };
     return { text: user.name, icon: '👨‍🎓', bg: 'linear-gradient(135deg,#4b5563,#374151)' };
   };

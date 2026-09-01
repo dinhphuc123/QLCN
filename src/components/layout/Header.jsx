@@ -132,7 +132,13 @@ export default function Header({ activeTab, onMenuClick, onLoginClick }) {
               border: `1px solid ${isTeacher ? '#86efac' : user.role === 'group_leader' ? '#7dd3fc' : '#86efac'}`,
               whiteSpace: 'nowrap',
             }}>
-              {isTeacher ? `👑 GVCN ${settings.teacherName}` : user.role === 'group_leader' ? `⭐ Tổ Trưởng ${user.group}` : `👨‍🎓 ${user.name}`}
+              {isTeacher
+                ? `👑 GVCN ${settings.teacherName}`
+                : user?.role === 'group_leader'
+                ? `⭐ Tổ Trưởng ${user.groupLeaderOf || user.group}`
+                : user?.role === 'monitor'
+                ? `👑 Lớp Trưởng (${user.name})`
+                : `👨‍🎓 ${user.name}`}
             </span>
             {/* Mini avatar — mobile only */}
             <div className="header-user-mini" style={{

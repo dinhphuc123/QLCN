@@ -68,16 +68,36 @@ export function AuthProvider({ children }) {
     const id = parseInt(studentId, 10);
     const student = INITIAL_STUDENTS.find(s => s.id === id) || INITIAL_STUDENTS[0];
 
+    // Helper to resolve officer metadata from role & position
+    const resolveOfficerMeta = (sData) => {
+      const pos = (sData.position || '').toLowerCase();
+      const isGroupLead = sData.role === 'group_leader' || pos.includes('tổ trưởng');
+      const isMon = sData.role === 'monitor' || pos.includes('lớp trưởng') || pos.includes('lớp phó');
+      const isDormLead = sData.role === 'room_leader' || pos.includes('trưởng phòng');
+
+      let grpOf = sData.group || 'Tổ 1';
+      if (pos.includes('tổ 1')) grpOf = 'Tổ 1';
+      else if (pos.includes('tổ 2')) grpOf = 'Tổ 2';
+      else if (pos.includes('tổ 3')) grpOf = 'Tổ 3';
+      else if (pos.includes('tổ 4')) grpOf = 'Tổ 4';
+
+      const resolvedRole = isGroupLead ? 'group_leader' : isMon ? 'monitor' : 'student';
+
+      return {
+        role: resolvedRole,
+        groupLeaderOf: isGroupLead ? grpOf : null,
+        isDormLeader: isDormLead,
+        dormLeaderOf: isDormLead ? (sData.dormRoom || 'KTX') : null,
+      };
+    };
+
     try {
       const res = await api.login({ type: 'student', studentId, password });
       if (res && res.success && res.token) {
-        const pos = res.user.position || '';
-        const isDormLead = pos.toLowerCase().includes('trưởng phòng') || res.user.role === 'room_leader';
+        const meta = resolveOfficerMeta(res.user);
         const u = {
           ...res.user,
-          groupLeaderOf: res.user.role === 'group_leader' ? res.user.group : null,
-          isDormLeader: isDormLead,
-          dormLeaderOf: isDormLead ? res.user.dormRoom : null,
+          ...meta,
         };
         setUser(u);
         persistSession(u, res.token);
@@ -92,18 +112,10 @@ export function AuthProvider({ children }) {
     const defaultPw = String(student.id).padStart(2, '0');
 
     if (!inputPw || inputPw === defaultPw || inputPw === '123456' || inputPw === String(student.id)) {
-      const pos = student.position || '';
-      const isDormLead = pos.toLowerCase().includes('trưởng phòng') || student.role === 'room_leader';
+      const meta = resolveOfficerMeta(student);
       const u = {
-        role: student.role === 'group_leader' ? 'group_leader' : student.role === 'monitor' ? 'monitor' : 'student',
-        id: student.id,
-        name: student.name,
-        position: student.position,
-        group: student.group,
-        dormRoom: student.dormRoom,
-        groupLeaderOf: student.role === 'group_leader' ? student.group : null,
-        isDormLeader: isDormLead,
-        dormLeaderOf: isDormLead ? student.dormRoom : null,
+        ...student,
+        ...meta,
       };
       setUser(u);
       persistSession(u);
@@ -111,7 +123,7 @@ export function AuthProvider({ children }) {
       return true;
     }
 
-    setLoginError(`Mật khẩu không chính xác (Mặc định là số STT: ${defaultPw}).`);
+    setLoginError(`Mật khẩu không chính xác.`);
     return false;
   }, []);
 
