@@ -72,13 +72,25 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
     };
 
     const updatedSessionRecord = { ...sessionRecord, [studentId]: updatedObj };
+
+    // Explicit Toast feedback for Class Officer / Teacher
+    const STATUS_NAMES = {
+      present: '✅ Có mặt',
+      permit: '📝 Có phép',
+      late: '⏰ Đi trễ',
+      absent: '🔴 KP (Vắng không phép)'
+    };
+    const targetStudent = students.find(s => s.id === studentId);
+    toast.success(`Đã chọn ${targetStudent?.name || 'Học sinh'}: ${STATUS_NAMES[status] || status}`);
+
+    onRefresh();
+
     // Background sync - don't block UI
     try {
       await api.saveAttendance(selectedDate, session, updatedSessionRecord);
     } catch (err) {
       console.warn('Attendance save failed:', err.message);
     }
-    onRefresh();
   };
 
   // Confirm Quick Action per Group / Dorm
@@ -323,13 +335,15 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
       onClick={onClick}
       disabled={disabled}
       style={{
-        padding: '0.35rem 0.65rem', fontSize: '0.76rem', borderRadius: '0.5rem',
-        fontWeight: 700, border: 'none', cursor: disabled ? 'not-allowed' : 'pointer',
+        padding: '0.4rem 0.65rem', fontSize: '0.78rem', borderRadius: '0.5rem',
+        fontWeight: 800, border: active ? `1.5px solid ${color}` : '1.5px solid transparent',
+        cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled && !active ? 0.4 : 1,
-        background: active ? color : '#f3f4f6',
-        color: active ? 'white' : '#4b5563',
-        transition: 'all 0.15s',
-        boxShadow: active ? `0 2px 8px ${color}55` : 'none',
+        background: active ? color : '#f1f5f9',
+        color: active ? 'white' : '#475569',
+        transition: 'all 0.15s ease',
+        minHeight: '36px',
+        boxShadow: active ? `0 2px 8px ${color}44` : 'none',
       }}
     >
       {label}
@@ -639,8 +653,8 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
                 const status = stObj.status;
                 const checkedInAt = stObj.checkedInAt;
                 
-                // Enable attendance editing for GVCN and Officers
-                const canOfficerEdit = !isLocked || isTeacher;
+                // Enable attendance editing for GVCN and Officers (Lớp trưởng, Tổ trưởng, Trưởng phòng KTX)
+                const canOfficerEdit = isTeacher || (!isLocked && (isMonitor || isGroupLeader || isDormLeader));
 
                 return (
                   <div key={student.id} style={{
