@@ -471,15 +471,13 @@ export default function App() {
         }}
       />
 
-      {isTeacher && (
-        <Sidebar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          onLoginClick={() => setShowAuth(true)}
-        />
-      )}
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        onLoginClick={() => setShowAuth(true)}
+      />
 
-      <div className="main-content" style={{ width: isTeacher ? undefined : '100%' }}>
+      <div className="main-content">
         <Header
           activeTab={activeTab}
           setActiveTab={setActiveTab}
