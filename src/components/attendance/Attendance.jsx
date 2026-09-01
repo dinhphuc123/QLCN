@@ -437,28 +437,30 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
             )}
           </div>
           
-          {/* Section 1: Student Check-in Card */}
+          {/* Section 1: Student Check-in Card (Streamlined for Mobile & Desktop) */}
           {user && (
             <div className="glass-panel" style={{
-              margin: '0.75rem 0 1.25rem 0',
-              padding: '1.25rem 1.5rem',
+              margin: '0.5rem 0 1rem 0',
+              padding: '1rem 1.25rem',
               background: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)',
               border: '1.5px solid #7dd3fc',
               display: 'flex',
-              justify: 'space-between',
+              justifyContent: 'space-between',
               alignItems: 'center',
               flexWrap: 'wrap',
-              gap: '1rem',
+              gap: '0.75rem',
               position: 'relative',
               zIndex: 10
             }}>
-              <div>
-                <h4 style={{ margin: 0, color: '#0369a1', fontSize: '1rem' }}>📍 Check-in Cá Nhân ({currentSessionDef.label})</h4>
-                <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: '#0c4a6e' }}>
-                  {myCheckInObj?.checkedInAt 
-                    ? `✅ Bạn đã Check-in lúc ${myCheckInObj.checkedInAt}. Trạng thái: ${myCheckInObj.status === 'present' ? 'Có mặt' : myCheckInObj.status === 'late' ? 'Đi trễ' : 'Đã ghi nhận'}`
-                    : 'Nhấn nút để xác nhận sự có mặt của bạn buổi học này.'}
-                </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <h4 style={{ margin: 0, color: '#0369a1', fontSize: '0.95rem', fontWeight: 800 }}>
+                  📍 Check-in Cá Nhân ({currentSessionDef.label})
+                </h4>
+                {myCheckInObj?.checkedInAt && (
+                  <span style={{ fontSize: '0.72rem', background: '#dcfce7', color: '#166534', padding: '0.15rem 0.55rem', borderRadius: '9999px', fontWeight: 800 }}>
+                    ✓ Lúc {myCheckInObj.checkedInAt}
+                  </span>
+                )}
               </div>
 
               <button
@@ -467,12 +469,16 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
                 disabled={isLocked && !isTeacher}
                 style={{
                   background: myCheckInObj?.checkedInAt ? '#0284c7' : '#0369a1',
-                  padding: '0.6rem 1.5rem',
-                  fontSize: '0.9rem',
-                  fontWeight: 700,
+                  padding: '0.55rem 1.35rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 800,
                   cursor: (isLocked && !isTeacher) ? 'not-allowed' : 'pointer',
                   boxShadow: '0 4px 12px rgba(3, 105, 161, 0.25)',
                   borderRadius: '9999px',
+                  minHeight: '44px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
                 {myCheckInObj?.checkedInAt ? `✓ Đã Check-in (${myCheckInObj.checkedInAt})` : '📍 Bấm Check-in Có Mặt'}
