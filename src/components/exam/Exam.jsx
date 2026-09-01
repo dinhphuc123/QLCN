@@ -239,7 +239,7 @@ export default function Exam({ students = [], isTeacher, onRefresh }) {
       </div>
 
       {/* Main Grid: Aspirations & Career Counseling */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.45fr) minmax(0, 1.55fr)', gap: '1.5rem' }}>
+      <div className="career-main-grid">
         
         {/* Left Column: Top 3 Aspirations Registration */}
         <div className="glass-panel" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
@@ -255,15 +255,15 @@ export default function Exam({ students = [], isTeacher, onRefresh }) {
           </div>
 
           {/* Quick Preset Templates */}
-          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569' }}>💡 Mẫu gợi ý nhanh:</span>
-            <button onClick={() => applyPreset('su_pham')} style={{ fontSize: '0.73rem', background: '#dbeafe', color: '#1e40af', border: '1px solid #93c5fd', padding: '0.2rem 0.55rem', borderRadius: '9999px', fontWeight: 700, cursor: 'pointer' }}>
+          <div className="mobile-scroll-x" style={{ display: 'flex', gap: '0.4rem', overflowX: 'auto', alignItems: 'center', scrollbarWidth: 'none', msOverflowStyle: 'none', paddingBottom: '0.2rem' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', flexShrink: 0 }}>💡 Mẫu gợi ý nhanh:</span>
+            <button onClick={() => applyPreset('su_pham')} style={{ fontSize: '0.73rem', background: '#dbeafe', color: '#1e40af', border: '1px solid #93c5fd', padding: '0.2rem 0.55rem', borderRadius: '9999px', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
               👩‍🏫 Mẫu 1: Sư phạm (NĐ 116)
             </button>
-            <button onClick={() => applyPreset('du_bi')} style={{ fontSize: '0.73rem', background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', padding: '0.2rem 0.55rem', borderRadius: '9999px', fontWeight: 700, cursor: 'pointer' }}>
+            <button onClick={() => applyPreset('du_bi')} style={{ fontSize: '0.73rem', background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', padding: '0.2rem 0.55rem', borderRadius: '9999px', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
               🏛️ Mẫu 2: Dự Bị ĐH Nội Trú
             </button>
-            <button onClick={() => applyPreset('dieu_duong')} style={{ fontSize: '0.73rem', background: '#dcfce7', color: '#166534', border: '1px solid #86efac', padding: '0.2rem 0.55rem', borderRadius: '9999px', fontWeight: 700, cursor: 'pointer' }}>
+            <button onClick={() => applyPreset('dieu_duong')} style={{ fontSize: '0.73rem', background: '#dcfce7', color: '#166534', border: '1px solid #86efac', padding: '0.2rem 0.55rem', borderRadius: '9999px', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
               🩺 Mẫu 3: Cao Đẳng Y Tế / Nghề
             </button>
           </div>
@@ -274,7 +274,7 @@ export default function Exam({ students = [], isTeacher, onRefresh }) {
               <strong style={{ fontSize: '0.9rem', color: '#166534' }}>🥇 Nguyện Vọng 1 (Ưu tiên số 1)</strong>
               <span style={{ fontSize: '0.72rem', background: '#16a34a', color: 'white', padding: '0.1rem 0.5rem', borderRadius: '4px', fontWeight: 800 }}>NV chính</span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr 1fr 90px', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <div className="nv-input-grid">
               <select className="form-input" style={{ fontSize: '0.8rem', fontWeight: 800 }} value={nv1.system} onChange={e => setNv1({ ...nv1, system: e.target.value })}>
                 {EDU_SYSTEMS.map(sys => <option key={sys.id} value={sys.label}>{sys.label}</option>)}
               </select>
@@ -289,7 +289,7 @@ export default function Exam({ students = [], isTeacher, onRefresh }) {
           {/* NV 2 */}
           <div style={{ background: '#eff6ff', padding: '1.1rem', borderRadius: '0.85rem', border: '1.5px solid #93c5fd' }}>
             <strong style={{ fontSize: '0.9rem', color: '#1e40af', display: 'block', marginBottom: '0.6rem' }}>🥈 Nguyện Vọng 2</strong>
-            <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr 1fr 90px', gap: '0.5rem' }}>
+            <div className="nv-input-grid">
               <select className="form-input" style={{ fontSize: '0.8rem', fontWeight: 800 }} value={nv2.system} onChange={e => setNv2({ ...nv2, system: e.target.value })}>
                 {EDU_SYSTEMS.map(sys => <option key={sys.id} value={sys.label}>{sys.label}</option>)}
               </select>
@@ -304,7 +304,7 @@ export default function Exam({ students = [], isTeacher, onRefresh }) {
           {/* NV 3 */}
           <div style={{ background: '#fefce8', padding: '1.1rem', borderRadius: '0.85rem', border: '1.5px solid #fef08a' }}>
             <strong style={{ fontSize: '0.9rem', color: '#854d0e', display: 'block', marginBottom: '0.6rem' }}>🥉 Nguyện Vọng 3 (Dự phòng an toàn)</strong>
-            <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr 1fr 90px', gap: '0.5rem' }}>
+            <div className="nv-input-grid">
               <select className="form-input" style={{ fontSize: '0.8rem', fontWeight: 800 }} value={nv3.system} onChange={e => setNv3({ ...nv3, system: e.target.value })}>
                 {EDU_SYSTEMS.map(sys => <option key={sys.id} value={sys.label}>{sys.label}</option>)}
               </select>
