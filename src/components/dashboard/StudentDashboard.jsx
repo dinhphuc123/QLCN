@@ -190,13 +190,6 @@ export default function StudentDashboard({ timetableImage = '', students = [], a
     'Ký túc xá': { bg: '#dcfce7', text: '#166534', border: '#86efac' },
   };
 
-  const [selectedDay, setSelectedDay] = useState(() => {
-    const dayIndex = new Date().getDay();
-    const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-    const todayName = days[dayIndex];
-    return todayName && timetableData[todayName] ? todayName : 'Thứ 2';
-  });
-
   // Current student record
   const currentStudent = useMemo(() => {
     if (!user) return null;
