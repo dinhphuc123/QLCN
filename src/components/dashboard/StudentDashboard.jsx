@@ -306,21 +306,6 @@ export default function StudentDashboard({ students = [], attendance = {}, setAc
 
             </div>
 
-            {/* Monthly Titles Section */}
-            <div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--color-primary-dark)', marginBottom: '0.75rem' }}>
-                🏆 6 Danh Hiệu Tuyên Dương Học Sinh Nội Trú Theo Tháng:
-              </div>
-              <div className="titles-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
-                {MONTHLY_TITLES.map((t, idx) => (
-                  <div key={idx} style={{ background: t.bg, border: `1.5px solid ${t.color}35`, borderRadius: '0.85rem', padding: '0.75rem 0.85rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                    <div style={{ fontWeight: 800, fontSize: '0.82rem', color: t.color, lineHeight: 1.3 }}>{t.title}</div>
-                    <div style={{ fontSize: '0.72rem', color: '#4b5563', marginTop: '0.3rem', lineHeight: 1.35 }}>{t.desc}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
           </div>
 
           {/* 4 Quick Action Buttons */}
