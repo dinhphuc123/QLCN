@@ -427,9 +427,21 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
             </button>
           </div>
           
-          {/* Section 1: Student Check-in Card (For Students) */}
-          {user && !isTeacher && (
-            <div className="glass-panel" style={{ padding: '1.25rem 1.5rem', background: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)', border: '1.5px solid #7dd3fc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          {/* Section 1: Student Check-in Card */}
+          {user && (
+            <div className="glass-panel" style={{
+              margin: '0.75rem 0 1.25rem 0',
+              padding: '1.25rem 1.5rem',
+              background: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)',
+              border: '1.5px solid #7dd3fc',
+              display: 'flex',
+              justify: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '1rem',
+              position: 'relative',
+              zIndex: 10
+            }}>
               <div>
                 <h4 style={{ margin: 0, color: '#0369a1', fontSize: '1rem' }}>📍 Check-in Cá Nhân ({currentSessionDef.label})</h4>
                 <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: '#0c4a6e' }}>
@@ -442,8 +454,16 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
               <button
                 className="btn-primary"
                 onClick={handleStudentCheckIn}
-                disabled={isLocked}
-                style={{ background: myCheckInObj?.checkedInAt ? '#0284c7' : '#0369a1', padding: '0.55rem 1.25rem', fontSize: '0.85rem' }}
+                disabled={isLocked && !isTeacher}
+                style={{
+                  background: myCheckInObj?.checkedInAt ? '#0284c7' : '#0369a1',
+                  padding: '0.6rem 1.5rem',
+                  fontSize: '0.9rem',
+                  fontWeight: 700,
+                  cursor: (isLocked && !isTeacher) ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 4px 12px rgba(3, 105, 161, 0.25)',
+                  borderRadius: '9999px',
+                }}
               >
                 {myCheckInObj?.checkedInAt ? `✓ Đã Check-in (${myCheckInObj.checkedInAt})` : '📍 Bấm Check-in Có Mặt'}
               </button>
@@ -529,13 +549,8 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
                 const status = stObj.status;
                 const checkedInAt = stObj.checkedInAt;
                 
-                // Permission check: Officers (Group Leader/Dorm Leader/Monitor) can edit before lock; GVCN does NOT edit directly
-                const canOfficerEdit = !isTeacher && !isLocked && (
-                  isMonitor ||
-                  (currentSessionDef.type === 'school' && isGroupLeader && student.group === user?.groupLeaderOf) ||
-                  (currentSessionDef.type === 'dorm' && isDormLeader && student.dormRoom === user?.dormLeaderOf) ||
-                  (user?.id && Number(user.id) === student.id)
-                );
+                // Enable attendance editing for GVCN and Officers
+                const canOfficerEdit = !isLocked || isTeacher;
 
                 return (
                   <div key={student.id} style={{
@@ -546,7 +561,7 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
                     border: `1px solid ${status === 'absent' ? '#fca5a5' : status === 'permit' ? '#93c5fd' : status === 'late' ? '#fde68a' : '#e5e7eb'}`,
                   }}>
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                         <strong style={{ fontSize: '0.88rem', color: '#111827' }}>
                           {String(student.id).padStart(2, '0')}. {student.name}
                         </strong>
@@ -561,23 +576,13 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
                       </div>
                     </div>
 
-                    {/* If Officer & Not Locked → Display Edit Buttons; If GVCN or Normal Student → Read-only Badge */}
-                    {canOfficerEdit ? (
-                      <div style={{ display: 'flex', gap: '0.25rem' }}>
-                        <StatusBtn active={status === 'present'} color="#16a34a" label="✓ Có mặt" onClick={() => setStatus(student.id, 'present')} />
-                        <StatusBtn active={status === 'permit'} color="#2563eb" label="📝 Phép" onClick={() => setStatus(student.id, 'permit')} />
-                        <StatusBtn active={status === 'late'} color="#d97706" label="⏰ Trễ" onClick={() => setStatus(student.id, 'late')} />
-                        <StatusBtn active={status === 'absent'} color="#dc2626" label="🔴 KP" onClick={() => setStatus(student.id, 'absent')} />
-                      </div>
-                    ) : (
-                      <span style={{
-                        fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '9999px',
-                        background: status === 'absent' ? '#fee2e2' : status === 'permit' ? '#dbeafe' : status === 'late' ? '#fef3c7' : '#dcfce7',
-                        color: status === 'absent' ? '#991b1b' : status === 'permit' ? '#1e40af' : status === 'late' ? '#92400e' : '#166534',
-                      }}>
-                        {status === 'absent' ? 'Vắng KP' : status === 'permit' ? 'Có phép' : status === 'late' ? 'Đi trễ' : '✓ Có mặt'}
-                      </span>
-                    )}
+                    {/* Display Interactive Attendance Buttons */}
+                    <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                      <StatusBtn active={status === 'present'} color="#16a34a" label="✓ Có mặt" onClick={() => setStatus(student.id, 'present')} disabled={!canOfficerEdit} />
+                      <StatusBtn active={status === 'permit'} color="#2563eb" label="📝 Phép" onClick={() => setStatus(student.id, 'permit')} disabled={!canOfficerEdit} />
+                      <StatusBtn active={status === 'late'} color="#d97706" label="⏰ Trễ" onClick={() => setStatus(student.id, 'late')} disabled={!canOfficerEdit} />
+                      <StatusBtn active={status === 'absent'} color="#dc2626" label="🔴 KP" onClick={() => setStatus(student.id, 'absent')} disabled={!canOfficerEdit} />
+                    </div>
                   </div>
                 );
               })}
