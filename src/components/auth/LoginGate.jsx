@@ -20,7 +20,18 @@ export default function LoginGate() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const officers = INITIAL_STUDENTS.filter(s => s.role === 'group_leader' || s.role === 'monitor');
+  const officers = INITIAL_STUDENTS.filter(s => {
+    const pos = (s.position || '').toLowerCase();
+    return (
+      s.role === 'group_leader' ||
+      s.role === 'monitor' ||
+      s.role === 'room_leader' ||
+      pos.includes('tổ trưởng') ||
+      pos.includes('lớp trưởng') ||
+      pos.includes('lớp phó') ||
+      pos.includes('trưởng phòng')
+    );
+  });
   const currentPortal = PORTALS.find(p => p.id === portal);
 
   const handleTeacherSubmit = async (e) => {

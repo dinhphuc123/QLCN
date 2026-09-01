@@ -28,7 +28,18 @@ export default function AuthModal({ onClose }) {
   const selectedStudent = INITIAL_STUDENTS.find(s => s.id === parseInt(studentId, 10));
 
   // Filter students by role for tabs
-  const groupLeaders = INITIAL_STUDENTS.filter(s => s.role === 'group_leader' || s.position?.includes('Tổ trưởng') || s.role === 'monitor');
+  const groupLeaders = INITIAL_STUDENTS.filter(s => {
+    const pos = (s.position || '').toLowerCase();
+    return (
+      s.role === 'group_leader' ||
+      s.role === 'monitor' ||
+      s.role === 'room_leader' ||
+      pos.includes('tổ trưởng') ||
+      pos.includes('lớp trưởng') ||
+      pos.includes('lớp phó') ||
+      pos.includes('trưởng phòng')
+    );
+  });
 
   return (
     <div style={{
