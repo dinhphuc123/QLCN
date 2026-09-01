@@ -74,6 +74,10 @@ export const api = {
   saveDormAttendance: (date, record) =>
     request('/api/dorm-attendance', { method: 'POST', body: JSON.stringify({ date, attendance: record }) }),
   getAttendance:      (date) => request(`/api/attendance?date=${date}`),
+  checkInAttendance:  (date, session, studentId) =>
+    request('/api/attendance/check-in', { method: 'POST', body: JSON.stringify({ date, session, studentId }) }),
+  lockAttendance:     (date, isLocked) =>
+    request('/api/attendance/lock', { method: 'POST', body: JSON.stringify({ date, isLocked }) }),
 
   // ── Thi đua — 3-tier approval system ─────────────────────────────────────
   // --- Backward compat (GVCN old flow still works) ---

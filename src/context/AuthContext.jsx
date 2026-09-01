@@ -71,9 +71,13 @@ export function AuthProvider({ children }) {
     try {
       const res = await api.login({ type: 'student', studentId, password });
       if (res && res.success && res.token) {
+        const pos = res.user.position || '';
+        const isDormLead = pos.toLowerCase().includes('trưởng phòng') || res.user.role === 'room_leader';
         const u = {
           ...res.user,
           groupLeaderOf: res.user.role === 'group_leader' ? res.user.group : null,
+          isDormLeader: isDormLead,
+          dormLeaderOf: isDormLead ? res.user.dormRoom : null,
         };
         setUser(u);
         persistSession(u, res.token);
@@ -88,6 +92,8 @@ export function AuthProvider({ children }) {
     const defaultPw = String(student.id).padStart(2, '0');
 
     if (!inputPw || inputPw === defaultPw || inputPw === '123456' || inputPw === String(student.id)) {
+      const pos = student.position || '';
+      const isDormLead = pos.toLowerCase().includes('trưởng phòng') || student.role === 'room_leader';
       const u = {
         role: student.role === 'group_leader' ? 'group_leader' : student.role === 'monitor' ? 'monitor' : 'student',
         id: student.id,
@@ -96,6 +102,8 @@ export function AuthProvider({ children }) {
         group: student.group,
         dormRoom: student.dormRoom,
         groupLeaderOf: student.role === 'group_leader' ? student.group : null,
+        isDormLeader: isDormLead,
+        dormLeaderOf: isDormLead ? student.dormRoom : null,
       };
       setUser(u);
       persistSession(u);
@@ -117,16 +125,17 @@ export function AuthProvider({ children }) {
   const isTeacher     = user?.role === 'teacher';
   const isGroupLeader = user?.role === 'group_leader';
   const isMonitor     = user?.role === 'monitor';
+  const isDormLeader  = !!user?.isDormLeader;
   const isStudent     = ['student', 'group_leader', 'monitor'].includes(user?.role);
 
   const canApproveCompetition = isGroupLeader || isTeacher;
-  const canMarkAttendance      = isTeacher;
+  const canMarkAttendance      = isGroupLeader || isMonitor || isDormLeader; // Officers mark, GVCN approves/locks
   const canManageAnnouncements = isTeacher;
-  const canViewOthers          = isTeacher || isGroupLeader;
+  const canViewOthers          = isTeacher || isGroupLeader || isMonitor || isDormLeader;
 
   const value = {
     user,
-    isTeacher, isStudent, isGroupLeader, isMonitor,
+    isTeacher, isStudent, isGroupLeader, isMonitor, isDormLeader,
     canApproveCompetition, canMarkAttendance, canManageAnnouncements, canViewOthers,
     loginTeacher, loginStudent, logout,
     loginError, setLoginError,

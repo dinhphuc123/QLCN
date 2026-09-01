@@ -410,20 +410,68 @@ app.put('/api/requests/:id', (req, res) => {
   res.json({ success: true });
 });
 
-// Attendance (Support 5 sessions)
+// Attendance (Support 5 sessions + Lock & Check-in)
 app.post('/api/attendance', (req, res) => {
   const { date, session = 'morning', attendance: record } = req.body;
   const db = readDB();
-  if (!db.attendance[date]) db.attendance[date] = {};
+  if (!db.attendance[date]) db.attendance[date] = { isLocked: false, sessions: {} };
   if (typeof db.attendance[date] === 'object' && !db.attendance[date].sessions) {
     const oldMorning = { ...db.attendance[date] };
-    db.attendance[date] = { sessions: { morning: oldMorning } };
+    db.attendance[date] = { isLocked: false, sessions: { morning: oldMorning } };
   }
   if (!db.attendance[date].sessions) db.attendance[date].sessions = {};
+
+  // If locked by GVCN, return error (unless GVCN unlocks)
+  if (db.attendance[date].isLocked && req.user?.role !== 'teacher') {
+    return res.status(400).json({ error: 'Sổ điểm danh ngày này đã được GVCN khóa!' });
+  }
+
   db.attendance[date].sessions[session] = record;
   writeDB(db);
   addAuditLog(req.user, 'ĐIỂM DANH 5 BUỔI', `Ngày ${date} - Session ${session}`);
   res.json({ success: true });
+});
+
+// Student Check-in API
+app.post('/api/attendance/check-in', requireAuth, (req, res) => {
+  const { date, session, studentId } = req.body;
+  const sid = parseInt(studentId, 10);
+  const db = readDB();
+
+  if (!db.attendance[date]) db.attendance[date] = { isLocked: false, sessions: {} };
+  if (!db.attendance[date].sessions) db.attendance[date].sessions = {};
+  if (!db.attendance[date].sessions[session]) db.attendance[date].sessions[session] = {};
+
+  const nowTime = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  const currentVal = db.attendance[date].sessions[session][sid];
+
+  // Store check-in object
+  let updatedRecord;
+  if (typeof currentVal === 'object' && currentVal !== null) {
+    updatedRecord = { ...currentVal, checkedInAt: nowTime };
+  } else {
+    updatedRecord = { status: currentVal || 'present', checkedInAt: nowTime };
+  }
+
+  db.attendance[date].sessions[session][sid] = updatedRecord;
+  writeDB(db);
+  addAuditLog(req.user, 'HS CHECK-IN', `HS ID ${sid} - Ngày ${date} - ${session} (${nowTime})`);
+  res.json({ success: true, checkedInAt: nowTime });
+});
+
+// GVCN Lock Attendance API
+app.post('/api/attendance/lock', requireTeacher, (req, res) => {
+  const { date, isLocked } = req.body;
+  const db = readDB();
+
+  if (!db.attendance[date]) db.attendance[date] = { isLocked: false, sessions: {} };
+  db.attendance[date].isLocked = !!isLocked;
+  db.attendance[date].lockedBy = req.user.name || 'GVCN';
+  db.attendance[date].lockedAt = new Date().toISOString();
+
+  writeDB(db);
+  addAuditLog(req.user, isLocked ? 'KHÓA SỔ ĐIỂM DANH' : 'MỞ KHÓA SỔ ĐIỂM DANH', `Ngày ${date}`);
+  res.json({ success: true, isLocked: db.attendance[date].isLocked });
 });
 
 app.post('/api/dorm-attendance', (req, res) => {
