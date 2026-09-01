@@ -265,6 +265,12 @@ h1, h2, h3, .font-serif { font-family: var(--font-serif); color: var(--color-pri
     gap: 0.5rem !important;
   }
 
+  /* Quick Actions Hero Bar on Mobile (2×2 grid) */
+  .quick-actions-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem !important;
+  }
+
   /* Header compact */
   .header-week-badge { display: none !important; }
   .header-user-full { display: inline-block !important; font-size: 0.68rem !important; padding: 0.2rem 0.5rem !important; }
@@ -274,6 +280,7 @@ h1, h2, h3, .font-serif { font-family: var(--font-serif); color: var(--color-pri
 @media (max-width: 480px) {
   h3 { font-size: 1rem !important; }
   .mobile-card-grid, .branches-grid, .titles-grid { grid-template-columns: 1fr !important; }
+  .quick-actions-grid { grid-template-columns: 1fr 1fr !important; gap: 0.5rem !important; }
   main { padding: 0.6rem !important; padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important; }
   .glass-panel { border-radius: 0.75rem !important; }
 }
