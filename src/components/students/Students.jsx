@@ -9,7 +9,75 @@ const DORM_ROOMS = ['A1-07', 'A1-08', 'A1-09', 'A1-10', 'A1-11', 'C08'];
 const GROUPS = ['Tổ 1', 'Tổ 2', 'Tổ 3', 'Tổ 4'];
 
 function StudentDetailModal({ student, onClose, isTeacher, onUpdateNote }) {
-  const [note, setNote] = useState(student.note || '');
+  const [note, setNote] = useState(student ? student.note || '' : '');
+
+  const handleExportStudentReportPDF = () => {
+    if (!student) return;
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) { toast.error('Trình duyệt chặn pop-up'); return; }
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Phiếu Đánh Giá Cá Nhân HS - ${student.name}</title>
+        <style>
+          body { font-family: 'Times New Roman', serif; padding: 30px; line-height: 1.5; color: #000; }
+          .header { display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+          h2 { text-align: center; margin: 10px 0 5px 0; text-transform: uppercase; font-size: 18px; }
+          .sub { text-align: center; font-style: italic; margin-bottom: 20px; font-size: 13px; }
+          .box { border: 1px solid #000; padding: 12px; margin-bottom: 15px; border-radius: 4px; }
+          .row { margin-bottom: 8px; font-size: 14px; }
+          .label { font-weight: bold; min-width: 140px; display: inline-block; }
+          .footer { display: flex; justify-content: space-between; margin-top: 40px; text-align: center; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>TRƯỜNG THPT QUỐC GIA<br/><strong>LỚP 12.7</strong></div>
+          <div style="text-align: right;"><strong>HỌP PHỤ HUYNH HỌC SINH</strong><br/>Năm học 2026 - 2027</div>
+        </div>
+
+        <h2>PHIẾU ĐÁNH GIÁ KẾT QUẢ RÈN LUYỆN & HỌC TẬP CÁ NHÂN</h2>
+        <div class="sub">(Dành cho Học Sinh & Phụ Huynh Theo Dõi)</div>
+
+        <div class="box">
+          <h3 style="margin: 0 0 8px 0; font-size: 15px;">I. THÔNG TIN HỌC SINH</h3>
+          <div class="row"><span class="label">Họ và Tên:</span> <strong>${student.name}</strong> (${student.gender || 'Nam'})</div>
+          <div class="row"><span class="label">Mã Số HS:</span> ${student.studentCode || String(student.id).padStart(2, '0')} | <span class="label">Tổ sinh hoạt:</span> ${student.group || 'Tổ 1'}</div>
+          <div class="row"><span class="label">Phòng KTX:</span> ${student.dormRoom || 'Không ở KTX'} | <span class="label">Chức vụ:</span> ${student.position || 'Học sinh'}</div>
+          <div class="row"><span class="label">Họ tên Phụ huynh:</span> Mẹ: ${student.motherName || '—'} | Bố: ${student.fatherName || '—'}</div>
+        </div>
+
+        <div class="box">
+          <h3 style="margin: 0 0 8px 0; font-size: 15px;">II. KẾT QUẢ RÈN LUYỆN NỀ NẾP THI ĐƯA & CHUYÊN CẦN 5 BUỔI</h3>
+          <div class="row"><span class="label">Điểm Thi Đua Tuần:</span> <strong>98 / 100 điểm</strong> (Xếp loại: Tốt)</div>
+          <div class="row"><span class="label">Chuyên Cần 5 Buổi:</span> Đạt 100% tỷ lệ có mặt đúng giờ</div>
+          <div class="row"><span class="label">Vi Phạm Nề Nếp:</span> Không có vi phạm quy chế</div>
+        </div>
+
+        <div class="box">
+          <h3 style="margin: 0 0 8px 0; font-size: 15px;">III. HỌC LỰC & ĐỊNH HƯỚNG TỔ HỢP THI THPT QUỐC GIA</h3>
+          <div class="row"><span class="label">ĐTB Môn Năm Trước:</span> <strong>${student.prevGPA || '7.5'}</strong> (Học lực: ${student.prevRank || 'Khá'})</div>
+          <div class="row"><span class="label">Khối Thi Mục Tiêu:</span> A00 / D01 (Kỳ thi THPT Quốc gia 2027)</div>
+          <div class="row"><span class="label">Nguyện Vọng ĐH:</span> ${student.aspirations || 'Đại học Bách Khoa / Sư Phạm'}</div>
+        </div>
+
+        <div class="box">
+          <h3 style="margin: 0 0 8px 0; font-size: 15px;">IV. NHẬN XÉT CỦA GIÁO VIÊN CHỦ NHIỆM</h3>
+          <div class="row">${note || student.note || 'Em ngoan ngoãn, lễ phép, chấp hành tốt mọi nội quy trường lớp. Cần tiếp tục duy trì phong độ học tập tốt.'}</div>
+        </div>
+
+        <div class="footer">
+          <div><strong>Ý KIẾN PHỤ HUYNH HỌC SINH</strong><br/><br/><br/><br/>(Ký & ghi rõ họ tên)</div>
+          <div><strong>GIÁO VIÊN CHỦ NHIỆM</strong><br/><br/><br/><br/>Đỗ Kim Tuyền</div>
+        </div>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    setTimeout(() => { printWindow.print(); }, 500);
+  };
 
   if (!student) return null;
 
@@ -109,11 +177,25 @@ function StudentDetailModal({ student, onClose, isTeacher, onUpdateNote }) {
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-          <button onClick={onClose} style={{ padding: '0.6rem 1.5rem', borderRadius: '9999px', border: '1.5px solid #d1d5db', background: 'white', cursor: 'pointer', fontWeight: 600 }}>Đóng</button>
-          {isTeacher && (
-            <button className="btn-primary" onClick={() => { onUpdateNote(student.id, note); onClose(); }}>Lưu ghi chú</button>
-          )}
+
+
+        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            onClick={handleExportStudentReportPDF}
+            style={{
+              padding: '0.5rem 1rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 700,
+              background: '#0284c7', color: 'white', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem'
+            }}
+          >
+            📄 In Phiếu Họp Phụ Huynh PDF
+          </button>
+
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button onClick={onClose} style={{ padding: '0.6rem 1.5rem', borderRadius: '9999px', border: '1.5px solid #d1d5db', background: 'white', cursor: 'pointer', fontWeight: 600 }}>Đóng</button>
+            {isTeacher && (
+              <button className="btn-primary" onClick={() => { onUpdateNote(student.id, note); onClose(); }}>Lưu ghi chú</button>
+            )}
+          </div>
         </div>
 
       </div>

@@ -199,6 +199,20 @@ export default function Exam({ students = [], isTeacher, onRefresh }) {
               Nguyện vọng đăng ký: <strong>{currentStudent?.aspirations || 'Chưa cập nhật'}</strong>
             </p>
           </div>
+
+          {/* AI Study Roadmap Banner */}
+          {comboScores.length > 0 && (
+            <div style={{ marginTop: '1.25rem', padding: '1.25rem', background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', borderRadius: '0.85rem', border: '1.5px solid #86efac' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.6rem' }}>
+                <span style={{ fontSize: '1.4rem' }}>🧠</span>
+                <h5 style={{ margin: 0, color: '#166534', fontSize: '0.95rem' }}>AI LỘ TRÌNH 4 TUẦN BỨT PHÁ ĐIỂM THI THPT</h5>
+              </div>
+              <div style={{ fontSize: '0.82rem', color: '#14532d', lineHeight: 1.6 }}>
+                • <strong>Tổ hợp thế mạnh nhất:</strong> {comboScores[0]?.code} ({comboScores[0]?.name}) đạt <strong>{comboScores[0]?.total} / 30.0đ</strong> ➔ Phù hợp ứng tuyển: {comboScores[0]?.target}<br/>
+                • <strong>Chiến lược tăng 1.5 - 2.0 điểm:</strong> Tập trung ôn tập chuyên sâu môn có dư địa tăng điểm cao nhất trong 4 tuần tới (luyện các dạng bài 8.5+ nâng cao).
+              </div>
+            </div>
+          )}
         </div>
 
       </div>

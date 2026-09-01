@@ -73,6 +73,25 @@ export default function Header({ activeTab, onMenuClick, onLoginClick }) {
 
       {/* Right: controls */}
       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
+        {/* Language Switcher */}
+        <button
+          onClick={() => {
+            const currentLang = localStorage.getItem('qlcn_lang') || 'vi';
+            const nextLang = currentLang === 'vi' ? 'en' : 'vi';
+            localStorage.setItem('qlcn_lang', nextLang);
+            window.location.reload();
+          }}
+          title="Chuyển đổi Ngôn Ngữ / Switch Language"
+          style={{
+            padding: '0.35rem 0.65rem', borderRadius: '9999px',
+            background: darkMode ? '#1e293b' : '#ffffff', border: '1px solid #94a3b8',
+            fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', color: darkMode ? '#67e8f9' : '#0369a1',
+            display: 'flex', alignItems: 'center', gap: '0.25rem', whiteSpace: 'nowrap'
+          }}
+        >
+          {(localStorage.getItem('qlcn_lang') || 'vi') === 'vi' ? '🇻🇳 VN' : '🇬🇧 EN'}
+        </button>
+
         {/* Dark Mode Toggle */}
         <button
           onClick={toggleDarkMode}

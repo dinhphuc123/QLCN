@@ -1,0 +1,21 @@
+{
+  "short_name": "QLCN 12.7",
+  "name": "Sổ Chủ Nhiệm Số 12.7 - THPT Quốc Gia",
+  "icons": [
+    {
+      "src": "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&q=80&w=192",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&q=80&w=512",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0f172a",
+  "theme_color": "#1B4D53",
+  "display": "standalone",
+  "orientation": "portrait"
+}
