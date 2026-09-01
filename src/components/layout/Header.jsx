@@ -14,7 +14,7 @@ const TAB_LABELS = {
   evaluation:    'Thi đua 47',
   exam:          'Ôn thi THPT',
   ai_assistant:  'Trợ lý AI',
-  parent_portal: 'Sổ phụ huynh',
+  parent_portal: 'Sổ Liên Lạc Điện Tử',
   confessions:   'Hòm tâm sự',
   reports:       'Biểu mẫu & Excel',
   cms_admin:     'Quản trị CMS',

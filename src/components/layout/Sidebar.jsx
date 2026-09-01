@@ -13,7 +13,7 @@ const NAV_ITEMS = [
   { id: 'evaluation',    icon: '📈', label: 'Thi đua',          roles: ['teacher', 'group_leader', 'monitor'] },
   { id: 'exam',          icon: '🎓', label: 'Ôn thi',           roles: ['teacher', 'group_leader', 'monitor', 'student'] },
   { id: 'ai_assistant',  icon: '🤖', label: 'Trợ lý AI',        roles: ['teacher'] },
-  { id: 'parent_portal', icon: '👨‍👩‍👧', label: 'Phụ huynh',    roles: ['teacher'] },
+  { id: 'parent_portal', icon: '📱', label: 'Sổ Liên Lạc',   roles: ['teacher', 'group_leader', 'monitor', 'student'] },
   { id: 'confessions',   icon: '🤫', label: 'Tâm sự',           roles: ['teacher', 'student'] },
   { id: 'reports',       icon: '📋', label: 'Biểu mẫu',         roles: ['teacher'] },
   { id: 'cms_admin',     icon: '⚙️', label: 'Quản trị',         roles: ['teacher'] },
