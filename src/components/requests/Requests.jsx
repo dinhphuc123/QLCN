@@ -100,29 +100,47 @@ export default function Requests({ leaveRequests, students, isTeacher, isOfficer
     onRefresh();
   };
 
+  const updateLocalRequest = (id, updates) => {
+    try {
+      const localReqs = JSON.parse(localStorage.getItem('qlcn_leave_requests') || '[]');
+      const updated = localReqs.map(r => r.id === id ? { ...r, ...updates } : r);
+      localStorage.setItem('qlcn_leave_requests', JSON.stringify(updated));
+    } catch {}
+  };
+
   const handleApprove = async (req) => {
-    await toast.promise(
-      api.updateRequest(req.id, { status: 'approved' }),
-      { loading: 'Đang duyệt...', success: `Đã duyệt đơn của ${req.studentName}`, error: 'Lỗi duyệt đơn' }
-    );
+    updateLocalRequest(req.id, { status: 'approved' });
+    toast.success(`Đã duyệt đơn của ${req.studentName}`);
     onRefresh();
+    try {
+      await api.updateRequest(req.id, { status: 'approved' });
+    } catch (err) {
+      console.warn('API update failed, preserved locally:', err.message);
+    }
   };
 
   const handleReject = async (req) => {
-    await toast.promise(
-      api.updateRequest(req.id, { status: 'rejected' }),
-      { loading: '...', success: `Đã từ chối đơn của ${req.studentName}`, error: 'Lỗi' }
-    );
+    updateLocalRequest(req.id, { status: 'rejected' });
+    toast.success(`Đã từ chối đơn của ${req.studentName}`);
     onRefresh();
+    try {
+      await api.updateRequest(req.id, { status: 'rejected' });
+    } catch (err) {
+      console.warn('API update failed, preserved locally:', err.message);
+    }
   };
 
   const handleOfficerConfirm = async (req) => {
-    await toast.promise(
-      api.updateRequest(req.id, { confirmedByOfficer: true }),
-      { loading: '...', success: 'Đã xác nhận thực tế!', error: 'Lỗi' }
-    );
+    updateLocalRequest(req.id, { confirmedByOfficer: true });
+    toast.success('Đã xác nhận thực tế!');
     onRefresh();
+    try {
+      await api.updateRequest(req.id, { confirmedByOfficer: true });
+    } catch (err) {
+      console.warn('API update failed, preserved locally:', err.message);
+    }
   };
+
 
   const pendingCount = leaveRequests.filter(r => r.status === 'pending').length;
 

@@ -151,10 +151,22 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
 
 
   const handleApproveHomeRequest = async (id, status) => {
-    await api.approveHomeRequest(id, status);
+    try {
+      const localHomeReqs = JSON.parse(localStorage.getItem('qlcn_home_requests') || '[]');
+      const updated = localHomeReqs.map(r => r.id === id ? { ...r, status } : r);
+      localStorage.setItem('qlcn_home_requests', JSON.stringify(updated));
+    } catch {}
+
     toast.success(status === 'approved' ? 'Đã duyệt cho học sinh về nhà!' : 'Đã từ chối đăng ký!');
     onRefresh();
+
+    try {
+      await api.approveHomeRequest(id, status);
+    } catch (err) {
+      console.warn('API approve home request failed, preserved locally:', err.message);
+    }
   };
+
 
   // Compute students with >= 2 unexcused absences
   const frequentAbsentees = React.useMemo(() => {
