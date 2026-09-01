@@ -437,8 +437,8 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
             )}
           </div>
           
-          {/* Section 1: Student Check-in Card (Streamlined for Mobile & Desktop) */}
-          {user && (
+          {/* Section 1: Student Check-in Card (Hidden for Teacher/GVCN) */}
+          {!isTeacher && user && (
             <div className="glass-panel" style={{
               margin: '0.5rem 0 1rem 0',
               padding: '1rem 1.25rem',
