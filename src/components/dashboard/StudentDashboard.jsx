@@ -3,14 +3,14 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { useClassSettings } from '../../context/ClassSettingsContext';
 
-// Default Timetable Data
-const DEFAULT_TIMETABLE = {
-  'Thứ 2': { morning: ['Chào cờ', 'Toán', 'Toán', 'Văn', 'Tiếng Anh'], afternoon: ['Lịch sử', 'Địa lý', 'Sinh học'] },
-  'Thứ 3': { morning: ['Vật lý', 'Vật lý', 'Hóa học', 'Toán', 'Tin học'], afternoon: ['Thể dục', 'Thể dục'] },
-  'Thứ 4': { morning: ['Văn', 'Văn', 'Toán', 'Tiếng Anh', 'GDCD'], afternoon: ['Hóa học', 'Sinh học'] },
-  'Thứ 5': { morning: ['Toán', 'Toán', 'Vật lý', 'Văn', 'Công nghệ'], afternoon: ['Tiếng Anh', 'Hoạt động trải nghiệm'] },
-  'Thứ 6': { morning: ['Tiếng Anh', 'Tiếng Anh', 'Hóa học', 'Toán', 'Sinh học'], afternoon: ['Lịch sử', 'Địa lý'] },
-  'Thứ 7': { morning: ['Toán', 'Văn', 'Vật lý', 'Sinh hoạt lớp', 'Sinh hoạt Đoàn'], afternoon: [] },
+// Empty Timetable Data structure (Strictly real data from GVCN, no mock/fake subjects)
+const EMPTY_TIMETABLE = {
+  'Thứ 2': { morning: [], afternoon: [] },
+  'Thứ 3': { morning: [], afternoon: [] },
+  'Thứ 4': { morning: [], afternoon: [] },
+  'Thứ 5': { morning: [], afternoon: [] },
+  'Thứ 6': { morning: [], afternoon: [] },
+  'Thứ 7': { morning: [], afternoon: [] },
 };
 
 // 6 Cành rèn luyện với thang 100 điểm/tuần
@@ -129,13 +129,13 @@ export default function StudentDashboard({ timetableImage = '', students = [], a
     return combined;
   }, [announcements]);
 
-  // Combine Timetable data from localStorage or fallback
+  // Resolve Timetable data strictly from real extracted/saved GVCN data, fallback to EMPTY_TIMETABLE
   const timetableData = useMemo(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('qlcn_timetable_data') || 'null');
-      if (saved && typeof saved === 'object') return saved;
+      if (saved && typeof saved === 'object' && Object.keys(saved).length > 0) return saved;
     } catch {}
-    return DEFAULT_TIMETABLE;
+    return EMPTY_TIMETABLE;
   }, []);
 
   // ANNOUNCEMENT TAG STYLES
@@ -445,37 +445,68 @@ export default function StudentDashboard({ timetableImage = '', students = [], a
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0369a1', textTransform: 'uppercase' }}>☀️ Buổi Sáng (07:00 - 11:30)</div>
-                <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max((timetableData[selectedDay]?.morning || []).length, 1)}, 1fr)`, gap: '0.4rem' }}>
-                  {(timetableData[selectedDay]?.morning || []).map((sub, i) => (
-                    <div key={i} style={{
-                      padding: '0.5rem 0.2rem', textAlign: 'center', background: 'white',
-                      border: '1.5px solid #e5e7eb', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800, color: '#1f2937'
-                    }}>
-                      <div style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 700 }}>T{i+1}</div>
-                      {sub}
-                    </div>
-                  ))}
-                </div>
+              {((timetableData[selectedDay]?.morning || []).length > 0 || (timetableData[selectedDay]?.afternoon || []).length > 0) ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {(timetableData[selectedDay]?.morning || []).length > 0 && (
+                    <>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0369a1', textTransform: 'uppercase' }}>☀️ Buổi Sáng (07:00 - 11:30)</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${(timetableData[selectedDay]?.morning || []).length}, 1fr)`, gap: '0.4rem' }}>
+                        {(timetableData[selectedDay]?.morning || []).map((sub, i) => (
+                          <div key={i} style={{
+                            padding: '0.55rem 0.25rem', textAlign: 'center', background: 'white',
+                            border: '1.5px solid #0284c7', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 800, color: '#0369a1',
+                            boxShadow: '0 2px 6px rgba(2,132,199,0.08)'
+                          }}>
+                            <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700 }}>Tiết {i+1}</div>
+                            {sub}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
 
-                {(timetableData[selectedDay]?.afternoon || []).length > 0 && (
-                  <>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#d97706', textTransform: 'uppercase', marginTop: '0.4rem' }}>⛅ Buổi Chiều (13:30 - 17:00)</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max((timetableData[selectedDay]?.afternoon || []).length, 1)}, 1fr)`, gap: '0.4rem' }}>
-                      {timetableData[selectedDay].afternoon.map((sub, i) => (
-                        <div key={i} style={{
-                          padding: '0.5rem 0.2rem', textAlign: 'center', background: 'white',
-                          border: '1.5px solid #e5e7eb', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800, color: '#1f2937'
-                        }}>
-                          <div style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 700 }}>T{i+6}</div>
-                          {sub}
-                        </div>
-                      ))}
+                  {(timetableData[selectedDay]?.afternoon || []).length > 0 && (
+                    <>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#d97706', textTransform: 'uppercase', marginTop: '0.4rem' }}>⛅ Buổi Chiều (13:30 - 17:00)</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${(timetableData[selectedDay]?.afternoon || []).length}, 1fr)`, gap: '0.4rem' }}>
+                        {timetableData[selectedDay].afternoon.map((sub, i) => (
+                          <div key={i} style={{
+                            padding: '0.55rem 0.25rem', textAlign: 'center', background: 'white',
+                            border: '1.5px solid #f59e0b', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 800, color: '#b45309',
+                            boxShadow: '0 2px 6px rgba(217,119,6,0.08)'
+                          }}>
+                            <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700 }}>Tiết {i+6}</div>
+                            {sub}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div style={{ padding: '1.25rem 1rem', textAlign: 'center', background: 'white', borderRadius: '8px', border: '1px stroke #e5e7eb' }}>
+                  {activeTimetableImg ? (
+                    <div>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#1B4D53', marginBottom: '0.4rem' }}>
+                        🖼️ GVCN đã tải lên Ảnh Thời Khóa Biểu gốc
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: '#4b5563', marginBottom: '0.75rem' }}>
+                        Bấm nút bên dưới để xem trực tiếp ảnh TKB do GVCN cập nhật
+                      </div>
+                      <button
+                        onClick={() => setViewMode('image')}
+                        style={{ padding: '0.4rem 1rem', borderRadius: '9999px', background: '#0284c7', color: 'white', fontWeight: 800, fontSize: '0.78rem', border: 'none', cursor: 'pointer' }}
+                      >
+                        🔍 Xem Ảnh TKB Gốc Ngay
+                      </button>
                     </div>
-                  </>
-                )}
-              </div>
+                  ) : (
+                    <div style={{ color: '#6b7280', fontSize: '0.82rem', fontWeight: 600 }}>
+                      ℹ️ GVCN Lớp 12.7 chưa cập nhật Thời khóa biểu chính thức.
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>

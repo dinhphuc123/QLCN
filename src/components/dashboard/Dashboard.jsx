@@ -13,6 +13,22 @@ export default function Dashboard({ students, attendance, announcements, timetab
   const [swapSrc, setSwapSrc] = useState(null);
   const [showSeatingModal, setShowSeatingModal] = useState(false);
   const [showMapModal, setShowMapModal] = useState(false);
+  const [showTimetableEditor, setShowTimetableEditor] = useState(false);
+  const [editingDay, setEditingDay] = useState('Thứ 2');
+  const [tempTimetable, setTempTimetable] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('qlcn_timetable_data') || 'null');
+      if (saved && typeof saved === 'object' && Object.keys(saved).length > 0) return saved;
+    } catch {}
+    return {
+      'Thứ 2': { morning: ['', '', '', '', ''], afternoon: ['', '', ''] },
+      'Thứ 3': { morning: ['', '', '', '', ''], afternoon: ['', '', ''] },
+      'Thứ 4': { morning: ['', '', '', '', ''], afternoon: ['', '', ''] },
+      'Thứ 5': { morning: ['', '', '', '', ''], afternoon: ['', '', ''] },
+      'Thứ 6': { morning: ['', '', '', '', ''], afternoon: ['', '', ''] },
+      'Thứ 7': { morning: ['', '', '', '', ''], afternoon: ['', '', ''] },
+    };
+  });
 
   if (!isTeacher) {
     return <StudentDashboard timetableImage={timetableImage} announcements={announcements} students={students} attendance={attendance} setActiveTab={setActiveTab} onRefresh={onRefresh} />;
@@ -198,20 +214,28 @@ export default function Dashboard({ students, attendance, announcements, timetab
           
           {/* Timetable widget */}
           <div className="glass-panel" style={{ padding: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
               <h4 style={{ margin: 0 }}>📅 Thời Khóa Biểu Lớp {settings.className}</h4>
               {isTeacher && (
-                <label className="btn-primary" style={{ padding: '0.3rem 0.75rem', fontSize: '0.72rem', cursor: 'pointer' }}>
-                  🔄 Cập nhật
-                  <input type="file" accept="image/*,.pdf" style={{ display: 'none' }} onChange={handleTimetableChange} />
-                </label>
+                <div style={{ display: 'flex', gap: '0.35rem' }}>
+                  <button
+                    onClick={() => setShowTimetableEditor(true)}
+                    style={{ padding: '0.3rem 0.65rem', fontSize: '0.72rem', background: '#0284c7', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 800 }}
+                  >
+                    ✏️ Nhập/Sửa Tiết
+                  </button>
+                  <label className="btn-primary" style={{ padding: '0.3rem 0.65rem', fontSize: '0.72rem', cursor: 'pointer' }}>
+                    📷 Tải Ảnh TKB
+                    <input type="file" accept="image/*,.pdf" style={{ display: 'none' }} onChange={handleTimetableChange} />
+                  </label>
+                </div>
               )}
             </div>
             <div style={{ borderRadius: '0.75rem', overflow: 'hidden', border: '1px solid #e5e7eb', minHeight: '180px', background: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {timetableImage ? (
                 <img src={timetableImage} alt="TKB" style={{ width: '100%', objectFit: 'cover' }} />
               ) : (
-                <span style={{ color: '#9ca3af', fontSize: '0.85rem' }}>📷 Chưa có thời khóa biểu</span>
+                <span style={{ color: '#9ca3af', fontSize: '0.85rem' }}>📷 Chưa có thời khóa biểu chính thức</span>
               )}
             </div>
           </div>
@@ -295,6 +319,114 @@ export default function Dashboard({ students, attendance, announcements, timetab
             onRefresh();
           }}
         />
+      )}
+
+      {/* Timetable Structured Editor Modal for GVCN */}
+      {showTimetableEditor && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div className="glass-panel" style={{ background: 'white', padding: '1.5rem', maxWidth: '600px', width: '100%', borderRadius: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '0.75rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#1B4D53' }}>✏️ Nhập / Chỉnh Sửa Thời Khóa Biểu Tiết Học Thực Tế</h3>
+              <button onClick={() => setShowTimetableEditor(false)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '50%', width: '30px', height: '30px', fontWeight: 900, cursor: 'pointer' }}>✕</button>
+            </div>
+
+            {/* Day Selector */}
+            <div style={{ display: 'flex', gap: '0.35rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
+              {['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'].map(day => (
+                <button
+                  key={day}
+                  onClick={() => setEditingDay(day)}
+                  style={{
+                    padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 800,
+                    background: editingDay === day ? '#1B4D53' : '#f3f4f6',
+                    color: editingDay === day ? 'white' : '#4b5563',
+                    border: 'none', cursor: 'pointer', whiteSpace: 'nowrap'
+                  }}
+                >
+                  {day}
+                </button>
+              ))}
+            </div>
+
+            {/* Editor fields for selected day */}
+            <div style={{ background: '#f9fafb', padding: '1rem', borderRadius: '0.85rem', border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              <div style={{ fontWeight: 800, color: '#0369a1', fontSize: '0.85rem' }}>☀️ BUỔI SÁNG (Tiết 1 - Tiết 5)</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.4rem' }}>
+                {[0, 1, 2, 3, 4].map(idx => (
+                  <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                    <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b' }}>T{idx+1}</span>
+                    <input
+                      type="text"
+                      placeholder={`Tiết ${idx+1}`}
+                      value={(tempTimetable[editingDay]?.morning || [])[idx] || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setTempTimetable(prev => {
+                          const dayObj = prev[editingDay] || { morning: ['', '', '', '', ''], afternoon: ['', '', ''] };
+                          const newMorning = [...(dayObj.morning || ['', '', '', '', ''])];
+                          newMorning[idx] = val;
+                          return { ...prev, [editingDay]: { ...dayObj, morning: newMorning } };
+                        });
+                      }}
+                      style={{ padding: '0.4rem 0.25rem', textAlign: 'center', fontSize: '0.78rem', fontWeight: 700, borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ fontWeight: 800, color: '#d97706', fontSize: '0.85rem', marginTop: '0.5rem' }}>⛅ BUỔI CHIỀU (Tiết 6 - Tiết 8)</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.4rem' }}>
+                {[0, 1, 2].map(idx => (
+                  <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                    <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b' }}>T{idx+6}</span>
+                    <input
+                      type="text"
+                      placeholder={`Tiết ${idx+6}`}
+                      value={(tempTimetable[editingDay]?.afternoon || [])[idx] || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setTempTimetable(prev => {
+                          const dayObj = prev[editingDay] || { morning: ['', '', '', '', ''], afternoon: ['', '', ''] };
+                          const newAfternoon = [...(dayObj.afternoon || ['', '', ''])];
+                          newAfternoon[idx] = val;
+                          return { ...prev, [editingDay]: { ...dayObj, afternoon: newAfternoon } };
+                        });
+                      }}
+                      style={{ padding: '0.4rem 0.25rem', textAlign: 'center', fontSize: '0.78rem', fontWeight: 700, borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.5rem' }}>
+              <button
+                onClick={() => setShowTimetableEditor(false)}
+                style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: '#f3f4f6', color: '#4b5563', border: 'none', cursor: 'pointer', fontWeight: 700 }}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={() => {
+                  // Clean empty strings at ends
+                  const cleaned = {};
+                  Object.keys(tempTimetable).forEach(d => {
+                    const m = (tempTimetable[d]?.morning || []).map(s => String(s).trim()).filter(Boolean);
+                    const a = (tempTimetable[d]?.afternoon || []).map(s => String(s).trim()).filter(Boolean);
+                    cleaned[d] = { morning: m, afternoon: a };
+                  });
+                  localStorage.setItem('qlcn_timetable_data', JSON.stringify(cleaned));
+                  toast.success('✅ Đã lưu Thời Khóa Biểu thực tế và đồng bộ Cổng Học Sinh!');
+                  setShowTimetableEditor(false);
+                  if (onRefresh) onRefresh();
+                }}
+                style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', background: '#16a34a', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 800 }}
+              >
+                💾 Lưu & Đồng Bộ
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>
