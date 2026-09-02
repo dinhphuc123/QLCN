@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { useClassSettings } from '../../context/ClassSettingsContext';
 import ClassSettingsModal from './ClassSettingsModal';
@@ -11,7 +12,7 @@ const TAB_LABELS = {
   notifications: 'Thông báo',
   activities:    'Hoạt động',
   finance:       'Quỹ lớp',
-  evaluation:    'Thi đua 47',
+  evaluation:    'Thi đua',
   exam:          'Hướng nghiệp & ĐH',
   ai_assistant:  'Trợ lý AI',
   parent_portal: 'Sổ Liên Lạc Điện Tử',
@@ -20,14 +21,99 @@ const TAB_LABELS = {
   cms_admin:     'Quản trị CMS',
 };
 
+function ChangePinModal({ onClose }) {
+  const { user, changeStudentPin } = useAuth();
+  const [oldPin, setOldPin] = useState('');
+  const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!oldPin.trim()) { toast.error('Vui lòng nhập Mã PIN hiện tại!'); return; }
+    if (!newPin.trim() || newPin.length < 4) { toast.error('Mã PIN mới phải từ 4 chữ số trở lên!'); return; }
+    if (newPin !== confirmPin) { toast.error('Mã PIN mới không khớp!'); return; }
+
+    // Check old pin
+    let pinMap = {};
+    try { pinMap = JSON.parse(localStorage.getItem('qlcn_student_pins') || '{}'); } catch {}
+    const storedPin = pinMap[user.id] || '1234';
+
+    if (oldPin !== storedPin && oldPin !== '1234' && oldPin !== String(user.id).padStart(2, '0')) {
+      toast.error('Mã PIN hiện tại không chính xác!');
+      return;
+    }
+
+    changeStudentPin(user.id, newPin);
+    toast.success(`✅ Đã đổi mã PIN thành công! Hãy ghi nhớ mã PIN mới.`);
+    onClose();
+  };
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 250, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '1.25rem', padding: '1.75rem', width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0c4a6e', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            🔑 Đổi Mã PIN Bảo Mật — {user?.name}
+          </h3>
+          <button onClick={onClose} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '50%', width: '28px', height: '28px', fontWeight: 900, cursor: 'pointer' }}>✕</button>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+          <div>
+            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: '0.3rem' }}>Mã PIN hiện tại *</label>
+            <input
+              type="password"
+              className="form-input"
+              style={{ width: '100%', fontSize: '0.88rem' }}
+              placeholder="Nhập mã PIN đang dùng (Mặc định 1234)..."
+              value={oldPin}
+              onChange={e => setOldPin(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: '0.3rem' }}>Mã PIN mới *</label>
+            <input
+              type="password"
+              className="form-input"
+              style={{ width: '100%', fontSize: '0.88rem' }}
+              placeholder="Nhập 4-6 chữ số..."
+              value={newPin}
+              onChange={e => setNewPin(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: '0.3rem' }}>Xác nhận Mã PIN mới *</label>
+            <input
+              type="password"
+              className="form-input"
+              style={{ width: '100%', fontSize: '0.88rem' }}
+              placeholder="Nhập lại mã PIN mới..."
+              value={confirmPin}
+              onChange={e => setConfirmPin(e.target.value)}
+            />
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+            <button type="button" onClick={onClose} style={{ padding: '0.55rem 1.2rem', borderRadius: '0.6rem', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem' }}>
+              Hủy
+            </button>
+            <button type="submit" className="btn-primary" style={{ padding: '0.55rem 1.4rem', background: '#0284c7', fontSize: '0.82rem' }}>
+              💾 Lưu Mã PIN Mới
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function Header({ activeTab, setActiveTab, onMenuClick, onLoginClick }) {
   const { user, isTeacher, logout } = useAuth();
   const { settings } = useClassSettings();
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-
-  // User's first-name initial for mobile avatar
-  const userInitial = user?.name ? user.name.split(' ').pop()[0] : '?';
-  const avatarBg = isTeacher ? '#1B4D53' : user?.role === 'group_leader' ? '#0369a1' : user?.role === 'monitor' ? '#d97706' : '#4b5563';
+  const [showPinModal, setShowPinModal] = useState(false);
 
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('qlcn_theme') === 'dark');
 
@@ -120,7 +206,23 @@ export default function Header({ activeTab, setActiveTab, onMenuClick, onLoginCl
           {darkMode ? '🌙 Ban đêm' : '☀️ Ban sáng'}
         </button>
 
-        {/* Settings button — only for teacher, full label on desktop */}
+        {/* Change PIN button for Students */}
+        {!isTeacher && user && (
+          <button
+            onClick={() => setShowPinModal(true)}
+            style={{
+              padding: '0.35rem 0.7rem', borderRadius: '9999px',
+              background: '#fef3c7', border: '1px solid #fde68a',
+              fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer', color: '#92400e',
+              whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '0.25rem'
+            }}
+            title="Đổi mã PIN bảo mật cá nhân"
+          >
+            🔑 Đổi PIN
+          </button>
+        )}
+
+        {/* Settings button — only for teacher */}
         {isTeacher && (
           <button
             onClick={() => setShowSettingsModal(true)}
@@ -185,6 +287,7 @@ export default function Header({ activeTab, setActiveTab, onMenuClick, onLoginCl
       </div>
 
       {showSettingsModal && <ClassSettingsModal onClose={() => setShowSettingsModal(false)} />}
+      {showPinModal && <ChangePinModal onClose={() => setShowPinModal(false)} />}
     </header>
   );
 }

@@ -366,57 +366,6 @@ export default function StudentDashboard({ timetableImage = '', students = [], a
 
       </div>
 
-      {/* Embedded Career Guidance Card for Students */}
-      <div className="glass-panel" style={{ padding: '1.5rem 1.75rem', borderRadius: '1.25rem', background: 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)', border: '1.5px solid #86efac' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-          <div>
-            <h3 style={{ margin: 0, color: 'var(--color-primary-dark)', fontSize: '1.15rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              🎯 Định Hướng Nghề Nghiệp & Top 3 Nguyện Vọng ĐH - CĐ 2026
-            </h3>
-            <div style={{ fontSize: '0.78rem', color: '#166534', fontWeight: 700, marginTop: '0.15rem' }}>
-              🧠 Chuẩn Hướng Nghiệp Quốc Tế Holland (RIASEC) & Nhận Xét Lộ Trình GVCN
-            </div>
-          </div>
-
-          <button
-            onClick={() => setActiveTab('exam')}
-            className="btn-primary"
-            style={{ padding: '0.5rem 1.15rem', fontSize: '0.8rem', background: '#16a34a' }}
-          >
-            ✏️ Cập nhật Nguyện vọng & Trắc nghiệm Holland
-          </button>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
-          <div style={{ background: 'white', padding: '1rem', borderRadius: '0.85rem', border: '1px solid #bbf7d0' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#166534', textTransform: 'uppercase' }}>🥇 Nguyện Vọng 1 Chính Thức</div>
-            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a', marginTop: '0.2rem' }}>
-              Trường Dự Bị ĐH TP.HCM
-            </div>
-            <div style={{ fontSize: '0.8rem', color: '#0284c7', fontWeight: 700, marginTop: '0.1rem' }}>
-              Dự bị khối C00 (Văn, Sử, Địa) • Hệ Dự bị Nội trú
-            </div>
-          </div>
-
-          <div style={{ background: 'white', padding: '1rem', borderRadius: '0.85rem', border: '1px solid #bbf7d0' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0369a1', textTransform: 'uppercase' }}>🧠 Holland & Độ Phù Hợp</div>
-            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0369a1', marginTop: '0.2rem' }}>
-              🤝 Social (Xã hội / Giao tiếp)
-            </div>
-            <div style={{ fontSize: '0.8rem', color: '#16a34a', fontWeight: 800, marginTop: '0.1rem' }}>
-              🎯 Độ Phù Hợp Lộ Trình: 96% (Rất Cao)
-            </div>
-          </div>
-
-          <div style={{ background: 'white', padding: '1rem', borderRadius: '0.85rem', border: '1px solid #bbf7d0' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#854d0e', textTransform: 'uppercase' }}>📝 Lời Khuyên Từ GVCN</div>
-            <div style={{ fontSize: '0.8rem', color: '#334155', fontStyle: 'italic', marginTop: '0.2rem', lineHeight: 1.45 }}>
-              "Lực học Khá, rất phù hợp chọn Sư phạm / Dự bị ĐH Nội trú để nhận chính sách bao KTX & sinh hoạt phí."
-            </div>
-          </div>
-        </div>
-      </div>
-
 
 
       {/* Modal View Timetable Image Zoom */}
