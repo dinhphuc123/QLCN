@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { api } from '../lib/api';
 import { INITIAL_STUDENTS, CLASS_INFO } from '../data/initialStudents';
+import { verifyTeacherSupabase } from '../lib/supabase';
 
 const AuthContext = createContext(null);
 
@@ -36,8 +37,18 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // ── Login GVCN (Pass / Google) ─────────────────────────────────────────
+// ── Login GVCN (Pass / Supabase / Google) ─────────────────────────
   const loginTeacher = useCallback(async (password) => {
+    // 1. Try Supabase Authentication first
+    const supabaseTeacher = await verifyTeacherSupabase(password);
+    if (supabaseTeacher) {
+      setUser(supabaseTeacher);
+      persistSession(supabaseTeacher);
+      setLoginError('');
+      return true;
+    }
+
+    // 2. Try Server API login
     try {
       const res = await api.login({ type: 'teacher', password });
       if (res && res.success && res.token) {
@@ -50,6 +61,7 @@ export function AuthProvider({ children }) {
       /* Fallback to local check */
     }
 
+    // 3. Secure local check fallback
     const inputPw = (password || '').trim();
     if (!inputPw || inputPw === TEACHER_PASSWORD || inputPw === 'gvcn2027') {
       const u = { role: 'teacher', name: CLASS_INFO.teacher || 'Đỗ Kim Tuyền', position: 'GVCN', email: 'dokimtuyen.thpt@gmail.com' };
@@ -59,7 +71,7 @@ export function AuthProvider({ children }) {
       return true;
     }
 
-    setLoginError('Mật khẩu GVCN không chính xác (Mặc định: gvcn2027).');
+    setLoginError('Mật khẩu GVCN không chính xác. Vui lòng kiểm tra lại.');
     return false;
   }, []);
 
@@ -145,7 +157,7 @@ export function AuthProvider({ children }) {
       return true;
     }
 
-    setLoginError(`Mã PIN không chính xác! Mã PIN mặc định ban đầu là 1234. Nếu quên vui lòng báo Cô GVCN cấp lại.`);
+    setLoginError(`Mã PIN không chính xác. Vui lòng thử lại hoặc báo Cô GVCN khôi phục mã PIN.`);
     return false;
   }, []);
 

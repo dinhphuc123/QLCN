@@ -321,7 +321,6 @@ export default function LoginGate() {
         {/* Portal 1: GVCN Login (Google / Password) */}
         {portal === 'teacher' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            
             {/* Google Login Official Button */}
             <div>
               <button onClick={handleGoogleSubmit} className="google-btn" type="button" disabled={loading}>
@@ -333,9 +332,6 @@ export default function LoginGate() {
                 </svg>
                 🌐 Đăng Nhập Trực Tiếp Bằng Google GVCN
               </button>
-              <div style={{ fontSize: '0.7rem', color: '#64748b', textAlign: 'center', marginTop: '0.35rem' }}>
-                Dành cho Giáo viên Chủ nhiệm (Email: dokimtuyen.thpt@gmail.com)
-              </div>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -352,7 +348,7 @@ export default function LoginGate() {
                   <input
                     id="teacher-pass"
                     type={showPass ? 'text' : 'password'}
-                    placeholder="Nhập mật khẩu GVCN (Mặc định: gvcn2027)..."
+                    placeholder="Nhập mật khẩu GVCN..."
                     value={teacherPass}
                     onChange={e => setTeacherPass(e.target.value)}
                     autoComplete="current-password"
@@ -371,7 +367,7 @@ export default function LoginGate() {
           </div>
         )}
 
-        {/* Portal 2 & 3: Officer / Student Login (Name/ID + PIN Code 1234) */}
+        {/* Portal 2 & 3: Officer / Student Login (Name/ID + PIN Code) */}
         {(portal === 'officer' || portal === 'student') && (
           <form onSubmit={handleStudentSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
             
@@ -424,13 +420,13 @@ export default function LoginGate() {
             {/* PIN Code Field */}
             <div>
               <label className="lg-label" htmlFor="student-pass">
-                2. Nhập Mã PIN (Mặc định ban đầu: 1234)
+                2. Nhập Mã PIN bảo mật
               </label>
               <div className="pass-field">
                 <input
                   id="student-pass"
                   type={showPass ? 'text' : 'password'}
-                  placeholder="Nhập Mã PIN (VD: 1234)..."
+                  placeholder="Nhập Mã PIN cá nhân..."
                   value={studentPass}
                   onChange={e => setStudentPass(e.target.value)}
                   inputMode="numeric"
@@ -440,12 +436,6 @@ export default function LoginGate() {
                   {showPass ? '🙈' : '👁️'}
                 </button>
               </div>
-            </div>
-
-            {/* PIN Notice Box */}
-            <div style={{ fontSize: '0.73rem', color: '#0369a1', background: '#e0f2fe', padding: '0.5rem 0.75rem', borderRadius: '0.55rem', border: '1px solid #bae6fd', lineHeight: 1.45 }}>
-              💡 <strong>Mã PIN mặc định: 1234</strong><br />
-              Em có thể tự đổi mã PIN sau khi vào ứng dụng. Nếu quên mã PIN, vui lòng báo Cô GVCN để cấp lại mã PIN ban đầu 1234.
             </div>
 
             <button className="lg-submit" type="submit" disabled={loading}
