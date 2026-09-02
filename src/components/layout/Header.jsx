@@ -26,19 +26,21 @@ function ChangePinModal({ onClose }) {
   const [oldPin, setOldPin] = useState('');
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
+  const [showOldPass, setShowOldPass] = useState(false);
+  const [showNewPass, setShowNewPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!oldPin.trim()) { toast.error('Vui lòng nhập Mã PIN hiện tại!'); return; }
     if (!newPin.trim() || newPin.length < 4) { toast.error('Mã PIN mới phải từ 4 chữ số trở lên!'); return; }
     if (newPin !== confirmPin) { toast.error('Mã PIN mới không khớp!'); return; }
 
-    // Check old pin
+    // Check old pin if provided or stored
     let pinMap = {};
     try { pinMap = JSON.parse(localStorage.getItem('qlcn_student_pins') || '{}'); } catch {}
     const storedPin = pinMap[user.id] || '1234';
 
-    if (oldPin !== storedPin && oldPin !== '1234' && oldPin !== String(user.id).padStart(2, '0')) {
+    if (oldPin.trim() && oldPin !== storedPin && oldPin !== '1234' && oldPin !== String(user.id).padStart(2, '0')) {
       toast.error('Mã PIN hiện tại không chính xác!');
       return;
     }
@@ -49,57 +51,105 @@ function ChangePinModal({ onClose }) {
   };
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 250, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '1.25rem', padding: '1.75rem', width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0c4a6e', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            🔑 Đổi Mã PIN Bảo Mật — {user?.name}
-          </h3>
-          <button onClick={onClose} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '50%', width: '28px', height: '28px', fontWeight: 900, cursor: 'pointer' }}>✕</button>
+    <div onClick={onClose} style={{
+      position: 'fixed', inset: 0, zIndex: 300,
+      background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: '1rem', overflowY: 'auto'
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: 'white', borderRadius: '1.25rem', padding: '1.5rem 1.75rem',
+        width: '100%', maxWidth: '420px', maxHeight: '88vh', overflowY: 'auto',
+        display: 'flex', flexDirection: 'column', gap: '1rem',
+        boxShadow: '0 25px 60px rgba(0,0,0,0.25)', border: '1.5px solid #bae6fd',
+        boxSizing: 'border-box'
+      }}>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.65rem' }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0c4a6e', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              🔑 Đổi Mã PIN Cá Nhân
+            </h3>
+            <div style={{ fontSize: '0.75rem', color: '#0369a1', fontWeight: 700, marginTop: '0.1rem' }}>
+              Học sinh: {user?.name} (STT {String(user?.id).padStart(2, '0')})
+            </div>
+          </div>
+          <button onClick={onClose} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '50%', width: '30px', height: '30px', fontWeight: 900, cursor: 'pointer' }}>✕</button>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+          
+          {/* Old PIN Field */}
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: '0.3rem' }}>Mã PIN hiện tại *</label>
-            <input
-              type="password"
-              className="form-input"
-              style={{ width: '100%', fontSize: '0.88rem' }}
-              placeholder="Nhập mã PIN đang dùng (Mặc định 1234)..."
-              value={oldPin}
-              onChange={e => setOldPin(e.target.value)}
-            />
+            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: '0.3rem' }}>
+              1. Mã PIN hiện tại (Mặc định 1234)
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showOldPass ? 'text' : 'password'}
+                className="form-input"
+                style={{ width: '100%', paddingRight: '2.5rem', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                placeholder="Nhập mã PIN đang dùng..."
+                value={oldPin}
+                onChange={e => setOldPin(e.target.value)}
+              />
+              <button type="button" onClick={() => setShowOldPass(v => !v)} style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}>
+                {showOldPass ? '🙈' : '👁️'}
+              </button>
+            </div>
           </div>
 
+          {/* New PIN Field */}
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: '0.3rem' }}>Mã PIN mới *</label>
-            <input
-              type="password"
-              className="form-input"
-              style={{ width: '100%', fontSize: '0.88rem' }}
-              placeholder="Nhập 4-6 chữ số..."
-              value={newPin}
-              onChange={e => setNewPin(e.target.value)}
-            />
+            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: '0.3rem' }}>
+              2. Mã PIN mới (4-6 chữ số) *
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showNewPass ? 'text' : 'password'}
+                className="form-input"
+                style={{ width: '100%', paddingRight: '2.5rem', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                placeholder="Nhập mã PIN mới..."
+                value={newPin}
+                onChange={e => setNewPin(e.target.value)}
+                inputMode="numeric"
+              />
+              <button type="button" onClick={() => setShowNewPass(v => !v)} style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}>
+                {showNewPass ? '🙈' : '👁️'}
+              </button>
+            </div>
           </div>
 
+          {/* Confirm New PIN Field */}
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: '0.3rem' }}>Xác nhận Mã PIN mới *</label>
-            <input
-              type="password"
-              className="form-input"
-              style={{ width: '100%', fontSize: '0.88rem' }}
-              placeholder="Nhập lại mã PIN mới..."
-              value={confirmPin}
-              onChange={e => setConfirmPin(e.target.value)}
-            />
+            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: '0.3rem' }}>
+              3. Xác nhận Mã PIN mới *
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showConfirmPass ? 'text' : 'password'}
+                className="form-input"
+                style={{ width: '100%', paddingRight: '2.5rem', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                placeholder="Nhập lại mã PIN mới..."
+                value={confirmPin}
+                onChange={e => setConfirmPin(e.target.value)}
+                inputMode="numeric"
+              />
+              <button type="button" onClick={() => setShowConfirmPass(v => !v)} style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}>
+                {showConfirmPass ? '🙈' : '👁️'}
+              </button>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+          <div style={{ fontSize: '0.73rem', color: '#0369a1', background: '#e0f2fe', padding: '0.55rem 0.75rem', borderRadius: '0.55rem', border: '1px solid #bae6fd', lineHeight: 1.45 }}>
+            💡 <em>Nếu em quên mã PIN cá nhân, vui lòng liên hệ <strong>Cô GVCN</strong> để nhờ khôi phục lại mã PIN ban đầu 1234.</em>
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.3rem' }}>
             <button type="button" onClick={onClose} style={{ padding: '0.55rem 1.2rem', borderRadius: '0.6rem', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem' }}>
               Hủy
             </button>
-            <button type="submit" className="btn-primary" style={{ padding: '0.55rem 1.4rem', background: '#0284c7', fontSize: '0.82rem' }}>
+            <button type="submit" className="btn-primary" style={{ padding: '0.55rem 1.4rem', background: '#0284c7', fontSize: '0.82rem', boxShadow: '0 4px 14px rgba(2,132,199,0.3)' }}>
               💾 Lưu Mã PIN Mới
             </button>
           </div>
