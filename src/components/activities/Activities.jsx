@@ -47,6 +47,7 @@ export default function Activities({ activities = [], onRefresh }) {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+    if (!isTeacher) { toast.error('Chỉ Cô GVCN mới có quyền đăng hoạt động của lớp!'); return; }
     if (!title.trim()) { toast.error('Vui lòng nhập tên hoạt động!'); return; }
     if (!imageUrl) { toast.error('Vui lòng chọn ảnh!'); return; }
 
@@ -113,7 +114,7 @@ export default function Activities({ activities = [], onRefresh }) {
               Lưu giữ những khoảnh khắc kỷ niệm, phong trào học tập và sinh hoạt nội trú KTX
             </p>
           </div>
-          {(isTeacher || isStudent) && (
+          {isTeacher && (
             <button className="btn-primary" onClick={() => setShowModal(true)}>
               ➕ Thêm kỷ niệm / hoạt động
             </button>
