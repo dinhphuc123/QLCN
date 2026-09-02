@@ -53,23 +53,53 @@ export default function Dashboard({ students, attendance, announcements, timetab
     return false;
   });
 
-  const handleSeatClick = async (student) => {
-    if (!isTeacher) { setSelectedStudent(student); return; }
-    if (!swapSrc) { setSwapSrc(student.id); return; }
-    if (swapSrc === student.id) { setSwapSrc(null); return; }
-
-    const srcStudent = students.find(s => s.id === swapSrc);
-    if (srcStudent) {
-      const updated = students.map(s => {
-        if (s.id === srcStudent.id) return { ...s, group: student.group };
-        if (s.id === student.id) return { ...s, group: srcStudent.group };
-        return s;
-      });
-      await api.updateStudents(updated);
-      toast.success(`Đã đổi vị trí: ${srcStudent.name} ↔ ${student.name}`);
-      onRefresh();
+  const handleSeatClick = async (targetStudent, targetIdx) => {
+    if (!isTeacher) { 
+      if (targetStudent) setSelectedStudent(targetStudent); 
+      return; 
     }
+    
+    // 1. First click: select source seat
+    if (!swapSrc) {
+      if (!targetStudent) {
+        toast.error('Vui lòng click chọn một học sinh có trong sơ đồ trước!');
+        return;
+      }
+      setSwapSrc({ student: targetStudent, idx: targetIdx });
+      return;
+    }
+
+    // 2. Click same seat again -> cancel
+    if (swapSrc.idx === targetIdx) {
+      setSwapSrc(null);
+      return;
+    }
+
+    // 3. Perform array index swap
+    const srcIdx = swapSrc.idx;
+    const updated = [...students];
+
+    // Ensure array has enough elements
+    const maxIdx = Math.max(srcIdx, targetIdx);
+    while (updated.length <= maxIdx) {
+      updated.push(null);
+    }
+
+    const temp = updated[srcIdx];
+    updated[srcIdx] = updated[targetIdx];
+    updated[targetIdx] = temp;
+
+    // Compact list (remove trailing nulls if needed)
+    const finalStudents = updated.filter(Boolean);
+
+    try {
+      localStorage.setItem('qlcn_students_data', JSON.stringify(finalStudents));
+    } catch {}
+
+    await api.updateStudents(finalStudents);
+    toast.success(`✅ Đã tráo đổi chỗ ngồi: ${swapSrc.student.name} ↔ ${targetStudent ? targetStudent.name : 'Ghế trống'}`);
     setSwapSrc(null);
+    onRefresh();
   };
 
 
@@ -182,7 +212,7 @@ export default function Dashboard({ students, attendance, announcements, timetab
             {/* Active Swap Indicator */}
             {swapSrc && (
               <div style={{ background: '#e0f2fe', border: '1.5px solid #0284c7', padding: '0.55rem 0.85rem', borderRadius: '0.65rem', marginBottom: '1rem', fontSize: '0.8rem', color: '#0369a1', fontWeight: 800, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>🔄 Đang chọn HS "#{String(swapSrc).padStart(2, '0')}" ➔ Click vào chỗ ngồi thứ 2 để tráo đổi!</span>
+                <span>🔄 Đang chọn HS #{String(swapSrc.student.id).padStart(2, '0')} - {swapSrc.student.name} ➔ Click vào chỗ ngồi thứ 2 (hoặc ghế trống) để tráo đổi!</span>
                 <button onClick={() => setSwapSrc(null)} style={{ background: '#dc2626', color: 'white', border: 'none', borderRadius: '0.4rem', padding: '0.2rem 0.55rem', cursor: 'pointer', fontWeight: 700, fontSize: '0.72rem' }}>Hủy</button>
               </div>
             )}
@@ -222,10 +252,23 @@ export default function Dashboard({ students, attendance, announcements, timetab
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(60px, 1fr))', gap: '0.35rem' }}>
                           {Array.from({ length: 4 }).map((_, sIdx) => {
-                            const s = deskStudents[sIdx];
+                            const globalSeatIdx = bIdx * 4 + sIdx;
+                            const s = students[globalSeatIdx];
+
                             if (!s) {
                               return (
-                                <div key={sIdx} style={{ background: '#f1f5f9', border: '1px dashed #cbd5e1', borderRadius: '0.5rem', padding: '0.4rem 0.25rem', textAlign: 'center', fontSize: '0.62rem', color: '#94a3b8', fontStyle: 'italic' }}>
+                                <div
+                                  key={sIdx}
+                                  onClick={() => handleSeatClick(null, globalSeatIdx)}
+                                  style={{
+                                    background: swapSrc ? '#fef2f2' : '#f1f5f9',
+                                    border: swapSrc ? '1.5px dashed #0284c7' : '1px dashed #cbd5e1',
+                                    borderRadius: '0.5rem', padding: '0.4rem 0.25rem',
+                                    textAlign: 'center', fontSize: '0.62rem', color: '#94a3b8', fontStyle: 'italic',
+                                    cursor: swapSrc ? 'pointer' : 'default'
+                                  }}
+                                  title="Ghế trống - Click để chuyển HS đến đây"
+                                >
                                   Ghế {sIdx + 1}<br/>(Trống)
                                 </div>
                               );
@@ -234,13 +277,13 @@ export default function Dashboard({ students, attendance, announcements, timetab
                             const attStatus = todayAtt[s.id];
                             const isAbsent = attStatus === 'absent';
                             const isLate = attStatus === 'late';
-                            const isSelected = swapSrc === s.id;
+                            const isSelected = swapSrc?.idx === globalSeatIdx;
 
                             return (
                               <div
                                 key={s.id}
                                 className="seat-item"
-                                onClick={() => handleSeatClick(s)}
+                                onClick={() => handleSeatClick(s, globalSeatIdx)}
                                 style={{
                                   background: isSelected
                                     ? '#fef2f2'
@@ -302,10 +345,23 @@ export default function Dashboard({ students, attendance, announcements, timetab
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(60px, 1fr))', gap: '0.35rem' }}>
                           {Array.from({ length: 4 }).map((_, sIdx) => {
-                            const s = deskStudents[sIdx];
+                            const globalSeatIdx = (bIdx + 5) * 4 + sIdx;
+                            const s = students[globalSeatIdx];
+
                             if (!s) {
                               return (
-                                <div key={sIdx} style={{ background: '#f1f5f9', border: '1px dashed #cbd5e1', borderRadius: '0.5rem', padding: '0.4rem 0.25rem', textAlign: 'center', fontSize: '0.62rem', color: '#94a3b8', fontStyle: 'italic' }}>
+                                <div
+                                  key={sIdx}
+                                  onClick={() => handleSeatClick(null, globalSeatIdx)}
+                                  style={{
+                                    background: swapSrc ? '#fef2f2' : '#f1f5f9',
+                                    border: swapSrc ? '1.5px dashed #0284c7' : '1px dashed #cbd5e1',
+                                    borderRadius: '0.5rem', padding: '0.4rem 0.25rem',
+                                    textAlign: 'center', fontSize: '0.62rem', color: '#94a3b8', fontStyle: 'italic',
+                                    cursor: swapSrc ? 'pointer' : 'default'
+                                  }}
+                                  title="Ghế trống - Click để chuyển HS đến đây"
+                                >
                                   Ghế {sIdx + 1}<br/>(Trống)
                                 </div>
                               );
@@ -314,13 +370,13 @@ export default function Dashboard({ students, attendance, announcements, timetab
                             const attStatus = todayAtt[s.id];
                             const isAbsent = attStatus === 'absent';
                             const isLate = attStatus === 'late';
-                            const isSelected = swapSrc === s.id;
+                            const isSelected = swapSrc?.idx === globalSeatIdx;
 
                             return (
                               <div
                                 key={s.id}
                                 className="seat-item"
-                                onClick={() => handleSeatClick(s)}
+                                onClick={() => handleSeatClick(s, globalSeatIdx)}
                                 style={{
                                   background: isSelected
                                     ? '#fef2f2'
