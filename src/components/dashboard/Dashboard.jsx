@@ -289,35 +289,38 @@ export default function Dashboard({ students, attendance, announcements, timetab
             {/* 2 Rows of Desks Grid (Dãy 1 & Dãy 2) */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
               
-              {/* Dãy 1 (Dãy Trái - Bàn 1 đến 5) */}
+              {/* Dãy 1 (Dãy Trái - Bàn 1 đến 5: CHỈ TỔ 1 & TỔ 2) */}
               <div style={{ background: '#f8fafc', borderRadius: '1rem', padding: '0.85rem', border: '1.5px solid #cbd5e1', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <div style={{ textAlign: 'center', fontSize: '0.88rem', fontWeight: 900, color: '#0369a1', paddingBottom: '0.4rem', borderBottom: '2px solid #bae6fd', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>🚪 DÃY 1 (Phía Cửa Ra Vào)</span>
-                  <span style={{ fontSize: '0.7rem', color: '#0284c7', background: '#e0f2fe', padding: '0.15rem 0.5rem', borderRadius: '9999px' }}>5 Bàn • 20 Chỗ</span>
+                  <span>🚪 DÃY 1 (Phía Cửa) • CHỈ TỔ 1 & TỔ 2</span>
+                  <span style={{ fontSize: '0.7rem', color: '#0284c7', background: '#e0f2fe', padding: '0.15rem 0.5rem', borderRadius: '9999px' }}>5 Bàn • 16-20 Chỗ</span>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {Array.from({ length: 5 }).map((_, bIdx) => {
                     const deskNum = bIdx + 1;
-                    const deskStudents = students.slice(bIdx * 4, bIdx * 4 + 4);
+                    // Dãy 1 gets students from Tổ 1 & Tổ 2
+                    const day1List = students.filter(s => s.group === 'Tổ 1' || s.group === 'Tổ 2');
+                    // 3-4 seats per desk
+                    const deskStudents = day1List.slice(bIdx * 3, bIdx * 3 + 3);
 
                     return (
                       <div key={deskNum} style={{ background: 'white', borderRadius: '0.75rem', padding: '0.55rem 0.65rem', border: '1px solid #cbd5e1', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
                         <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b', marginBottom: '0.35rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span>🪑 BÀN {deskNum} (Tối đa 4 chỗ)</span>
-                          <span style={{ fontSize: '0.6rem', color: '#94a3b8' }}>{deskStudents.length}/4 HS</span>
+                          <span>🪑 BÀN {deskNum} (Tổ 1 & 2)</span>
+                          <span style={{ fontSize: '0.6rem', color: '#0284c7', fontWeight: 700 }}>{deskStudents.length} HS</span>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(60px, 1fr))', gap: '0.35rem' }}>
-                          {Array.from({ length: 4 }).map((_, sIdx) => {
-                            const globalSeatIdx = bIdx * 4 + sIdx;
-                            const s = students[globalSeatIdx];
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(65px, 1fr))', gap: '0.35rem' }}>
+                          {Array.from({ length: Math.max(3, deskStudents.length) }).map((_, sIdx) => {
+                            const s = deskStudents[sIdx];
+                            const globalSeatIdx = students.findIndex(st => st?.id === s?.id);
 
                             if (!s) {
                               return (
                                 <div
                                   key={sIdx}
-                                  onClick={() => handleSeatClick(null, globalSeatIdx)}
+                                  onClick={() => handleSeatClick(null, bIdx * 4 + sIdx)}
                                   style={{
                                     background: swapSrc ? '#fef2f2' : '#f1f5f9',
                                     border: swapSrc ? '1.5px dashed #0284c7' : '1px dashed #cbd5e1',
@@ -369,7 +372,7 @@ export default function Dashboard({ students, attendance, announcements, timetab
                                 </div>
 
                                 <div style={{ fontSize: '0.58rem', color: '#64748b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.15rem' }}>
-                                  <span>{s.group || 'Tổ'}</span>
+                                  <span style={{ fontWeight: 800, color: '#0369a1' }}>{s.group}</span>
                                   {s.position && <span style={{ color: '#0369a1', fontWeight: 800 }} title={s.position}>⭐</span>}
                                 </div>
                               </div>
@@ -382,35 +385,38 @@ export default function Dashboard({ students, attendance, announcements, timetab
                 </div>
               </div>
 
-              {/* Dãy 2 (Dãy Phải - Bàn 6 đến 10) */}
+              {/* Dãy 2 (Dãy Phải - Bàn 6 đến 10: CHỈ TỔ 3 & TỔ 4) */}
               <div style={{ background: '#f8fafc', borderRadius: '1rem', padding: '0.85rem', border: '1.5px solid #cbd5e1', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <div style={{ textAlign: 'center', fontSize: '0.88rem', fontWeight: 900, color: '#0369a1', paddingBottom: '0.4rem', borderBottom: '2px solid #bae6fd', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>🪟 DÃY 2 (Phía Cửa Sổ)</span>
-                  <span style={{ fontSize: '0.7rem', color: '#0284c7', background: '#e0f2fe', padding: '0.15rem 0.5rem', borderRadius: '9999px' }}>5 Bàn • 20 Chỗ</span>
+                  <span>🪟 DÃY 2 (Phía Cửa Sổ) • CHỈ TỔ 3 & TỔ 4</span>
+                  <span style={{ fontSize: '0.7rem', color: '#0284c7', background: '#e0f2fe', padding: '0.15rem 0.5rem', borderRadius: '9999px' }}>5 Bàn • 16-20 Chỗ</span>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {Array.from({ length: 5 }).map((_, bIdx) => {
                     const deskNum = bIdx + 6;
-                    const deskStudents = students.slice((bIdx + 5) * 4, (bIdx + 5) * 4 + 4);
+                    // Dãy 2 gets students from Tổ 3 & Tổ 4
+                    const day2List = students.filter(s => s.group === 'Tổ 3' || s.group === 'Tổ 4' || !['Tổ 1', 'Tổ 2'].includes(s.group));
+                    // 3-4 seats per desk
+                    const deskStudents = day2List.slice(bIdx * 3, bIdx * 3 + 3);
 
                     return (
                       <div key={deskNum} style={{ background: 'white', borderRadius: '0.75rem', padding: '0.55rem 0.65rem', border: '1px solid #cbd5e1', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
                         <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b', marginBottom: '0.35rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span>🪑 BÀN {deskNum} (Tối đa 4 chỗ)</span>
-                          <span style={{ fontSize: '0.6rem', color: '#94a3b8' }}>{deskStudents.length}/4 HS</span>
+                          <span>🪑 BÀN {deskNum} (Tổ 3 & 4)</span>
+                          <span style={{ fontSize: '0.6rem', color: '#0284c7', fontWeight: 700 }}>{deskStudents.length} HS</span>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(60px, 1fr))', gap: '0.35rem' }}>
-                          {Array.from({ length: 4 }).map((_, sIdx) => {
-                            const globalSeatIdx = (bIdx + 5) * 4 + sIdx;
-                            const s = students[globalSeatIdx];
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(65px, 1fr))', gap: '0.35rem' }}>
+                          {Array.from({ length: Math.max(3, deskStudents.length) }).map((_, sIdx) => {
+                            const s = deskStudents[sIdx];
+                            const globalSeatIdx = students.findIndex(st => st?.id === s?.id);
 
                             if (!s) {
                               return (
                                 <div
                                   key={sIdx}
-                                  onClick={() => handleSeatClick(null, globalSeatIdx)}
+                                  onClick={() => handleSeatClick(null, (bIdx + 5) * 4 + sIdx)}
                                   style={{
                                     background: swapSrc ? '#fef2f2' : '#f1f5f9',
                                     border: swapSrc ? '1.5px dashed #0284c7' : '1px dashed #cbd5e1',
@@ -462,7 +468,7 @@ export default function Dashboard({ students, attendance, announcements, timetab
                                 </div>
 
                                 <div style={{ fontSize: '0.58rem', color: '#64748b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.15rem' }}>
-                                  <span>{s.group || 'Tổ'}</span>
+                                  <span style={{ fontWeight: 800, color: '#0369a1' }}>{s.group}</span>
                                   {s.position && <span style={{ color: '#0369a1', fontWeight: 800 }} title={s.position}>⭐</span>}
                                 </div>
                               </div>
