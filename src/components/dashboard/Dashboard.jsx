@@ -55,7 +55,24 @@ export default function Dashboard({ students, attendance, announcements, timetab
 
   const handleSmartArrange = async (type) => {
     let arranged = [...students];
-    if (type === 'gender') {
+    if (type === 'group') {
+      const g1 = students.filter(s => s.group === 'Tổ 1').sort((a, b) => a.id - b.id);
+      const g2 = students.filter(s => s.group === 'Tổ 2').sort((a, b) => a.id - b.id);
+      const g3 = students.filter(s => s.group === 'Tổ 3').sort((a, b) => a.id - b.id);
+      const g4 = students.filter(s => s.group === 'Tổ 4').sort((a, b) => a.id - b.id);
+      const other = students.filter(s => !['Tổ 1', 'Tổ 2', 'Tổ 3', 'Tổ 4'].includes(s.group)).sort((a, b) => a.id - b.id);
+
+      // Day 1 (Left Row - Desk 1 to 5): Tổ 1 then Tổ 2 (20 seats max)
+      const day1 = [...g1, ...g2];
+      while (day1.length < 20) day1.push(null);
+
+      // Day 2 (Right Row - Desk 6 to 10): Tổ 3 then Tổ 4 + others (20 seats max)
+      const day2 = [...g3, ...g4, ...other];
+      while (day2.length < 20) day2.push(null);
+
+      arranged = [...day1.slice(0, 20), ...day2.slice(0, 20)].filter(Boolean);
+      toast.success('🧠 Đã xếp chỗ theo 4 Tổ: Dãy 1 (Tổ 1 & Tổ 2), Dãy 2 (Tổ 3 & Tổ 4)!');
+    } else if (type === 'gender') {
       const males = students.filter(s => s.gender === 'Nam');
       const females = students.filter(s => s.gender === 'Nữ');
       arranged = [];
@@ -218,6 +235,14 @@ export default function Dashboard({ students, attendance, announcements, timetab
                   <button
                     className="btn-primary"
                     style={{ padding: '0.4rem 0.85rem', fontSize: '0.75rem', background: '#0284c7', boxShadow: '0 4px 10px rgba(2,132,199,0.2)' }}
+                    onClick={() => handleSmartArrange('group')}
+                    title="Xếp theo 4 Tổ: Dãy 1 (Tổ 1 & Tổ 2), Dãy 2 (Tổ 3 & Tổ 4)"
+                  >
+                    🧠 Xếp theo 4 Tổ
+                  </button>
+                  <button
+                    className="btn-primary"
+                    style={{ padding: '0.4rem 0.85rem', fontSize: '0.75rem', background: '#0891b2', boxShadow: '0 4px 10px rgba(8,145,178,0.2)' }}
                     onClick={() => handleSmartArrange('gender')}
                     title="Xếp chỗ thông minh: Xen kẽ Nam và Nữ"
                   >
