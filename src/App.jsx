@@ -155,10 +155,26 @@ export default function App() {
         }
       });
 
+      let localSt = null;
+      try { localSt = JSON.parse(localStorage.getItem('qlcn_students_data') || 'null'); } catch {}
+
+      const serverSt = (result.students && result.students.length > 0) ? result.students : INITIAL_STUDENTS;
+      let finalStudents = serverSt;
+      if (Array.isArray(localSt) && localSt.length > 0) {
+        const serverMap = new Map(serverSt.map(s => [s.id, s]));
+        const orderedFromLocal = localSt.map(ls => ({ ...(serverMap.get(ls.id) || {}), ...ls })).filter(Boolean);
+        serverSt.forEach(s => {
+          if (!orderedFromLocal.some(os => os.id === s.id)) {
+            orderedFromLocal.push(s);
+          }
+        });
+        finalStudents = orderedFromLocal;
+      }
+
       setData(prev => ({
         ...prev,
         ...result,
-        students: (result.students && result.students.length > 0) ? result.students : INITIAL_STUDENTS,
+        students: finalStudents,
         announcements: mergedAnn,
         leaveRequests: mergedReqs,
         homeRequests: mergedHomeReqs,
@@ -425,10 +441,15 @@ export default function App() {
     );
   };
 
+  const handleUpdateStudents = useCallback((newStudents) => {
+    try { localStorage.setItem('qlcn_students_data', JSON.stringify(newStudents)); } catch {}
+    setData(prev => ({ ...prev, students: newStudents }));
+  }, []);
+
   // ── Tab Renderer ──────────────────────────────────────────────────────────
   const renderPage = () => {
     if (loading) return <LoadingSkeleton rows={8} />;
-    const props = { ...data, isTeacher, onRefresh: fetchData };
+    const props = { ...data, isTeacher, onRefresh: fetchData, onUpdateStudents: handleUpdateStudents };
 
     switch (activeTab) {
       case 'dashboard':     return <Dashboard {...props} setActiveTab={setActiveTab} handleTimetableChange={handleTimetableChange} handleClassMapChange={handleClassMapChange} />;

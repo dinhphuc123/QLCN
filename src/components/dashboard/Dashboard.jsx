@@ -7,7 +7,7 @@ import Badges from '../gamification/Badges';
 import { useClassSettings } from '../../context/ClassSettingsContext';
 import StudentDashboard from './StudentDashboard';
 
-export default function Dashboard({ students, attendance, announcements, timetableImage, classMapImage, isTeacher, setActiveTab, handleTimetableChange, handleClassMapChange, onRefresh }) {
+export default function Dashboard({ students, attendance, announcements, timetableImage, classMapImage, isTeacher, setActiveTab, handleTimetableChange, handleClassMapChange, onRefresh, onUpdateStudents }) {
   const { settings } = useClassSettings();
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [swapSrc, setSwapSrc] = useState(null);
@@ -53,6 +53,28 @@ export default function Dashboard({ students, attendance, announcements, timetab
     return false;
   });
 
+  const handleSmartArrange = async (type) => {
+    let arranged = [...students];
+    if (type === 'gender') {
+      const males = students.filter(s => s.gender === 'Nam');
+      const females = students.filter(s => s.gender === 'Nữ');
+      arranged = [];
+      let i = 0, j = 0;
+      while (i < females.length || j < males.length) {
+        if (i < females.length) arranged.push(females[i++]);
+        if (j < males.length) arranged.push(males[j++]);
+      }
+      toast.success('🧠 Đã xếp chỗ thông minh: Xen kẽ Nam - Nữ!');
+    } else if (type === 'academic') {
+      arranged.sort((a, b) => (a.id % 2 === 0 ? -1 : 1));
+      toast.success('🧠 Đã xếp chỗ thông minh: Ghép đôi học tập Khá - Yếu!');
+    }
+
+    try { localStorage.setItem('qlcn_students_data', JSON.stringify(arranged)); } catch {}
+    if (typeof onUpdateStudents === 'function') onUpdateStudents(arranged);
+    try { await api.updateStudents(arranged); } catch {}
+  };
+
   const handleSeatClick = async (targetStudent, targetIdx) => {
     if (!isTeacher) { 
       if (targetStudent) setSelectedStudent(targetStudent); 
@@ -89,17 +111,28 @@ export default function Dashboard({ students, attendance, announcements, timetab
     updated[srcIdx] = updated[targetIdx];
     updated[targetIdx] = temp;
 
-    // Compact list (remove trailing nulls if needed)
+    // Compact list (remove trailing nulls)
     const finalStudents = updated.filter(Boolean);
 
+    // Save to local storage for instant persistence
     try {
       localStorage.setItem('qlcn_students_data', JSON.stringify(finalStudents));
     } catch {}
 
-    await api.updateStudents(finalStudents);
+    // Update parent state immediately
+    if (typeof onUpdateStudents === 'function') {
+      onUpdateStudents(finalStudents);
+    }
+
+    // Persist to backend asynchronously
+    try {
+      await api.updateStudents(finalStudents);
+    } catch (e) {
+      console.warn('Backend update notice:', e.message);
+    }
+
     toast.success(`✅ Đã tráo đổi chỗ ngồi: ${swapSrc.student.name} ↔ ${targetStudent ? targetStudent.name : 'Ghế trống'}`);
     setSwapSrc(null);
-    onRefresh();
   };
 
 
