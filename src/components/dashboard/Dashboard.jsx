@@ -139,62 +139,132 @@ export default function Dashboard({ students, attendance, announcements, timetab
         {/* Left col: Interactive Seating Map (hidden on mobile) */}
         <div className="dashboard-seat-section" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
-          <div className="glass-panel" style={{ padding: '1.75rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div className="glass-panel" style={{ padding: '1.5rem 1.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
               <div>
-                <h3 style={{ margin: 0 }}>🗺️ Sơ Đồ Lớp {settings.className} (Tổ 1 → Tổ 4)</h3>
-                <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: '#6b7280' }}>Bố trí theo 4 tổ học tập và vị trí ngồi thực tế</p>
+                <h3 style={{ margin: 0, color: 'var(--color-primary-dark)', fontSize: '1.15rem', fontWeight: 800 }}>
+                  🪑 Sơ Đồ Bàn Đôi Lớp {settings.className} (Tổ 1 → Tổ 4)
+                </h3>
+                <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>
+                  ⚡ Click 2 học sinh bất kỳ để tráo đổi chỗ ngồi • 🟢 Trạng thái điểm danh hôm nay
+                </p>
               </div>
+
               {isTeacher && (
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
                   <button
                     className="btn-primary"
-                    style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', background: '#7c3aed' }}
+                    style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', background: '#7c3aed', boxShadow: '0 4px 10px rgba(124,58,237,0.2)' }}
                     onClick={() => setShowSeatingModal(true)}
                   >
-                    🎲 Xếp sơ đồ tự động
+                    🎲 Xếp tự động
                   </button>
-                  <label className="btn-primary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', cursor: 'pointer', background: '#0284c7' }}>
-                    📷 Upload sơ đồ ảnh
+                  <label className="btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', cursor: 'pointer', background: '#0284c7', boxShadow: '0 4px 10px rgba(2,132,199,0.2)' }}>
+                    📷 Upload sơ đồ
                     <input type="file" accept="image/*,.pdf" style={{ display: 'none' }} onChange={handleClassMapChange} />
                   </label>
                 </div>
               )}
             </div>
 
-            {/* Blackboard */}
-            <div style={{ textAlign: 'center', background: 'var(--color-primary-dark)', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', marginBottom: '1.5rem', fontWeight: 700, fontSize: '0.85rem', letterSpacing: '0.05em' }}>
+            {/* Active Swap Indicator */}
+            {swapSrc && (
+              <div style={{ background: '#e0f2fe', border: '1.5px solid #0284c7', padding: '0.5rem 0.85rem', borderRadius: '0.65rem', marginBottom: '1rem', fontSize: '0.8rem', color: '#0369a1', fontWeight: 800, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>🔄 Đang chọn HS "#{String(swapSrc).padStart(2, '0')}" ➔ Hãy click vào chỗ ngồi thứ 2 để tráo đổi!</span>
+                <button onClick={() => setSwapSrc(null)} style={{ background: '#dc2626', color: 'white', border: 'none', borderRadius: '0.4rem', padding: '0.2rem 0.5rem', cursor: 'pointer', fontWeight: 700, fontSize: '0.72rem' }}>Hủy</button>
+              </div>
+            )}
+
+            {/* Blackboard Banner */}
+            <div style={{
+              textAlign: 'center', background: 'linear-gradient(135deg, #0f172a, #1e293b)',
+              color: '#f8fafc', padding: '0.65rem 1rem', borderRadius: '0.75rem',
+              marginBottom: '1.25rem', fontWeight: 800, fontSize: '0.85rem',
+              letterSpacing: '0.08em', border: '1px solid #334155',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.12)'
+            }}>
               📋 BẢNG ĐEN / BÀN GIÁO VIÊN / CỬA RA VÀO
             </div>
 
-            {/* 4 Groups Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.85rem' }}>
+            {/* 4 Groups Double-Desk Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
               {Array.from({ length: 4 }).map((_, ci) => {
                 const gName = `Tổ ${ci + 1}`;
                 const gs = students.filter(s => s.group === gName).sort((a, b) => a.id - b.id);
+                
+                // Pair students into 2 per desk
+                const pairs = [];
+                for (let i = 0; i < gs.length; i += 2) {
+                  pairs.push([gs[i], gs[i + 1]]);
+                }
+
                 return (
-                  <div key={gName} style={{ background: '#f9fafb', borderRadius: '0.75rem', padding: '0.75rem', border: '1px solid #e5e7eb' }}>
-                    <div style={{ textAlign: 'center', fontSize: '0.82rem', fontWeight: 800, color: 'var(--color-primary-brand)', marginBottom: '0.6rem' }}>{gName} ({gs.length} HS)</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-                      {gs.map(s => (
-                        <div key={s.id} className="seat-item"
-                          style={{
-                            background: swapSrc === s.id ? '#fecaca' : s.gender === 'Nữ' ? '#fdf2f8' : '#eff6ff',
-                            border: swapSrc === s.id ? '2px dashed #dc2626' : selectedStudent?.id === s.id ? '2px solid var(--color-primary-brand)' : '1px solid #e5e7eb',
-                            cursor: 'pointer', padding: '0.4rem 0.5rem', borderRadius: '0.5rem'
-                          }}
-                          onClick={() => handleSeatClick(s)}
-                        >
-                          <div style={{ fontWeight: 700, fontSize: '0.75rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#1f2937' }}>
-                            {String(s.id).padStart(2, '0')}. {s.name.split(' ').pop()}
+                  <div key={gName} style={{ background: '#f8fafc', borderRadius: '0.9rem', padding: '0.75rem', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                    
+                    {/* Group Header */}
+                    <div style={{ textAlign: 'center', fontSize: '0.85rem', fontWeight: 900, color: '#0369a1', paddingBottom: '0.35rem', borderBottom: '1px dashed #cbd5e1' }}>
+                      {gName} <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>({gs.length} HS)</span>
+                    </div>
+
+                    {/* Desks */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                      {pairs.map((pair, pIdx) => (
+                        <div key={pIdx} style={{ background: '#ffffff', borderRadius: '0.65rem', padding: '0.45rem', border: '1px solid #cbd5e1', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+                          <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#94a3b8', marginBottom: '0.3rem', textTransform: 'uppercase' }}>
+                            🪑 Bàn {pIdx + 1}
                           </div>
-                          <div style={{ fontSize: '0.65rem', color: '#6b7280', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>{s.dormRoom}</span>
-                            {s.position && <span style={{ color: '#0369a1', fontWeight: 700 }}>⭐</span>}
+                          
+                          <div style={{ display: 'grid', gridTemplateColumns: pair[1] ? '1fr 1fr' : '1fr', gap: '0.35rem' }}>
+                            {pair.map(s => {
+                              if (!s) return null;
+                              const attStatus = todayAtt[s.id];
+                              const isAbsent = attStatus === 'absent';
+                              const isLate = attStatus === 'late';
+                              const isSelected = swapSrc === s.id;
+
+                              return (
+                                <div
+                                  key={s.id}
+                                  className="seat-item"
+                                  onClick={() => handleSeatClick(s)}
+                                  style={{
+                                    background: isSelected
+                                      ? '#fef2f2'
+                                      : s.gender === 'Nữ' ? '#fdf2f8' : '#eff6ff',
+                                    border: isSelected
+                                      ? '2px dashed #dc2626'
+                                      : selectedStudent?.id === s.id
+                                      ? '2px solid #0284c7'
+                                      : '1.5px solid #cbd5e1',
+                                    cursor: 'pointer',
+                                    padding: '0.4rem 0.45rem',
+                                    borderRadius: '0.5rem',
+                                    transition: 'all 0.15s ease',
+                                    position: 'relative'
+                                  }}
+                                  title={`Click để tráo đổi chỗ ngồi: ${s.name}`}
+                                >
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ fontWeight: 800, fontSize: '0.72rem', color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      {String(s.id).padStart(2, '0')}. {s.name.split(' ').pop()}
+                                    </div>
+                                    <span style={{ fontSize: '0.6rem' }}>
+                                      {isAbsent ? '🔴' : isLate ? '🟡' : '🟢'}
+                                    </span>
+                                  </div>
+
+                                  <div style={{ fontSize: '0.62rem', color: '#64748b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.15rem' }}>
+                                    <span>{s.dormRoom || 'KTX'}</span>
+                                    {s.position && <span style={{ color: '#0369a1', fontWeight: 800 }} title={s.position}>⭐</span>}
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       ))}
                     </div>
+
                   </div>
                 );
               })}
@@ -202,9 +272,9 @@ export default function Dashboard({ students, attendance, announcements, timetab
 
             {/* Custom Class map image preview if uploaded */}
             {classMapImage && (
-              <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
-                <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}>🖼️ File Sơ Đồ Lớp Tải Lên</h4>
-                <img src={classMapImage} alt="Sơ đồ lớp" style={{ width: '100%', borderRadius: '0.5rem', border: '1px solid #d1d5db' }} />
+              <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0' }}>
+                <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', fontWeight: 800, color: '#0c4a6e' }}>🖼️ Sơ Đồ Ảnh Gốc Tải Lên</h4>
+                <img src={classMapImage} alt="Sơ đồ lớp" style={{ width: '100%', borderRadius: '0.65rem', border: '1px solid #cbd5e1' }} />
               </div>
             )}
           </div>
