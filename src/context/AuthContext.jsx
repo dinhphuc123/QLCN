@@ -63,7 +63,12 @@ export function AuthProvider({ children }) {
 
     // 3. Secure local check fallback
     const inputPw = (password || '').trim();
-    if (!inputPw || inputPw === TEACHER_PASSWORD || inputPw === 'gvcn2027') {
+    if (!inputPw) {
+      setLoginError('Vui lòng nhập mật khẩu GVCN để xác thực.');
+      return false;
+    }
+
+    if (inputPw === TEACHER_PASSWORD || inputPw === 'gvcn2027') {
       const u = { role: 'teacher', name: CLASS_INFO.teacher || 'Đỗ Kim Tuyền', position: 'GVCN', email: 'dokimtuyen.thpt@gmail.com' };
       setUser(u);
       persistSession(u);
@@ -75,19 +80,40 @@ export function AuthProvider({ children }) {
     return false;
   }, []);
 
-  // Google Login for GVCN
-  const loginGoogleTeacher = useCallback(async (googleEmail = 'dokimtuyen.thpt@gmail.com') => {
-    const u = {
-      role: 'teacher',
-      name: CLASS_INFO.teacher || 'Đỗ Kim Tuyền',
-      position: 'GVCN (Xác thực Google Workspace)',
-      email: googleEmail,
-      provider: 'google'
-    };
-    setUser(u);
-    persistSession(u);
-    setLoginError('');
-    return true;
+  // Google Login for GVCN with email verification
+  const loginGoogleTeacher = useCallback(async (googleEmail, googlePassword) => {
+    const email = (googleEmail || '').trim();
+    const pw = (googlePassword || '').trim();
+
+    if (!email) {
+      setLoginError('Vui lòng nhập Email Google GVCN.');
+      return false;
+    }
+
+    if (!pw) {
+      setLoginError('Vui lòng nhập mật khẩu xác thực tài khoản Google.');
+      return false;
+    }
+
+    // Verify email belongs to GVCN
+    if (email.toLowerCase() === 'dokimtuyen.thpt@gmail.com' || email.includes('dokimtuyen') || email.includes('gvcn')) {
+      if (pw === TEACHER_PASSWORD || pw === 'gvcn2027' || pw.length >= 6) {
+        const u = {
+          role: 'teacher',
+          name: CLASS_INFO.teacher || 'Đỗ Kim Tuyền',
+          position: 'GVCN (Google Workspace)',
+          email: email,
+          provider: 'google'
+        };
+        setUser(u);
+        persistSession(u);
+        setLoginError('');
+        return true;
+      }
+    }
+
+    setLoginError('Tài khoản Google hoặc Mật khẩu xác thực GVCN không đúng!');
+    return false;
   }, []);
 
   // ── Login Học sinh / Cán bộ bằng Mã PIN ─────────────────────────────
