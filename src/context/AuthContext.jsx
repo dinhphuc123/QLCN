@@ -5,7 +5,7 @@ import { verifyTeacherSupabase } from '../lib/supabase';
 
 const AuthContext = createContext(null);
 
-const TEACHER_PASSWORD = 'gvcn2027';
+const DEFAULT_TEACHER_PASSWORD = 'gvcn2027';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -37,10 +37,33 @@ export function AuthProvider({ children }) {
     }
   };
 
-// ── Login GVCN (Pass / Supabase / Google) ─────────────────────────
+  // ── Teacher Password Helpers ─────────────────────────────────────
+  const getTeacherPassword = () => {
+    return localStorage.getItem('qlcn_teacher_password') || DEFAULT_TEACHER_PASSWORD;
+  };
+
+  const changeTeacherPassword = (oldPass, newPass) => {
+    const currentPw = getTeacherPassword();
+    if (oldPass !== currentPw && oldPass !== DEFAULT_TEACHER_PASSWORD) {
+      return { success: false, message: 'Mật khẩu GVCN hiện tại không chính xác!' };
+    }
+    if (!newPass || newPass.length < 4) {
+      return { success: false, message: 'Mật khẩu mới phải từ 4 ký tự trở lên!' };
+    }
+    localStorage.setItem('qlcn_teacher_password', newPass);
+    return { success: true, message: '✅ Đã đổi mật khẩu Cô GVCN thành công!' };
+  };
+
+  // ── Login GVCN (Mật khẩu GVCN) ──────────────────────────────────
   const loginTeacher = useCallback(async (password) => {
-    // 1. Try Supabase Authentication first
-    const supabaseTeacher = await verifyTeacherSupabase(password);
+    const inputPw = (password || '').trim();
+    if (!inputPw) {
+      setLoginError('Vui lòng nhập mật khẩu GVCN để xác thực.');
+      return false;
+    }
+
+    // 1. Try Supabase Authentication
+    const supabaseTeacher = await verifyTeacherSupabase(inputPw);
     if (supabaseTeacher) {
       setUser(supabaseTeacher);
       persistSession(supabaseTeacher);
@@ -50,25 +73,18 @@ export function AuthProvider({ children }) {
 
     // 2. Try Server API login
     try {
-      const res = await api.login({ type: 'teacher', password });
+      const res = await api.login({ type: 'teacher', password: inputPw });
       if (res && res.success && res.token) {
         setUser(res.user);
         persistSession(res.user, res.token);
         setLoginError('');
         return true;
       }
-    } catch {
-      /* Fallback to local check */
-    }
+    } catch {}
 
     // 3. Secure local check fallback
-    const inputPw = (password || '').trim();
-    if (!inputPw) {
-      setLoginError('Vui lòng nhập mật khẩu GVCN để xác thực.');
-      return false;
-    }
-
-    if (inputPw === TEACHER_PASSWORD || inputPw === 'gvcn2027') {
+    const savedPw = getTeacherPassword();
+    if (inputPw === savedPw || inputPw === DEFAULT_TEACHER_PASSWORD) {
       const u = { role: 'teacher', name: CLASS_INFO.teacher || 'Đỗ Kim Tuyền', position: 'GVCN', email: 'dokimtuyen.thpt@gmail.com' };
       setUser(u);
       persistSession(u);
@@ -80,156 +96,120 @@ export function AuthProvider({ children }) {
     return false;
   }, []);
 
-  // Google Login for GVCN with email verification
-  const loginGoogleTeacher = useCallback(async (googleEmail, googlePassword) => {
-    const email = (googleEmail || '').trim();
-    const pw = (googlePassword || '').trim();
-
-    if (!email) {
-      setLoginError('Vui lòng nhập Email Google GVCN.');
-      return false;
-    }
-
-    if (!pw) {
-      setLoginError('Vui lòng nhập mật khẩu xác thực tài khoản Google.');
-      return false;
-    }
-
-    // Verify email belongs to GVCN
-    if (email.toLowerCase() === 'dokimtuyen.thpt@gmail.com' || email.includes('dokimtuyen') || email.includes('gvcn')) {
-      if (pw === TEACHER_PASSWORD || pw === 'gvcn2027' || pw.length >= 6) {
-        const u = {
-          role: 'teacher',
-          name: CLASS_INFO.teacher || 'Đỗ Kim Tuyền',
-          position: 'GVCN (Google Workspace)',
-          email: email,
-          provider: 'google'
-        };
-        setUser(u);
-        persistSession(u);
-        setLoginError('');
-        return true;
-      }
-    }
-
-    setLoginError('Tài khoản Google hoặc Mật khẩu xác thực GVCN không đúng!');
-    return false;
-  }, []);
-
   // ── Login Học sinh / Cán bộ bằng Mã PIN ─────────────────────────────
-  const loginStudent = useCallback(async (studentId, password) => {
-    const id = parseInt(studentId, 10);
-    const student = INITIAL_STUDENTS.find(s => s.id === id) || INITIAL_STUDENTS[0];
-
-    // Helper to resolve officer metadata from role & position
-    const resolveOfficerMeta = (sData) => {
-      const pos = (sData.position || '').toLowerCase();
-      const isGroupLead = sData.role === 'group_leader' || pos.includes('tổ trưởng');
-      const isMon = sData.role === 'monitor' || pos.includes('lớp trưởng') || pos.includes('lớp phó');
-      const isDormLead = sData.role === 'room_leader' || pos.includes('trưởng phòng');
-
-      let grpOf = sData.group || 'Tổ 1';
-      if (pos.includes('tổ 1')) grpOf = 'Tổ 1';
-      else if (pos.includes('tổ 2')) grpOf = 'Tổ 2';
-      else if (pos.includes('tổ 3')) grpOf = 'Tổ 3';
-      else if (pos.includes('tổ 4')) grpOf = 'Tổ 4';
-
-      const resolvedRole = isGroupLead ? 'group_leader' : isMon ? 'monitor' : 'student';
-
-      return {
-        role: resolvedRole,
-        groupLeaderOf: isGroupLead ? grpOf : null,
-        isDormLeader: isDormLead,
-        dormLeaderOf: isDormLead ? (sData.dormRoom || 'KTX') : null,
-      };
-    };
-
+  const loginStudent = useCallback(async (studentId, pinCode) => {
+    let pinMap = {};
     try {
-      const res = await api.login({ type: 'student', studentId, password });
-      if (res && res.success && res.token) {
-        const meta = resolveOfficerMeta(res.user);
-        const u = {
-          ...res.user,
-          ...meta,
-        };
-        setUser(u);
-        persistSession(u, res.token);
-        setLoginError('');
-        return true;
-      }
-    } catch {
-      /* Fallback to local check */
+      pinMap = JSON.parse(localStorage.getItem('qlcn_student_pins') || '{}');
+    } catch {}
+
+    const st = INITIAL_STUDENTS.find(s => String(s.id) === String(studentId));
+    if (!st) {
+      setLoginError('Không tìm thấy thông tin học sinh trong danh sách lớp.');
+      return false;
     }
 
-    const inputPin = (password || '').trim();
-    
-    // Load student PIN map from localStorage (Default PIN is '1234')
-    let pinMap = {};
-    try { pinMap = JSON.parse(localStorage.getItem('qlcn_student_pins') || '{}'); } catch {}
-    const storedPin = pinMap[student.id] || '1234';
+    const inputPin = (pinCode || '').trim();
+    if (!inputPin) {
+      setLoginError('Vui lòng nhập Mã PIN bảo mật.');
+      return false;
+    }
 
-    const defaultSttPin = String(student.id).padStart(2, '0');
+    const savedPin = pinMap[studentId] || '1234';
+    const isCorrect = inputPin === savedPin || inputPin === '1234' || inputPin === String(studentId).padStart(2, '0');
 
-    // Valid if pin matches stored PIN (or default 1234 or STT)
-    if (inputPin === storedPin || inputPin === '1234' || inputPin === defaultSttPin || inputPin === String(student.id)) {
-      const meta = resolveOfficerMeta(student);
-      const u = {
-        ...student,
-        ...meta,
-      };
-      setUser(u);
-      persistSession(u);
+    if (isCorrect) {
+      setUser(st);
+      persistSession(st);
       setLoginError('');
       return true;
     }
 
-    setLoginError(`Mã PIN không chính xác. Vui lòng thử lại hoặc báo Cô GVCN khôi phục mã PIN.`);
+    setLoginError('Mã PIN không chính xác! Vui lòng thử lại hoặc gửi yêu cầu Cô GVCN khôi phục.');
     return false;
   }, []);
 
-  // Student Change PIN
-  const changeStudentPin = useCallback((studentId, newPin) => {
+  // ── PIN Management Functions ────────────────────────────────────────
+  const changeStudentPin = (studentId, newPin) => {
     let pinMap = {};
-    try { pinMap = JSON.parse(localStorage.getItem('qlcn_student_pins') || '{}'); } catch {}
+    try {
+      pinMap = JSON.parse(localStorage.getItem('qlcn_student_pins') || '{}');
+    } catch {}
     pinMap[studentId] = newPin;
     localStorage.setItem('qlcn_student_pins', JSON.stringify(pinMap));
-  }, []);
+  };
 
-  // GVCN Reset Student PIN to Default '1234'
-  const resetStudentPin = useCallback((studentId) => {
+  const resetStudentPin = (studentId) => {
     let pinMap = {};
-    try { pinMap = JSON.parse(localStorage.getItem('qlcn_student_pins') || '{}'); } catch {}
-    pinMap[studentId] = '1234';
+    try {
+      pinMap = JSON.parse(localStorage.getItem('qlcn_student_pins') || '{}');
+    } catch {}
+    delete pinMap[studentId];
     localStorage.setItem('qlcn_student_pins', JSON.stringify(pinMap));
-  }, []);
+  };
+
+  // ── PIN Reset Requests (Student -> Teacher) ─────────────────────────
+  const requestPinReset = (studentId, studentName) => {
+    let requests = [];
+    try {
+      requests = JSON.parse(localStorage.getItem('qlcn_pin_reset_requests') || '[]');
+    } catch {}
+
+    // Check duplicate
+    if (!requests.some(r => String(r.studentId) === String(studentId))) {
+      requests.push({
+        id: Date.now(),
+        studentId,
+        studentName,
+        requestedAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
+      });
+      localStorage.setItem('qlcn_pin_reset_requests', JSON.stringify(requests));
+    }
+  };
+
+  const getPinResetRequests = () => {
+    try {
+      return JSON.parse(localStorage.getItem('qlcn_pin_reset_requests') || '[]');
+    } catch {
+      return [];
+    }
+  };
+
+  const approvePinReset = (studentId) => {
+    resetStudentPin(studentId);
+    let requests = getPinResetRequests();
+    requests = requests.filter(r => String(r.studentId) !== String(studentId));
+    localStorage.setItem('qlcn_pin_reset_requests', JSON.stringify(requests));
+  };
 
   const logout = useCallback(() => {
     setUser(null);
-    persistSession(null, null);
     setLoginError('');
+    persistSession(null);
   }, []);
 
-  // ── Permissions ─────────────────────────────────────────────────────────
-  const isTeacher     = user?.role === 'teacher';
-  const isGroupLeader = user?.role === 'group_leader' || (user?.position && user.position.toLowerCase().includes('tổ trưởng'));
-  const isMonitor     = user?.role === 'monitor' || (user?.position && (user.position.toLowerCase().includes('lớp trưởng') || user.position.toLowerCase().includes('lớp phó')));
-  const isDormLeader  = !!user?.isDormLeader || (user?.position && user.position.toLowerCase().includes('trưởng phòng'));
-  const isStudent     = !isTeacher;
-
-  const canApproveCompetition = isGroupLeader || isMonitor || isTeacher;
-  const canMarkAttendance      = isGroupLeader || isMonitor || isDormLeader || isTeacher; // Officers & Teacher can mark
-  const canManageAnnouncements = isTeacher;
-  const canViewOthers          = isTeacher || isGroupLeader || isMonitor || isDormLeader;
-
-  const value = {
-    user,
-    isTeacher, isStudent, isGroupLeader, isMonitor, isDormLeader,
-    canApproveCompetition, canMarkAttendance, canManageAnnouncements, canViewOthers,
-    loginTeacher, loginGoogleTeacher, loginStudent, changeStudentPin, resetStudentPin, logout,
-    loginError, setLoginError,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{
+      user,
+      isTeacher: user?.role === 'teacher',
+      isMonitor: user?.role === 'monitor',
+      isGroupLeader: user?.role === 'group_leader',
+      isStudent: !!user && user.role !== 'teacher',
+      loginTeacher,
+      loginStudent,
+      changeTeacherPassword,
+      changeStudentPin,
+      resetStudentPin,
+      requestPinReset,
+      getPinResetRequests,
+      approvePinReset,
+      logout,
+      loginError,
+      setLoginError
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

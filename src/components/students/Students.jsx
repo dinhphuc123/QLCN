@@ -319,7 +319,13 @@ function AddStudentModal({ onClose, onSave }) {
 }
 
 export default function Students({ students, attendance, onRefresh, handleExcelUpload }) {
-  const { isTeacher } = useAuth();
+  const { isTeacher, getPinResetRequests, approvePinReset } = useAuth();
+  const resetRequests = getPinResetRequests();
+
+  const handleApprovePinReset = (req) => {
+    approvePinReset(req.studentId);
+    toast.success(`✅ Đã reset mã PIN của học sinh "${req.studentName}" về mặc định 1234!`);
+  };
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState([]);
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -397,7 +403,29 @@ export default function Students({ students, attendance, onRefresh, handleExcelU
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       
-      {/* Top Banner / Summary */}
+      {/* PIN Reset Requests Banner (Teacher Only) */}
+      {isTeacher && resetRequests.length > 0 && (
+        <div style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: '1rem', padding: '1rem 1.25rem' }}>
+          <div style={{ fontWeight: 800, color: '#dc2626', fontSize: '0.9rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            📩 Yêu Cầu Khôi Phục Mã PIN Tới Cô GVCN ({resetRequests.length} học sinh)
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+            {resetRequests.map(req => (
+              <div key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '0.5rem 0.85rem', borderRadius: '0.65rem', border: '1px solid #fecaca' }}>
+                <span style={{ fontSize: '0.82rem', color: '#1e293b', fontWeight: 700 }}>
+                  👨‍🎓 Học sinh: <strong>{req.studentName}</strong> (Gửi lúc {req.requestedAt})
+                </span>
+                <button
+                  onClick={() => handleApprovePinReset(req)}
+                  style={{ background: '#16a34a', color: 'white', border: 'none', padding: '0.35rem 0.85rem', borderRadius: '0.55rem', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer' }}
+                >
+                  ✅ Đồng ý Reset Về 1234
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="glass-panel" style={{ padding: '1.5rem 2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>

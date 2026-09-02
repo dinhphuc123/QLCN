@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { INITIAL_STUDENTS } from '../../data/initialStudents';
 import { useClassSettings } from '../../context/ClassSettingsContext';
 
 const PORTALS = [
-  { id: 'teacher', label: 'Cổng GVCN',     icon: '👑', color: '#7c3aed', bg: 'linear-gradient(135deg,#7c3aed,#6d28d9)', desc: 'Xác thực Google hoặc Mật khẩu GVCN' },
+  { id: 'teacher', label: 'Cổng GVCN',     icon: '👑', color: '#7c3aed', bg: 'linear-gradient(135deg,#7c3aed,#6d28d9)', desc: 'Xác thực Mật khẩu GVCN Nội Bổ' },
   { id: 'officer', label: 'Cán Bộ Lớp',    icon: '⭐', color: '#0369a1', bg: 'linear-gradient(135deg,#0284c7,#0369a1)', desc: 'Tên đăng nhập & Mã PIN' },
   { id: 'student', label: 'Học Sinh',       icon: '🎓', color: '#d97706', bg: 'linear-gradient(135deg,#d97706,#b45309)', desc: 'Tên đăng nhập & Mã PIN' },
 ];
 
 export default function LoginGate() {
-  const { loginTeacher, loginGoogleTeacher, loginStudent, loginError, setLoginError } = useAuth();
+  const { loginTeacher, loginStudent, requestPinReset, loginError, setLoginError } = useAuth();
   const { settings } = useClassSettings();
 
   const [portal, setPortal] = useState('teacher');
@@ -20,11 +21,6 @@ export default function LoginGate() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  // Google Modal State
-  const [showGoogleModal, setShowGoogleModal] = useState(false);
-  const [googleEmail, setGoogleEmail] = useState('');
-  const [googlePassword, setGooglePassword] = useState('');
 
   const officers = INITIAL_STUDENTS.filter(s => {
     const pos = (s.position || '').toLowerCase();
@@ -61,24 +57,6 @@ export default function LoginGate() {
     setLoading(false);
   };
 
-  const handleGoogleSubmit = async (e) => {
-    e.preventDefault();
-    if (!googleEmail.trim()) {
-      setLoginError('Vui lòng nhập Email Google GVCN.');
-      return;
-    }
-    if (!googlePassword.trim()) {
-      setLoginError('Vui lòng nhập mật khẩu xác thực Google.');
-      return;
-    }
-    setLoading(true);
-    const success = await loginGoogleTeacher(googleEmail, googlePassword);
-    setLoading(false);
-    if (success) {
-      setShowGoogleModal(false);
-    }
-  };
-
   const handleStudentSubmit = async (e) => {
     e.preventDefault();
     if (!studentPass.trim()) {
@@ -88,6 +66,14 @@ export default function LoginGate() {
     setLoading(true);
     await loginStudent(selectedStudentId, studentPass);
     setLoading(false);
+  };
+
+  const handleRequestPinReset = () => {
+    const st = INITIAL_STUDENTS.find(s => String(s.id) === String(selectedStudentId));
+    if (st) {
+      requestPinReset(st.id, st.name);
+      toast.success(`📩 Đã gửi yêu cầu khôi phục PIN của học sinh "${st.name}" tới Cô GVCN!`);
+    }
   };
 
   return (
@@ -270,29 +256,6 @@ export default function LoginGate() {
           color: #374151;
           margin-bottom: 0.4rem;
         }
-        .google-btn {
-          width: 100%;
-          padding: 0.75rem 1rem;
-          border-radius: 0.75rem;
-          border: 1.5px solid #cbd5e1;
-          background: white;
-          color: #1e293b;
-          font-weight: 800;
-          font-size: 0.88rem;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.6rem;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-          transition: all 0.2s ease;
-        }
-        .google-btn:hover {
-          background: #f8fafc;
-          border-color: #4285f4;
-          color: #1a73e8;
-          transform: translateY(-1px);
-        }
         @media (max-width: 480px) {
           .lg-card {
             padding: 1.4rem 1rem;
@@ -344,54 +307,30 @@ export default function LoginGate() {
         {/* Error */}
         {loginError && <div className="lg-error">⚠️ {loginError}</div>}
 
-        {/* Portal 1: GVCN Login (Google / Password) */}
+        {/* Portal 1: GVCN Password Login */}
         {portal === 'teacher' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            
-            {/* Google Login Official Button */}
+          <form onSubmit={handleTeacherSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
             <div>
-              <button onClick={() => { setShowGoogleModal(true); setLoginError(''); }} className="google-btn" type="button">
-                <svg width="18" height="18" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                </svg>
-                🌐 Đăng Nhập Trực Tiếp Bằng Google GVCN
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }} />
-              <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 700 }}>hoặc nhập mật khẩu nội bộ</span>
-              <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }} />
-            </div>
-
-            {/* Password Login Form */}
-            <form onSubmit={handleTeacherSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              <div>
-                <label className="lg-label" htmlFor="teacher-pass">Mật khẩu GVCN Nội Bộ</label>
-                <div className="pass-field">
-                  <input
-                    id="teacher-pass"
-                    type={showPass ? 'text' : 'password'}
-                    placeholder="Nhập mật khẩu GVCN..."
-                    value={teacherPass}
-                    onChange={e => setTeacherPass(e.target.value)}
-                    autoComplete="current-password"
-                  />
-                  <button type="button" className="eye-btn" onClick={() => setShowPass(v => !v)} aria-label="Hiện/ẩn mật khẩu">
-                    {showPass ? '🙈' : '👁️'}
-                  </button>
-                </div>
+              <label className="lg-label" htmlFor="teacher-pass">Mật khẩu GVCN Nội Bộ</label>
+              <div className="pass-field">
+                <input
+                  id="teacher-pass"
+                  type={showPass ? 'text' : 'password'}
+                  placeholder="Nhập mật khẩu GVCN..."
+                  value={teacherPass}
+                  onChange={e => setTeacherPass(e.target.value)}
+                  autoComplete="current-password"
+                />
+                <button type="button" className="eye-btn" onClick={() => setShowPass(v => !v)} aria-label="Hiện/ẩn mật khẩu">
+                  {showPass ? '🙈' : '👁️'}
+                </button>
               </div>
-              <button className="lg-submit" type="submit" disabled={loading}
-                style={{ background: 'linear-gradient(135deg,#7c3aed,#6d28d9)', boxShadow: '0 8px 20px rgba(124,58,237,0.35)' }}>
-                {loading ? '⏳ Đang xác thực...' : '🚀 Đăng Nhập Mật Khẩu GVCN'}
-              </button>
-            </form>
-
-          </div>
+            </div>
+            <button className="lg-submit" type="submit" disabled={loading}
+              style={{ background: 'linear-gradient(135deg,#7c3aed,#6d28d9)', boxShadow: '0 8px 20px rgba(124,58,237,0.35)' }}>
+              {loading ? '⏳ Đang xác thực...' : '🚀 Đăng Nhập Mật Khẩu GVCN'}
+            </button>
+          </form>
         )}
 
         {/* Portal 2 & 3: Officer / Student Login (Name/ID + PIN Code) */}
@@ -446,9 +385,18 @@ export default function LoginGate() {
 
             {/* PIN Code Field */}
             <div>
-              <label className="lg-label" htmlFor="student-pass">
-                2. Nhập Mã PIN bảo mật
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                <label className="lg-label" htmlFor="student-pass" style={{ margin: 0 }}>
+                  2. Nhập Mã PIN bảo mật
+                </label>
+                <button
+                  type="button"
+                  onClick={handleRequestPinReset}
+                  style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  📩 Quên mã PIN?
+                </button>
+              </div>
               <div className="pass-field">
                 <input
                   id="student-pass"
@@ -491,63 +439,6 @@ export default function LoginGate() {
           <span>Sổ Chủ Nhiệm Số</span>
         </div>
       </div>
-
-      {/* Google OAuth Security Verification Modal */}
-      {showGoogleModal && (
-        <div onClick={() => setShowGoogleModal(false)} style={{ position: 'fixed', inset: 0, zIndex: 250, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '1.25rem', padding: '1.75rem', width: '100%', maxWidth: '420px', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <svg width="22" height="22" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                </svg>
-                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#1e293b' }}>
-                  Xác Thực Tài Khoản Google GVCN
-                </h3>
-              </div>
-              <button onClick={() => setShowGoogleModal(false)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '50%', width: '28px', height: '28px', fontWeight: 900, cursor: 'pointer' }}>✕</button>
-            </div>
-
-            <form onSubmit={handleGoogleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              <div>
-                <label className="lg-label">Email Google GVCN</label>
-                <input
-                  type="email"
-                  className="form-input"
-                  style={{ width: '100%', padding: '0.6rem 0.8rem', fontSize: '0.88rem' }}
-                  placeholder="dokimtuyen.thpt@gmail.com"
-                  value={googleEmail}
-                  onChange={e => setGoogleEmail(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="lg-label">Mật Khẩu Xác Thực Google</label>
-                <input
-                  type="password"
-                  className="form-input"
-                  style={{ width: '100%', padding: '0.6rem 0.8rem', fontSize: '0.88rem' }}
-                  placeholder="Nhập mật khẩu tài khoản Google..."
-                  value={googlePassword}
-                  onChange={e => setGooglePassword(e.target.value)}
-                />
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
-                <button type="button" onClick={() => setShowGoogleModal(false)} style={{ padding: '0.55rem 1.2rem', borderRadius: '0.6rem', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem' }}>
-                  Hủy
-                </button>
-                <button type="submit" className="btn-primary" disabled={loading} style={{ padding: '0.55rem 1.4rem', background: '#1a73e8', fontSize: '0.82rem' }}>
-                  {loading ? '⏳ Đang xác thực...' : '🔒 Xác Thực Google & Đăng Nhập'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
     </div>
   );
