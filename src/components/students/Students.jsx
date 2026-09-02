@@ -10,7 +10,7 @@ const DORM_ROOMS = ['A1-07', 'A1-08', 'A1-09', 'A1-10', 'A1-11', 'C08'];
 const GROUPS = ['Tổ 1', 'Tổ 2', 'Tổ 3', 'Tổ 4'];
 
 function StudentDetailModal({ student, onClose, onUpdateNote }) {
-  const { isTeacher } = useAuth();
+  const { isTeacher, resetStudentPin } = useAuth();
   const [note, setNote] = useState(student ? student.note || '' : '');
 
   const handleExportStudentReportPDF = () => {
@@ -183,15 +183,30 @@ function StudentDetailModal({ student, onClose, onUpdateNote }) {
 
         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
           {isTeacher && (
-            <button
-              onClick={handleExportStudentReportPDF}
-              style={{
-                padding: '0.5rem 1rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 700,
-                background: '#0284c7', color: 'white', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem'
-              }}
-            >
-              📄 In Phiếu Họp Phụ Huynh PDF
-            </button>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button
+                onClick={handleExportStudentReportPDF}
+                style={{
+                  padding: '0.5rem 1rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 700,
+                  background: '#0284c7', color: 'white', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem'
+                }}
+              >
+                📄 In Phiếu Họp Phụ Huynh PDF
+              </button>
+              <button
+                onClick={() => {
+                  resetStudentPin(student.id);
+                  toast.success(`✅ Đã reset mã PIN cho em ${student.name} về mặc định 1234!`);
+                }}
+                style={{
+                  padding: '0.5rem 1rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 800,
+                  background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', cursor: 'pointer',
+                  display: 'inline-flex', alignItems: 'center', gap: '0.3rem'
+                }}
+              >
+                🔄 Reset Mã PIN (Về 1234)
+              </button>
+            </div>
           )}
 
           <div style={{ display: 'flex', gap: '0.5rem' }}>

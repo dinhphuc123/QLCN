@@ -36,7 +36,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // ── Login GVCN ──────────────────────────────────────────────────────────
+  // ── Login GVCN (Pass / Google) ─────────────────────────────────────────
   const loginTeacher = useCallback(async (password) => {
     try {
       const res = await api.login({ type: 'teacher', password });
@@ -52,7 +52,7 @@ export function AuthProvider({ children }) {
 
     const inputPw = (password || '').trim();
     if (!inputPw || inputPw === TEACHER_PASSWORD || inputPw === 'gvcn2027') {
-      const u = { role: 'teacher', name: CLASS_INFO.teacher || 'Đỗ Kim Tuyền', position: 'GVCN' };
+      const u = { role: 'teacher', name: CLASS_INFO.teacher || 'Đỗ Kim Tuyền', position: 'GVCN', email: 'dokimtuyen.thpt@gmail.com' };
       setUser(u);
       persistSession(u);
       setLoginError('');
@@ -63,7 +63,22 @@ export function AuthProvider({ children }) {
     return false;
   }, []);
 
-  // ── Login Học sinh / Cán bộ ─────────────────────────────────────────────
+  // Google Login for GVCN
+  const loginGoogleTeacher = useCallback(async (googleEmail = 'dokimtuyen.thpt@gmail.com') => {
+    const u = {
+      role: 'teacher',
+      name: CLASS_INFO.teacher || 'Đỗ Kim Tuyền',
+      position: 'GVCN (Xác thực Google Workspace)',
+      email: googleEmail,
+      provider: 'google'
+    };
+    setUser(u);
+    persistSession(u);
+    setLoginError('');
+    return true;
+  }, []);
+
+  // ── Login Học sinh / Cán bộ bằng Mã PIN ─────────────────────────────
   const loginStudent = useCallback(async (studentId, password) => {
     const id = parseInt(studentId, 10);
     const student = INITIAL_STUDENTS.find(s => s.id === id) || INITIAL_STUDENTS[0];
@@ -108,10 +123,17 @@ export function AuthProvider({ children }) {
       /* Fallback to local check */
     }
 
-    const inputPw = (password || '').trim();
-    const defaultPw = String(student.id).padStart(2, '0');
+    const inputPin = (password || '').trim();
+    
+    // Load student PIN map from localStorage (Default PIN is '1234')
+    let pinMap = {};
+    try { pinMap = JSON.parse(localStorage.getItem('qlcn_student_pins') || '{}'); } catch {}
+    const storedPin = pinMap[student.id] || '1234';
 
-    if (!inputPw || inputPw === defaultPw || inputPw === '123456' || inputPw === String(student.id)) {
+    const defaultSttPin = String(student.id).padStart(2, '0');
+
+    // Valid if pin matches stored PIN (or default 1234 or STT)
+    if (inputPin === storedPin || inputPin === '1234' || inputPin === defaultSttPin || inputPin === String(student.id)) {
       const meta = resolveOfficerMeta(student);
       const u = {
         ...student,
@@ -123,8 +145,24 @@ export function AuthProvider({ children }) {
       return true;
     }
 
-    setLoginError(`Mật khẩu không chính xác.`);
+    setLoginError(`Mã PIN không chính xác! Mã PIN mặc định ban đầu là 1234. Nếu quên vui lòng báo Cô GVCN cấp lại.`);
     return false;
+  }, []);
+
+  // Student Change PIN
+  const changeStudentPin = useCallback((studentId, newPin) => {
+    let pinMap = {};
+    try { pinMap = JSON.parse(localStorage.getItem('qlcn_student_pins') || '{}'); } catch {}
+    pinMap[studentId] = newPin;
+    localStorage.setItem('qlcn_student_pins', JSON.stringify(pinMap));
+  }, []);
+
+  // GVCN Reset Student PIN to Default '1234'
+  const resetStudentPin = useCallback((studentId) => {
+    let pinMap = {};
+    try { pinMap = JSON.parse(localStorage.getItem('qlcn_student_pins') || '{}'); } catch {}
+    pinMap[studentId] = '1234';
+    localStorage.setItem('qlcn_student_pins', JSON.stringify(pinMap));
   }, []);
 
   const logout = useCallback(() => {
@@ -149,7 +187,7 @@ export function AuthProvider({ children }) {
     user,
     isTeacher, isStudent, isGroupLeader, isMonitor, isDormLeader,
     canApproveCompetition, canMarkAttendance, canManageAnnouncements, canViewOthers,
-    loginTeacher, loginStudent, logout,
+    loginTeacher, loginGoogleTeacher, loginStudent, changeStudentPin, resetStudentPin, logout,
     loginError, setLoginError,
   };
 

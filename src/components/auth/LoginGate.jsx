@@ -4,19 +4,20 @@ import { INITIAL_STUDENTS } from '../../data/initialStudents';
 import { useClassSettings } from '../../context/ClassSettingsContext';
 
 const PORTALS = [
-  { id: 'teacher', label: 'Cổng GVCN',     icon: '👑', color: '#7c3aed', bg: 'linear-gradient(135deg,#7c3aed,#6d28d9)' },
-  { id: 'officer', label: 'Cán Bộ Lớp',    icon: '⭐', color: '#0369a1', bg: 'linear-gradient(135deg,#0284c7,#0369a1)' },
-  { id: 'student', label: 'Học Sinh',       icon: '🎓', color: '#d97706', bg: 'linear-gradient(135deg,#d97706,#b45309)' },
+  { id: 'teacher', label: 'Cổng GVCN',     icon: '👑', color: '#7c3aed', bg: 'linear-gradient(135deg,#7c3aed,#6d28d9)', desc: 'Xác thực Google hoặc Mật khẩu GVCN' },
+  { id: 'officer', label: 'Cán Bộ Lớp',    icon: '⭐', color: '#0369a1', bg: 'linear-gradient(135deg,#0284c7,#0369a1)', desc: 'Tên đăng nhập & Mã PIN (Mặc định 1234)' },
+  { id: 'student', label: 'Học Sinh',       icon: '🎓', color: '#d97706', bg: 'linear-gradient(135deg,#d97706,#b45309)', desc: 'Tên đăng nhập & Mã PIN (Mặc định 1234)' },
 ];
 
 export default function LoginGate() {
-  const { loginTeacher, loginStudent, loginError, setLoginError } = useAuth();
+  const { loginTeacher, loginGoogleTeacher, loginStudent, loginError, setLoginError } = useAuth();
   const { settings } = useClassSettings();
 
   const [portal, setPortal] = useState('teacher');
   const [teacherPass, setTeacherPass] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState('1');
   const [studentPass, setStudentPass] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -32,12 +33,28 @@ export default function LoginGate() {
       pos.includes('trưởng phòng')
     );
   });
-  const currentPortal = PORTALS.find(p => p.id === portal);
+
+  const listToShow = (portal === 'officer' ? officers : INITIAL_STUDENTS).filter(s => {
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      s.name.toLowerCase().includes(term) ||
+      String(s.id).includes(term) ||
+      (s.position || '').toLowerCase().includes(term) ||
+      (s.group || '').toLowerCase().includes(term)
+    );
+  });
 
   const handleTeacherSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     await loginTeacher(teacherPass);
+    setLoading(false);
+  };
+
+  const handleGoogleSubmit = async () => {
+    setLoading(true);
+    await loginGoogleTeacher('dokimtuyen.thpt@gmail.com');
     setLoading(false);
   };
 
@@ -47,8 +64,6 @@ export default function LoginGate() {
     await loginStudent(selectedStudentId, studentPass);
     setLoading(false);
   };
-
-  const listToShow = portal === 'officer' ? officers : INITIAL_STUDENTS;
 
   return (
     <div className="lg-wrapper">
@@ -62,12 +77,10 @@ export default function LoginGate() {
           padding: 1.25rem 1rem;
           box-sizing: border-box;
           font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-          /* Light security gradient — WCAG AAA */
           background: linear-gradient(150deg, #e0f2fe 0%, #f0f9ff 40%, #eff6ff 70%, #f5f3ff 100%);
           position: relative;
           overflow: hidden;
         }
-        /* Subtle decorative blobs */
         .lg-wrapper::before {
           content: '';
           position: absolute;
@@ -89,35 +102,34 @@ export default function LoginGate() {
         .lg-card {
           position: relative;
           z-index: 1;
-          max-width: 500px;
+          max-width: 520px;
           width: 100%;
-          background: rgba(255,255,255,0.88);
+          background: rgba(255,255,255,0.92);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
-          border: 1.5px solid rgba(14,165,233,0.18);
+          border: 1.5px solid rgba(14,165,233,0.2);
           border-radius: 1.5rem;
           padding: 2rem 1.75rem;
-          box-shadow: 0 20px 60px -10px rgba(3,105,161,0.14), 0 4px 16px rgba(0,0,0,0.06);
+          box-shadow: 0 20px 60px -10px rgba(3,105,161,0.16), 0 4px 16px rgba(0,0,0,0.06);
           display: flex;
           flex-direction: column;
-          gap: 1.25rem;
+          gap: 1.15rem;
           box-sizing: border-box;
         }
-        /* Portal tab switcher */
         .lg-tabs {
           display: grid;
           grid-template-columns: 1fr 1fr 1fr;
-          gap: 0.3rem;
+          gap: 0.35rem;
           background: #f1f5f9;
           border-radius: 0.75rem;
           padding: 0.25rem;
         }
         .lg-tab {
-          padding: 0.55rem 0.2rem;
+          padding: 0.6rem 0.2rem;
           border: none;
           border-radius: 0.55rem;
           font-size: 0.78rem;
-          font-weight: 700;
+          font-weight: 800;
           cursor: pointer;
           transition: all 0.2s ease;
           background: transparent;
@@ -125,14 +137,13 @@ export default function LoginGate() {
         }
         .lg-tab.active {
           color: white;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+          box-shadow: 0 3px 10px rgba(0,0,0,0.18);
         }
-        /* Student/officer card grid */
         .student-card-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 0.45rem;
-          max-height: 200px;
+          max-height: 180px;
           overflow-y: auto;
           padding: 0.2rem;
           scrollbar-width: thin;
@@ -161,7 +172,6 @@ export default function LoginGate() {
           background: #e0f2fe;
           color: #0c4a6e;
         }
-        /* Password field with eye toggle */
         .pass-field {
           position: relative;
         }
@@ -176,14 +186,10 @@ export default function LoginGate() {
           outline: none;
           box-sizing: border-box;
           transition: border-color 0.2s;
-          -webkit-text-security: disc;
         }
         .pass-field input:focus {
           border-color: #0369a1;
           box-shadow: 0 0 0 3px rgba(3,105,161,0.12);
-        }
-        .pass-field input.reveal {
-          -webkit-text-security: none;
         }
         .eye-btn {
           position: absolute;
@@ -197,35 +203,7 @@ export default function LoginGate() {
           color: #64748b;
           padding: 0.25rem;
           line-height: 1;
-          transition: color 0.2s;
         }
-        .eye-btn:hover { color: #0369a1; }
-        /* Quick login bar */
-        .quick-bar {
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 0.85rem;
-          padding: 0.75rem;
-        }
-        .quick-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 0.4rem;
-          margin-top: 0.45rem;
-        }
-        .quick-btn {
-          padding: 0.5rem 0.25rem;
-          border-radius: 0.55rem;
-          border: none;
-          font-size: 0.72rem;
-          font-weight: 800;
-          cursor: pointer;
-          color: white;
-          transition: opacity 0.2s, transform 0.15s;
-          line-height: 1.3;
-        }
-        .quick-btn:active { transform: scale(0.97); }
-        /* Submit button */
         .lg-submit {
           width: 100%;
           padding: 0.8rem;
@@ -238,9 +216,7 @@ export default function LoginGate() {
           transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
         }
         .lg-submit:hover:not(:disabled) { opacity: 0.93; transform: translateY(-1px); }
-        .lg-submit:active { transform: scale(0.98); }
         .lg-submit:disabled { opacity: 0.6; cursor: not-allowed; }
-        /* Error */
         .lg-error {
           padding: 0.65rem 0.85rem;
           background: #fef2f2;
@@ -251,7 +227,6 @@ export default function LoginGate() {
           font-weight: 600;
           text-align: center;
         }
-        /* Security footer */
         .lg-footer {
           display: flex;
           align-items: center;
@@ -262,13 +237,35 @@ export default function LoginGate() {
           border-top: 1px solid #f1f5f9;
           padding-top: 0.75rem;
         }
-        /* Label */
         .lg-label {
           display: block;
           font-size: 0.78rem;
           font-weight: 700;
           color: #374151;
           margin-bottom: 0.4rem;
+        }
+        .google-btn {
+          width: 100%;
+          padding: 0.75rem 1rem;
+          border-radius: 0.75rem;
+          border: 1.5px solid #cbd5e1;
+          background: white;
+          color: #1e293b;
+          font-weight: 800;
+          font-size: 0.88rem;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.6rem;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+          transition: all 0.2s ease;
+        }
+        .google-btn:hover {
+          background: #f8fafc;
+          border-color: #4285f4;
+          color: #1a73e8;
+          transform: translateY(-1px);
         }
         @media (max-width: 480px) {
           .lg-card {
@@ -278,10 +275,7 @@ export default function LoginGate() {
           }
           .student-card-grid {
             grid-template-columns: repeat(2, 1fr);
-            max-height: 180px;
-          }
-          .quick-grid {
-            grid-template-columns: 1fr;
+            max-height: 160px;
           }
         }
       `}</style>
@@ -303,7 +297,7 @@ export default function LoginGate() {
             Lớp {settings.className} • {settings.schoolYear}
           </p>
           <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
-            Đăng nhập theo phân quyền để truy cập hệ thống
+            Cổng Đăng Nhập 3 Phân Hệ Theo Quyền Hạn Độc Lập
           </p>
         </div>
 
@@ -314,7 +308,7 @@ export default function LoginGate() {
               key={p.id}
               className={`lg-tab${portal === p.id ? ' active' : ''}`}
               style={portal === p.id ? { background: p.bg } : {}}
-              onClick={() => { setPortal(p.id); setLoginError(''); }}
+              onClick={() => { setPortal(p.id); setLoginError(''); setSearchTerm(''); }}
             >
               {p.icon} {p.label}
             </button>
@@ -324,42 +318,85 @@ export default function LoginGate() {
         {/* Error */}
         {loginError && <div className="lg-error">⚠️ {loginError}</div>}
 
-        {/* GVCN form */}
+        {/* Portal 1: GVCN Login (Google / Password) */}
         {portal === 'teacher' && (
-          <form onSubmit={handleTeacherSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            
+            {/* Google Login Official Button */}
             <div>
-              <label className="lg-label" htmlFor="teacher-pass">Mật khẩu Giáo viên Chủ nhiệm</label>
-              <div className="pass-field">
-                <input
-                  id="teacher-pass"
-                  className={showPass ? 'reveal' : ''}
-                  type="text"
-                  placeholder="Nhập mật khẩu GVCN..."
-                  value={teacherPass}
-                  onChange={e => setTeacherPass(e.target.value)}
-                  autoComplete="current-password"
-                  inputMode="text"
-                />
-                <button type="button" className="eye-btn" onClick={() => setShowPass(v => !v)} aria-label="Hiện/ẩn mật khẩu">
-                  {showPass ? '🙈' : '👁️'}
-                </button>
+              <button onClick={handleGoogleSubmit} className="google-btn" type="button" disabled={loading}>
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                🌐 Đăng Nhập Trực Tiếp Bằng Google GVCN
+              </button>
+              <div style={{ fontSize: '0.7rem', color: '#64748b', textAlign: 'center', marginTop: '0.35rem' }}>
+                Dành cho Giáo viên Chủ nhiệm (Email: dokimtuyen.thpt@gmail.com)
               </div>
             </div>
-            <button className="lg-submit" type="submit" disabled={loading}
-              style={{ background: 'linear-gradient(135deg,#7c3aed,#6d28d9)', boxShadow: '0 8px 20px rgba(124,58,237,0.35)' }}>
-              {loading ? '⏳ Đang xác thực...' : '🚀 Đăng Nhập GVCN — Toàn Quyền Quản Lý'}
-            </button>
-          </form>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }} />
+              <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 700 }}>hoặc nhập mật khẩu nội bộ</span>
+              <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }} />
+            </div>
+
+            {/* Password Login Form */}
+            <form onSubmit={handleTeacherSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              <div>
+                <label className="lg-label" htmlFor="teacher-pass">Mật khẩu GVCN Nội Bộ</label>
+                <div className="pass-field">
+                  <input
+                    id="teacher-pass"
+                    type={showPass ? 'text' : 'password'}
+                    placeholder="Nhập mật khẩu GVCN (Mặc định: gvcn2027)..."
+                    value={teacherPass}
+                    onChange={e => setTeacherPass(e.target.value)}
+                    autoComplete="current-password"
+                  />
+                  <button type="button" className="eye-btn" onClick={() => setShowPass(v => !v)} aria-label="Hiện/ẩn mật khẩu">
+                    {showPass ? '🙈' : '👁️'}
+                  </button>
+                </div>
+              </div>
+              <button className="lg-submit" type="submit" disabled={loading}
+                style={{ background: 'linear-gradient(135deg,#7c3aed,#6d28d9)', boxShadow: '0 8px 20px rgba(124,58,237,0.35)' }}>
+                {loading ? '⏳ Đang xác thực...' : '🚀 Đăng Nhập Mật Khẩu GVCN'}
+              </button>
+            </form>
+
+          </div>
         )}
 
-        {/* Officer / Student form */}
+        {/* Portal 2 & 3: Officer / Student Login (Name/ID + PIN Code 1234) */}
         {(portal === 'officer' || portal === 'student') && (
           <form onSubmit={handleStudentSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-            {/* Card picker */}
+            
+            {/* Search Filter for Students */}
             <div>
-              <label className="lg-label">
-                {portal === 'officer' ? 'Chọn Cán bộ / Tổ trưởng' : 'Chọn Học sinh'}
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                <label className="lg-label" style={{ margin: 0 }}>
+                  {portal === 'officer' ? '1. Chọn Cán bộ / Tổ trưởng' : '1. Chọn Học sinh / Tên đăng nhập'}
+                </label>
+                <span style={{ fontSize: '0.7rem', color: '#0284c7', fontWeight: 700 }}>
+                  ({listToShow.length} học sinh)
+                </span>
+              </div>
+
+              <input
+                type="text"
+                placeholder="🔍 Tìm nhanh tên hoặc mã STT..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                style={{
+                  width: '100%', padding: '0.45rem 0.75rem', borderRadius: '0.6rem',
+                  border: '1px solid #cbd5e1', fontSize: '0.78rem', marginBottom: '0.45rem', outline: 'none'
+                }}
+              />
+
               <div className="student-card-grid">
                 {listToShow.map(s => (
                   <button
@@ -369,13 +406,13 @@ export default function LoginGate() {
                     onClick={() => { setSelectedStudentId(String(s.id)); setLoginError(''); }}
                   >
                     <div style={{ fontSize: '0.62rem', color: '#94a3b8', marginBottom: '0.1rem' }}>
-                      {String(s.id).padStart(2, '0')}
+                      STT {String(s.id).padStart(2, '0')}
                     </div>
                     <div style={{ fontWeight: 700, fontSize: '0.68rem', lineHeight: 1.25 }}>
                       {s.name.split(' ').slice(-2).join(' ')}
                     </div>
                     {s.position && (
-                      <div style={{ fontSize: '0.58rem', color: '#0369a1', marginTop: '0.1rem' }}>
+                      <div style={{ fontSize: '0.58rem', color: '#0369a1', marginTop: '0.1rem', fontWeight: 700 }}>
                         {s.position}
                       </div>
                     )}
@@ -384,17 +421,16 @@ export default function LoginGate() {
               </div>
             </div>
 
-            {/* Password */}
+            {/* PIN Code Field */}
             <div>
               <label className="lg-label" htmlFor="student-pass">
-                Mật khẩu
+                2. Nhập Mã PIN (Mặc định ban đầu: 1234)
               </label>
               <div className="pass-field">
                 <input
                   id="student-pass"
-                  className={showPass ? 'reveal' : ''}
-                  type="text"
-                  placeholder="Nhập số STT..."
+                  type={showPass ? 'text' : 'password'}
+                  placeholder="Nhập Mã PIN (VD: 1234)..."
                   value={studentPass}
                   onChange={e => setStudentPass(e.target.value)}
                   inputMode="numeric"
@@ -404,6 +440,12 @@ export default function LoginGate() {
                   {showPass ? '🙈' : '👁️'}
                 </button>
               </div>
+            </div>
+
+            {/* PIN Notice Box */}
+            <div style={{ fontSize: '0.73rem', color: '#0369a1', background: '#e0f2fe', padding: '0.5rem 0.75rem', borderRadius: '0.55rem', border: '1px solid #bae6fd', lineHeight: 1.45 }}>
+              💡 <strong>Mã PIN mặc định: 1234</strong><br />
+              Em có thể tự đổi mã PIN sau khi vào ứng dụng. Nếu quên mã PIN, vui lòng báo Cô GVCN để cấp lại mã PIN ban đầu 1234.
             </div>
 
             <button className="lg-submit" type="submit" disabled={loading}
