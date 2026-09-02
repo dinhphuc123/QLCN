@@ -26,7 +26,9 @@ function ChangeTeacherPasswordModal({ onClose }) {
   const [oldPass, setOldPass] = useState('');
   const [newPass, setNewPass] = useState('');
   const [confirmPass, setConfirmPass] = useState('');
-  const [showPass, setShowPass] = useState(false);
+  const [showOldPass, setShowOldPass] = useState(false);
+  const [showNewPass, setShowNewPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -50,17 +52,17 @@ function ChangeTeacherPasswordModal({ onClose }) {
 
   return (
     <div onClick={onClose} style={{
-      position: 'fixed', inset: 0, zIndex: 300,
+      position: 'fixed', inset: 0, zIndex: 9999,
       background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '1rem', overflowY: 'auto'
+      display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+      padding: '2.5rem 1rem 1.5rem 1rem', overflowY: 'auto'
     }}>
       <div onClick={e => e.stopPropagation()} style={{
         background: 'white', borderRadius: '1.25rem', padding: '1.5rem 1.75rem',
-        width: '100%', maxWidth: '420px', maxHeight: '88vh', overflowY: 'auto',
+        width: '100%', maxWidth: '440px', maxHeight: '85vh', overflowY: 'auto',
         display: 'flex', flexDirection: 'column', gap: '1rem',
-        boxShadow: '0 25px 60px rgba(0,0,0,0.25)', border: '1.5px solid #c084fc',
-        boxSizing: 'border-box'
+        boxShadow: '0 25px 60px rgba(0,0,0,0.3)', border: '1.5px solid #c084fc',
+        boxSizing: 'border-box', margin: 'auto 0'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.65rem' }}>
           <div>
@@ -81,15 +83,15 @@ function ChangeTeacherPasswordModal({ onClose }) {
             </label>
             <div style={{ position: 'relative' }}>
               <input
-                type={showPass ? 'text' : 'password'}
+                type={showOldPass ? 'text' : 'password'}
                 className="form-input"
                 style={{ width: '100%', paddingRight: '2.5rem', fontSize: '0.88rem', boxSizing: 'border-box' }}
                 placeholder="Nhập mật khẩu đang sử dụng..."
                 value={oldPass}
                 onChange={e => setOldPass(e.target.value)}
               />
-              <button type="button" onClick={() => setShowPass(v => !v)} style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}>
-                {showPass ? '🙈' : '👁️'}
+              <button type="button" onClick={() => setShowOldPass(v => !v)} style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}>
+                {showOldPass ? '🙈' : '👁️'}
               </button>
             </div>
           </div>
@@ -98,28 +100,38 @@ function ChangeTeacherPasswordModal({ onClose }) {
             <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: '0.3rem' }}>
               2. Mật khẩu GVCN mới *
             </label>
-            <input
-              type={showPass ? 'text' : 'password'}
-              className="form-input"
-              style={{ width: '100%', fontSize: '0.88rem', boxSizing: 'border-box' }}
-              placeholder="Nhập mật khẩu mới (từ 4 ký tự trở lên)..."
-              value={newPass}
-              onChange={e => setNewPass(e.target.value)}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showNewPass ? 'text' : 'password'}
+                className="form-input"
+                style={{ width: '100%', paddingRight: '2.5rem', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                placeholder="Nhập mật khẩu mới (từ 4 ký tự trở lên)..."
+                value={newPass}
+                onChange={e => setNewPass(e.target.value)}
+              />
+              <button type="button" onClick={() => setShowNewPass(v => !v)} style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}>
+                {showNewPass ? '🙈' : '👁️'}
+              </button>
+            </div>
           </div>
 
           <div>
             <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: '0.3rem' }}>
               3. Xác nhận Mật khẩu GVCN mới *
             </label>
-            <input
-              type={showPass ? 'text' : 'password'}
-              className="form-input"
-              style={{ width: '100%', fontSize: '0.88rem', boxSizing: 'border-box' }}
-              placeholder="Nhập lại mật khẩu mới..."
-              value={confirmPass}
-              onChange={e => setConfirmPass(e.target.value)}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showConfirmPass ? 'text' : 'password'}
+                className="form-input"
+                style={{ width: '100%', paddingRight: '2.5rem', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                placeholder="Nhập lại mật khẩu mới..."
+                value={confirmPass}
+                onChange={e => setConfirmPass(e.target.value)}
+              />
+              <button type="button" onClick={() => setShowConfirmPass(v => !v)} style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}>
+                {showConfirmPass ? '🙈' : '👁️'}
+              </button>
+            </div>
           </div>
 
           <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.3rem' }}>
@@ -166,17 +178,17 @@ function ChangePinModal({ onClose }) {
 
   return (
     <div onClick={onClose} style={{
-      position: 'fixed', inset: 0, zIndex: 300,
+      position: 'fixed', inset: 0, zIndex: 9999,
       background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '1rem', overflowY: 'auto'
+      display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+      padding: '2.5rem 1rem 1.5rem 1rem', overflowY: 'auto'
     }}>
       <div onClick={e => e.stopPropagation()} style={{
         background: 'white', borderRadius: '1.25rem', padding: '1.5rem 1.75rem',
-        width: '100%', maxWidth: '420px', maxHeight: '88vh', overflowY: 'auto',
+        width: '100%', maxWidth: '420px', maxHeight: '85vh', overflowY: 'auto',
         display: 'flex', flexDirection: 'column', gap: '1rem',
         boxShadow: '0 25px 60px rgba(0,0,0,0.25)', border: '1.5px solid #bae6fd',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box', margin: 'auto 0'
       }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.65rem' }}>
