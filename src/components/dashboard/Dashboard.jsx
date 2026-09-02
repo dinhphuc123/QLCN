@@ -77,58 +77,60 @@ export default function Dashboard({ students, attendance, announcements, timetab
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       
-      {/* Birthday Banner if any */}
+      {/* Ultra-Compact Birthday Banner */}
       {birthdayStudents.length > 0 && (
         <div style={{
           background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
-          border: '1.5px solid #f59e0b',
-          borderRadius: '1rem', padding: '1rem 1.5rem',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem'
+          border: '1px solid #f59e0b',
+          borderRadius: '9999px', padding: '0.45rem 1rem',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem',
+          boxShadow: '0 2px 8px rgba(245,158,11,0.12)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ fontSize: '1.8rem' }}>🎂</span>
-            <div>
-              <strong style={{ color: '#92400e', fontSize: '0.95rem' }}>Chúc mừng sinh nhật tháng {currentMonth}!</strong>
-              <div style={{ fontSize: '0.85rem', color: '#78350f' }}>
-                {birthdayStudents.map(s => `${s.name} (${s.dob})`).join(' • ')}
-              </div>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.78rem', color: '#78350f', fontWeight: 700 }}>
+            <span>🎂</span>
+            <span><strong>Sinh nhật T{currentMonth}:</strong> {birthdayStudents.map(s => `${s.name} (${s.dob})`).join(' • ')}</span>
           </div>
-          <span style={{ fontSize: '0.75rem', background: '#f59e0b', color: 'white', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontWeight: 700 }}>
-            🎉 Lớp {settings.className} Đoàn kết
+          <span style={{ fontSize: '0.68rem', background: '#f59e0b', color: 'white', padding: '0.15rem 0.55rem', borderRadius: '9999px', fontWeight: 800 }}>
+            🎉 Lớp {settings.className}
           </span>
         </div>
       )}
 
-      {/* KPI Widgets */}
-      <div className="dashboard-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
-        <div className="glass-panel" style={{ padding: '1.25rem' }}>
-          <div style={{ fontSize: '0.78rem', color: '#6b7280', fontWeight: 600, marginBottom: '0.25rem' }}>Sĩ số lớp {settings.className}</div>
-          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--color-primary-dark)' }}>
-            {students.length} <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#4b5563' }}>({femaleCount} Nữ / {maleCount} Nam)</span>
+      {/* Ultra-Compact KPI Badges (Horizontal Minimalist Strip) */}
+      <div className="dashboard-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.65rem' }}>
+        
+        {/* Badge 1 */}
+        <div className="glass-panel" style={{ padding: '0.55rem 0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '0.75rem', borderLeft: '4px solid #0369a1' }}>
+          <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>👥 Sĩ số {settings.className}</div>
+          <div style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--color-primary-dark)' }}>
+            {students.length} <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>({femaleCount}N/{maleCount}N)</span>
           </div>
         </div>
 
-        <div className="glass-panel" style={{ padding: '1.25rem' }}>
-          <div style={{ fontSize: '0.78rem', color: '#6b7280', fontWeight: 600, marginBottom: '0.25rem' }}>Vắng học hôm nay</div>
-          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: absentToday > 0 ? '#dc2626' : '#16a34a' }}>
-            {absentToday} <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>HS</span>
+        {/* Badge 2 */}
+        <div className="glass-panel" style={{ padding: '0.55rem 0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '0.75rem', borderLeft: `4px solid ${absentToday > 0 ? '#dc2626' : '#16a34a'}` }}>
+          <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>🔴 Vắng hôm nay</div>
+          <div style={{ fontSize: '0.88rem', fontWeight: 800, color: absentToday > 0 ? '#dc2626' : '#16a34a' }}>
+            {absentToday} <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>HS</span>
           </div>
         </div>
 
-        <div className="glass-panel" style={{ padding: '1.25rem' }}>
-          <div style={{ fontSize: '0.78rem', color: '#6b7280', fontWeight: 600, marginBottom: '0.25rem' }}>Nội trú KTX</div>
-          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#2563eb' }}>
-            6 <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Phòng (5 Nữ, 1 Nam)</span>
+        {/* Badge 3 */}
+        <div className="glass-panel" style={{ padding: '0.55rem 0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '0.75rem', borderLeft: '4px solid #0284c7' }}>
+          <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>🏡 Nội trú KTX</div>
+          <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0284c7' }}>
+            6 <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>Phòng</span>
           </div>
         </div>
 
-        <div className="glass-panel" style={{ padding: '1.25rem' }}>
-          <div style={{ fontSize: '0.78rem', color: '#6b7280', fontWeight: 600, marginBottom: '0.25rem' }}>Hoàn cảnh khó khăn</div>
-          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#d97706' }}>
-            {poorCount} <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>HS Cận nghèo</span>
+        {/* Badge 4 */}
+        <div className="glass-panel" style={{ padding: '0.55rem 0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '0.75rem', borderLeft: '4px solid #d97706' }}>
+          <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>💛 Cận nghèo</div>
+          <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#d97706' }}>
+            {poorCount} <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>HS</span>
           </div>
         </div>
+
       </div>
 
       {/* Main Grid: Seating Map + Class Officers + Timetable */}
