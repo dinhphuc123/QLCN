@@ -12,10 +12,9 @@
    - 2.3. Quy trình điểm danh 5 buổi/ngày & Khóa sổ điểm danh
    - 2.4. Quy trình duyệt thi đua 3 cấp (Duyệt tối hậu & Xếp hạng tuần)
    - 2.5. Xếp sơ đồ chỗ ngồi thông minh (4 thuật toán tự động)
-   - 2.6. Trợ lý Sư phạm AI (Google Gemini Flash)
-   - 2.7. Sổ liên lạc điện tử & Xuất báo cáo gửi Phụ huynh
-   - 2.8. Hòm thư tâm sự & Tư vấn tâm lý học sinh xa nhà
-   - 2.9. Quản lý Quỹ lớp & Cấp phát / Đặt lại mã PIN cho học sinh
+   - 2.6. Sổ liên lạc điện tử & Xuất báo cáo gửi Phụ huynh
+   - 2.7. Hòm thư tâm sự & Tư vấn tâm lý học sinh xa nhà
+   - 2.8. Quản lý Quỹ lớp & Cấp phát / Đặt lại mã PIN cho học sinh
 3. [HƯỚNG DẪN DÀNH CHO CÁN BỘ LỚP & TRƯỞNG PHÒNG KTX](#3-hướng-dẫn-dành-cho-cán-bộ-lớp--trưởng-phòng-ktx)
    - 3.1. Đăng nhập Cán bộ lớp
    - 3.2. Tổ trưởng duyệt nề nếp & thi đua tổ viên
@@ -115,18 +114,7 @@ Vào menu **"📊 Tổng Quan"** $\rightarrow$ Khu vực **Sơ đồ lớp học
 
 ---
 
-### 2.6. Trợ lý Sư phạm AI (Google Gemini 2.5 Flash)
-Vào menu **"🤖 Trợ Lý AI"**:
-1. Chọn học sinh cần phân tích (trong danh sách 32 em).
-2. Chọn mẫu nhiệm vụ AI:
-   - 📋 **Báo cáo Họp Phụ Huynh Toàn Diện:** Tự động tổng hợp điểm chuyên cần 5 buổi, nề nếp KTX, kết quả học tập và định hướng ôn thi THPT.
-   - 📱 **Tin nhắn Zalo/SMS Tuần Gửi Cha Mẹ:** Lời nhắn ngắn gọn, ấm áp, cập nhật điểm thi đua tuần và nhắc nhở thời gian tự học.
-3. **Ghi chú thêm của GVCN (Tùy chọn):** Nhập yêu cầu riêng (ví dụ: *"nhắc em chú ý môn Tiếng Anh", "khen ngợi em vừa đạt giải văn nghệ"*).
-4. Bấm **"✨ Bắt Đầu Tổng Hợp Báo Cáo AI"** $\rightarrow$ Sao chép kết quả gửi cho phụ huynh.
-
----
-
-### 2.7. Sổ liên lạc điện tử & Xuất báo cáo gửi Phụ huynh
+### 2.6. Sổ liên lạc điện tử & Xuất báo cáo gửi Phụ huynh
 - Vào menu **"👨‍👩‍👧 Cổng Phụ Huynh"**:
   - Xem Sổ liên lạc điện tử của từng học sinh theo tuần.
   - Bấm **"🖨️ In / Xuất Phiếu Sổ Liên Lạc (PDF)"** để xuất phiếu kết quả tuần theo mẫu chuẩn sư phạm gửi phụ huynh ký tên.
@@ -134,14 +122,14 @@ Vào menu **"🤖 Trợ Lý AI"**:
 
 ---
 
-### 2.8. Hòm thư tâm sự & Tư vấn tâm lý học sinh xa nhà
+### 2.7. Hòm thư tâm sự & Tư vấn tâm lý học sinh xa nhà
 - Vào menu **"🤫 Hòm Thư Tâm Sự"**:
   - Tiếp nhận các tâm tư, khó khăn trong sinh hoạt nội trú hoặc áp lực học tập do học sinh gửi ẩn danh.
   - GVCN có thể trả lời trực tiếp lên hòm thư để giải tỏa thắc mắc và định hướng tâm lý kịp thời mà học sinh không bị lộ danh tính.
 
 ---
 
-### 2.9. Quản lý Quỹ lớp & Cấp phát / Đặt lại mã PIN cho học sinh
+### 2.8. Quản lý Quỹ lớp & Cấp phát / Đặt lại mã PIN cho học sinh
 - **Quỹ lớp:** Vào menu **"💰 Quỹ Lớp"** để theo dõi số dư realtime, thêm khoản thu (tiền quỹ định kỳ, tài trợ) và khoản chi (mua văn phòng phẩm, sinh nhật, thuốc men KTX).
 - **Cấp lại PIN:** Khi học sinh quên mã PIN, GVCN mở file `student_pins_handover.csv` hoặc vào chi tiết học sinh để xem và đặt lại mã PIN mới.
 

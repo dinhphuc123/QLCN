@@ -12,7 +12,6 @@ const TAB_LABELS = {
   notifications: 'Thông báo',
   finance:       'Quỹ lớp',
   evaluation:    'Thi đua',
-  ai_assistant:  'Trợ lý AI',
   parent_portal: 'Sổ Liên Lạc Điện Tử',
   confessions:   'Hòm tâm sự',
   reports:       'Biểu mẫu & Excel',

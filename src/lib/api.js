@@ -45,7 +45,6 @@ export const api = {
   login: (credentials) => request('/api/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
   changePin: (data) => request('/api/auth/change-pin', { method: 'POST', body: JSON.stringify(data) }),
   changeTeacherPassword: (data) => request('/api/auth/change-teacher-password', { method: 'POST', body: JSON.stringify(data) }),
-  generateAi: (data) => request('/api/ai/generate', { method: 'POST', body: JSON.stringify(data) }),
   getAuditLogs: () => request('/api/audit-logs'),
   getData: () => request('/api/data'),
 

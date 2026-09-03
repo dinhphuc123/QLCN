@@ -7,14 +7,13 @@
 [![React](https://img.shields.io/badge/React-19.2-61dafb?logo=react)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-8.2-646cff?logo=vite)](https://vitejs.dev/)
 [![Supabase](https://img.shields.io/badge/Database-Supabase%20PostgreSQL-3ecf8e?logo=supabase)](https://supabase.com/)
-[![Google Gemini AI](https://img.shields.io/badge/AI-Gemini%202.5%20Flash-4285f4?logo=google)](https://aistudio.google.com/)
 [![License](https://img.shields.io/badge/Compliance-Ngh%E1%BB%8B%20%C4%91%E1%BB%8Bnh%2013%2F2023%2FN%C4%90--CP-green)](https://chinhphu.vn)
 
 ---
 
 ## 🌟 Giới thiệu
 
-**Sổ Chủ Nhiệm Số (QLCN)** là nền tảng số hóa hỗ trợ **Giáo viên chủ nhiệm (Cô Đỗ Kim Tuyền)** cùng Ban cán sự lớp quản lý học sinh nội trú 24/7. Hệ thống giải quyết trọn vẹn các bài toán đặc thù của trường nội trú: điểm danh 5 buổi/ngày, chấm thi đua 47 tiêu chí, theo dõi KTX tắt đèn, hướng nghiệp dân tộc thiểu số và cầu nối hòm thư tâm sự học đường.
+**Sổ Chủ Nhiệm Số (QLCN)** là nền tảng số hóa hỗ trợ **Giáo viên chủ nhiệm (Cô Đỗ Kim Tuyền)** cùng Ban cán sự lớp quản lý học sinh nội trú 24/7. Hệ thống giải quyết trọn vẹn các bài toán đặc thù của trường nội trú: điểm danh 5 buổi/ngày, chấm thi đua 47 tiêu chí, theo dõi KTX tắt đèn và cầu nối hòm thư tâm sự học đường.
 
 ---
 
@@ -39,14 +38,10 @@
    - Quy trình duyệt 3 cấp: *Học sinh tự đánh giá $\rightarrow$ Cán sự lớp rà soát $\rightarrow$ GVCN duyệt tối hậu*.
    - Biểu đồ theo dõi tiến độ nề nếp cá nhân qua từng tuần.
 
-4. **🤖 Trợ Lý Sư Phạm AI (Google Gemini 2.5 Flash):**
-   - Tự động phân tích học bạ, điểm thi đua và chuyên cần để soạn **Báo cáo Họp Phụ Huynh**.
-   - Soạn tin nhắn Zalo/SMS ân cần gửi cha mẹ học sinh hàng tuần.
-
-5. **🤫 Hòm Thư Tâm Sự Ẩn Danh (Confessions):**
+4. **🤫 Hòm Thư Tâm Sự Ẩn Danh (Confessions):**
    - Kênh kết nối giải tỏa áp lực tâm lý cho học sinh xa nhà, phát hiện sớm các vấn đề tâm lý học đường.
 
-6. **📋 Sổ Quỹ Lớp Minh Bạch & Xuất Báo Cáo Chuẩn BGH:**
+5. **📋 Sổ Quỹ Lớp Minh Bạch & Xuất Báo Cáo Chuẩn BGH:**
    - Quản lý Thu - Chi quỹ lớp realtime.
    - Xuất Báo cáo sơ kết nề nếp theo thể thức văn bản hành chính Việt Nam.
 
@@ -82,7 +77,6 @@ SUPABASE_URL=https://your-project-id.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 JWT_SECRET=your-secure-random-jwt-secret-key-32-chars
 TEACHER_PASSWORD=your-teacher-password
-GEMINI_API_KEY=your-google-gemini-api-key
 ```
 
 ### 4. Khởi chạy ứng dụng
