@@ -1,0 +1,50 @@
+# Environment and Secrets
+.env
+.env*.local
+.env.*
+!.env.example
+
+# Sensitive Data Files (Decree 13/2023/ND-CP Personal Data Protection)
+*.xlsx
+*.xls
+*.csv
+db_data_*.json
+student_pins_handover.*
+supabase_seed_full.sql
+scripts/backup/
+real_data_backup/
+
+# Large binaries & installers
+*.exe
+*.zip
+*.AppImage
+*.dmg
+*.pkg
+GenOffice*
+eduplan-ai-app/
+
+# Logs & Debug
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies and Build Output
+node_modules/
+dist/
+dist-ssr/
+.vercel
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

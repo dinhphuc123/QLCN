@@ -1,0 +1,308 @@
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --font-sans: "Be Vietnam Pro", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Be Vietnam Pro", Georgia, serif;
+  --color-primary-dark: #1B4D53;
+  --color-primary-brand: #729B12;
+  --color-primary-light: #C5D739;
+  --color-bg-cream: #F4F8D0;
+  --color-bg-soft: #FDFCF0;
+  --color-accent-green: #3A5A40;
+  --color-accent-light: #A3B18A;
+  --glass-bg: rgba(255, 255, 255, 0.45);
+  --glass-border: rgba(197, 215, 57, 0.3);
+  --glass-blur: 12px;
+  --card-bg: #ffffff;
+  --text-main: #1e293b;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.5rem;
+}
+
+[data-theme="dark"] {
+  --color-primary-dark: #67e8f9;
+  --color-primary-brand: #a3e635;
+  --color-bg-soft: #0f172a;
+  --glass-bg: rgba(30, 41, 59, 0.75);
+  --glass-border: rgba(103, 232, 249, 0.2);
+  --card-bg: #1e293b;
+  --text-main: #f8fafc;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg-soft);
+  color: var(--text-main);
+  min-height: 100vh;
+  line-height: 1.6;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+[data-theme="dark"] body {
+  background-image:
+    radial-gradient(at 0% 0%, rgba(15, 23, 42, 0.9) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(30, 41, 59, 0.9) 0px, transparent 50%);
+}
+
+[data-theme="dark"] .glass-panel {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(100, 116, 139, 0.4);
+  color: #f8fafc;
+}
+
+[data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3, [data-theme="dark"] h4 {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .form-input, [data-theme="dark"] select {
+  background-color: #334155 !important;
+  color: #f8fafc !important;
+  border-color: #475569 !important;
+}
+
+[data-theme="dark"] .modal-inner {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+#root { width: 100%; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ── Glassmorphic Card ────────────────────────────────────────────────────── */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 10px 30px -10px rgba(27, 77, 83, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-panel:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -15px rgba(27, 77, 83, 0.15); border-color: rgba(114, 155, 18, 0.4); }
+
+/* ── Typography ──────────────────────────────────────────────────────────── */
+h1, h2, h3, .font-serif { font-family: var(--font-serif); color: var(--color-primary-dark); font-weight: 700; }
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+.btn-primary {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  background-color: var(--color-primary-brand);
+  color: white;
+  border: none;
+  border-radius: 9999px;
+  padding: 0.75rem 2rem;
+  cursor: pointer;
+  box-shadow: 0 4px 14px 0 rgba(114, 155, 18, 0.4);
+  transition: all 0.2s ease-in-out;
+}
+.btn-primary:hover { background-color: var(--color-accent-green); transform: scale(1.03); box-shadow: 0 6px 20px 0 rgba(58, 90, 64, 0.4); }
+.btn-primary:active { transform: scale(0.98); }
+
+/* ── Navigation ──────────────────────────────────────────────────────────── */
+.nav-link {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.75rem 1.25rem; border-radius: 0.75rem;
+  color: var(--color-primary-dark); text-decoration: none;
+  font-weight: 500; transition: all 0.2s ease-in-out;
+  cursor: pointer; border: 1px solid transparent;
+}
+.nav-link:hover { background-color: rgba(197, 215, 57, 0.15); border-color: rgba(197, 215, 57, 0.2); }
+.nav-link.active { background-color: var(--color-bg-cream); color: var(--color-primary-dark); font-weight: 700; border-color: var(--color-primary-light); }
+
+/* ── Seat Grid ───────────────────────────────────────────────────────────── */
+.seat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; }
+.seat-item {
+  background: white; border: 1.5px solid var(--glass-border);
+  border-radius: var(--radius-sm); padding: 0.5rem;
+  text-align: center; cursor: pointer; transition: all 0.2s ease; font-size: 0.85rem;
+}
+.seat-item:hover { transform: scale(1.05); border-color: var(--color-primary-brand); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+
+/* ── Form Inputs ─────────────────────────────────────────────────────────── */
+.form-input {
+  font-family: var(--font-sans);
+  background-color: rgba(244, 248, 208, 0.4);
+  border: 1.5px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem; outline: none;
+  color: var(--color-primary-dark); transition: all 0.2s ease-in-out;
+}
+.form-input:focus { background-color: white; border-color: var(--color-primary-brand); box-shadow: 0 0 0 3px rgba(114, 155, 18, 0.15); }
+
+/* ── App Layout ──────────────────────────────────────────────────────────── */
+.app-container { display: flex; min-height: 100vh; background-color: var(--color-bg-soft); }
+.main-content { flex: 1; min-width: 0; display: flex; flex-direction: column; max-height: 100vh; overflow-y: auto; }
+
+/* ── Mobile Helper Classes ───────────────────────────────────────────────── */
+/* Stack column on mobile */
+.mobile-stack { display: flex; flex-direction: column; gap: 1rem; }
+/* Scroll horizontally on mobile */
+.mobile-scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+/* Card-based 2-col grid for mobile lists */
+.mobile-card-grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
+
+/* ── Mobile Floating Menu Button (legacy, hidden) ────────────────────────── */
+.mobile-menu-btn {
+  display: none;
+  position: fixed; bottom: 1.25rem; right: 1.25rem; z-index: 301;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--color-primary-dark); color: white; border: none;
+  font-size: 1.3rem; cursor: pointer;
+  box-shadow: 0 4px 18px rgba(27,77,83,0.4);
+  align-items: center; justify-content: center; transition: transform 0.2s;
+}
+.mobile-menu-btn:hover { transform: scale(1.05); }
+
+/* ── Responsive Modal Override on Mobile ─────────────────────────────────── */
+@media (max-width: 768px) {
+  .modal-inner {
+    padding: 1.25rem !important;
+    border-radius: 1rem !important;
+    max-height: 88vh !important;
+  }
+}
+
+/* ── MOBILE GLOBAL BREAKPOINT ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Layout */
+  .mobile-menu-btn { display: flex !important; }
+  .sidebar-desktop { display: none !important; }
+  .app-container { flex-direction: column; }
+  .main-content { max-height: unset; overflow-y: unset; }
+  main { padding: 0.75rem !important; padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important; }
+
+  /* Typography */
+  h3 { font-size: 1.1rem !important; }
+
+  /* Glass panel: no hover lift effect on touch */
+  .glass-panel:hover { transform: none; }
+  /* Tighter panel padding on mobile */
+  .glass-panel { border-radius: 1rem !important; }
+
+  /* Buttons: minimum 44px tap target for action buttons */
+  .btn-primary, .action-btn { min-height: 44px; padding: 0.6rem 1.25rem !important; font-size: 0.85rem !important; }
+
+  /* Tables: smaller font on mobile, but still scrollable */
+  table { font-size: 0.8rem; }
+
+  /* 2-column layouts → single column on mobile */
+  .responsive-2col {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 3-column form grids → single column */
+  .responsive-3col {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Card grid: 2 columns on mobile */
+  .mobile-card-grid { grid-template-columns: 1fr 1fr; }
+
+  /* Students: show card grid on mobile, hide table */
+  .mobile-card-grid { display: grid !important; }
+  .hide-mobile { display: none !important; }
+
+  /* Finance / Attendance card lists (transaction-style) */
+  .txn-card {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+    padding: 0.85rem 1rem !important;
+    border-radius: 0.75rem !important;
+    background: white !important;
+    border: 1px solid #f3f4f6 !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04) !important;
+  }
+
+  /* Hide non-essential columns in tables on mobile */
+  .hide-mobile { display: none !important; }
+
+  /* Attendance card: full width */
+  .attendance-card-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 0.6rem !important;
+  }
+
+  /* Evaluation: 1 column stack */
+  .eval-main-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Criteria +/- buttons: 44×44px */
+  .criteria-btn {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 1.1rem !important;
+  }
+
+  /* Dashboard seat map: hide on mobile */
+  .dashboard-seat-section { display: none !important; }
+
+  /* Dashboard KPI: 2×2 grid */
+  .dashboard-kpi-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  /* Tree Branches & Monthly Titles Grid on Mobile */
+  .branches-grid, .titles-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.5rem !important;
+  }
+
+  /* Quick Actions Hero Bar on Mobile (2×2 grid) */
+  .quick-actions-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  /* Header compact */
+  .header-week-badge { display: none !important; }
+  .header-user-full { display: inline-block !important; font-size: 0.68rem !important; padding: 0.2rem 0.5rem !important; }
+}
+
+/* ── CAREER GUIDANCE PORTAL RESPONSIVE GRID ──────────────────────────── */
+.career-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1.55fr);
+  gap: 1.5rem;
+}
+
+.nv-input-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr 90px;
+  gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .career-main-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .nv-input-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── SMALL PHONE (<= 480px) ─────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  h3 { font-size: 1rem !important; }
+  .mobile-card-grid, .branches-grid, .titles-grid { grid-template-columns: 1fr !important; }
+  .quick-actions-grid { grid-template-columns: 1fr 1fr !important; gap: 0.5rem !important; }
+  main { padding: 0.6rem !important; padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important; }
+  .glass-panel { border-radius: 0.75rem !important; }
+}
