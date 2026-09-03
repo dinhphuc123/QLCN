@@ -1,14 +1,16 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 
 export default function ConfirmModal({ isOpen, title, message, onConfirm, onCancel, confirmText = 'Xác nhận', confirmColor = '#dc2626' }) {
   if (!isOpen) return null;
-  return (
+  return createPortal(
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 200,
-      backgroundColor: 'rgba(0,0,0,0.55)',
+      position: 'fixed', inset: 0, zIndex: 999999,
+      backgroundColor: 'rgba(15, 23, 42, 0.65)',
       backdropFilter: 'blur(4px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      animation: 'fadeIn 0.15s ease'
+      animation: 'fadeIn 0.15s ease',
+      padding: '1rem'
     }}>
       <div style={{
         background: 'white', borderRadius: '1.25rem',
@@ -55,6 +57,7 @@ export default function ConfirmModal({ isOpen, title, message, onConfirm, onCanc
         @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
       `}</style>
-    </div>
+    </div>,
+    document.body
   );
 }

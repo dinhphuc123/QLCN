@@ -141,11 +141,51 @@ export function AuthProvider({ children }) {
         type: 'Khôi phục mã PIN',
         reason: `Học sinh ${studentName} (STT ${studentId}) yêu cầu cấp lại mã PIN đăng nhập.`
       });
+    } catch {}
+
+    try {
+      const current = JSON.parse(localStorage.getItem('qlcn_pin_reset_requests') || '[]');
+      const newReq = {
+        id: Date.now(),
+        studentId,
+        studentName,
+        requestedAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
+      };
+      localStorage.setItem('qlcn_pin_reset_requests', JSON.stringify([newReq, ...current.filter(r => r.studentId !== studentId)]));
       return true;
     } catch {
       return false;
     }
   };
+
+  const getPinResetRequests = useCallback(() => {
+    try {
+      return JSON.parse(localStorage.getItem('qlcn_pin_reset_requests') || '[]');
+    } catch {
+      return [];
+    }
+  }, []);
+
+  const approvePinReset = useCallback(async (studentId) => {
+    try {
+      await api.changePin({ studentId, newPin: '1234' });
+    } catch (err) {
+      console.warn('API changePin failed, fallback local:', err.message);
+    }
+    try {
+      const pinMap = JSON.parse(localStorage.getItem('qlcn_student_pins') || '{}');
+      pinMap[studentId] = '1234';
+      localStorage.setItem('qlcn_student_pins', JSON.stringify(pinMap));
+
+      const current = JSON.parse(localStorage.getItem('qlcn_pin_reset_requests') || '[]');
+      const updated = current.filter(r => r.studentId !== studentId);
+      localStorage.setItem('qlcn_pin_reset_requests', JSON.stringify(updated));
+    } catch {}
+  }, []);
+
+  const resetStudentPin = useCallback(async (studentId) => {
+    return approvePinReset(studentId);
+  }, [approvePinReset]);
 
   const isTeacher = user?.role === 'teacher';
   const isGroupLeader = user?.role === 'group_leader';
@@ -164,6 +204,9 @@ export function AuthProvider({ children }) {
       changeTeacherPassword,
       changeStudentPin,
       requestPinReset,
+      getPinResetRequests,
+      approvePinReset,
+      resetStudentPin,
       loginError,
       setLoginError,
       isTeacher,
