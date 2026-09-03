@@ -164,7 +164,9 @@ app.post('/api/auth/login', async (req, res) => {
 
       // Check against environment variables
       if (!isPasswordValid) {
-        if (process.env.TEACHER_PASSWORD_HASH) {
+        if (demoStore.teacherPasswordHash) {
+          isPasswordValid = bcrypt.compareSync(inputPass, demoStore.teacherPasswordHash);
+        } else if (process.env.TEACHER_PASSWORD_HASH) {
           isPasswordValid = bcrypt.compareSync(inputPass, process.env.TEACHER_PASSWORD_HASH);
         } else if (process.env.TEACHER_PASSWORD) {
           isPasswordValid = inputPass === process.env.TEACHER_PASSWORD;
@@ -292,17 +294,42 @@ app.post('/api/auth/change-teacher-password', requireTeacher, async (req, res) =
       return res.status(400).json({ error: 'Mật khẩu mới phải từ 6 ký tự trở lên.' });
     }
 
+    if (supabase) {
+      try {
+        const { data: cfg } = await supabase.from('teacher_config').select('*').eq('id', 1).single();
+        if (cfg && cfg.password_hash) {
+          if (!bcrypt.compareSync(oldPassword, cfg.password_hash)) {
+            return res.status(400).json({ error: 'Mật khẩu GVCN hiện tại không chính xác.' });
+          }
+        } else {
+          const envPass = process.env.TEACHER_PASSWORD;
+          const envHash = process.env.TEACHER_PASSWORD_HASH;
+          let valid = false;
+          if (envHash) valid = bcrypt.compareSync(oldPassword, envHash);
+          else if (envPass) valid = oldPassword === envPass;
+          else valid = oldPassword === 'demo2026' || oldPassword === 'gvcn_demo';
+          if (!valid) {
+            return res.status(400).json({ error: 'Mật khẩu GVCN hiện tại không chính xác.' });
+          }
+        }
+      } catch {}
+    }
+
     const salt = bcrypt.genSaltSync(10);
     const newPasswordHash = bcrypt.hashSync(newPassword, salt);
 
     if (supabase) {
-      await supabase.from('teacher_config').upsert({
+      const { error } = await supabase.from('teacher_config').upsert({
         id: 1,
         password_hash: newPasswordHash,
         updated_at: new Date().toISOString()
       });
+      if (error) {
+        console.warn('teacher_config upsert warning (RLS):', error.message);
+      }
     }
 
+    demoStore.teacherPasswordHash = newPasswordHash;
     addAuditLog(req.user, 'ĐỔI MẬT KHẨU GVCN', 'Tài khoản GVCN');
     return res.json({ success: true, message: 'Đã đổi mật khẩu GVCN thành công!' });
   } catch (err) {

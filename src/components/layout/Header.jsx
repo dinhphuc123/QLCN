@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { useClassSettings } from '../../context/ClassSettingsContext';
@@ -26,11 +27,12 @@ function ChangeTeacherPasswordModal({ onClose }) {
   const [showOldPass, setShowOldPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!newPass.trim() || newPass.length < 4) {
-      toast.error('Mật khẩu mới phải từ 4 ký tự trở lên!');
+    if (!newPass.trim() || newPass.length < 6) {
+      toast.error('Mật khẩu mới phải từ 6 ký tự trở lên!');
       return;
     }
     if (newPass !== confirmPass) {
@@ -38,35 +40,42 @@ function ChangeTeacherPasswordModal({ onClose }) {
       return;
     }
 
-    const res = changeTeacherPassword(oldPass, newPass);
-    if (res.success) {
-      toast.success(res.message);
-      onClose();
-    } else {
-      toast.error(res.message);
+    setLoading(true);
+    try {
+      const res = await changeTeacherPassword(oldPass, newPass);
+      if (res && res.success) {
+        toast.success(res.message || 'Đã cập nhật mật khẩu GVCN thành công!');
+        onClose();
+      } else {
+        toast.error(res?.message || 'Mật khẩu cũ không chính xác!');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Lỗi cập nhật mật khẩu');
+    } finally {
+      setLoading(false);
     }
   };
 
-  return (
+  return createPortal(
     <div onClick={onClose} style={{
-      position: 'fixed', inset: 0, zIndex: 9999,
-      background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)',
-      display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-      padding: '2.5rem 1rem 1.5rem 1rem', overflowY: 'auto'
+      position: 'fixed', inset: 0, zIndex: 999999,
+      background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(6px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: '1rem', overflowY: 'auto'
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        background: 'white', borderRadius: '1.25rem', padding: '1.5rem 1.75rem',
-        width: '100%', maxWidth: '440px', maxHeight: '85vh', overflowY: 'auto',
+        background: 'white', borderRadius: '1.25rem', padding: '1.5rem',
+        width: '100%', maxWidth: '440px', maxHeight: '90vh', overflowY: 'auto',
         display: 'flex', flexDirection: 'column', gap: '1rem',
-        boxShadow: '0 25px 60px rgba(0,0,0,0.3)', border: '1.5px solid #c084fc',
-        boxSizing: 'border-box', margin: 'auto 0'
+        boxShadow: '0 25px 60px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0',
+        boxSizing: 'border-box'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.65rem' }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#581c87', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               🔑 Đổi Mật Khẩu Cô GVCN
             </h3>
-            <div style={{ fontSize: '0.75rem', color: '#7e22ce', fontWeight: 700, marginTop: '0.1rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginTop: '0.1rem' }}>
               Hệ thống Quản trị Sổ Chủ Nhiệm Số 4.0
             </div>
           </div>
@@ -86,6 +95,7 @@ function ChangeTeacherPasswordModal({ onClose }) {
                 placeholder="Nhập mật khẩu đang sử dụng..."
                 value={oldPass}
                 onChange={e => setOldPass(e.target.value)}
+                required
               />
               <button type="button" onClick={() => setShowOldPass(v => !v)} style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}>
                 {showOldPass ? '🙈' : '👁️'}
@@ -102,9 +112,10 @@ function ChangeTeacherPasswordModal({ onClose }) {
                 type={showNewPass ? 'text' : 'password'}
                 className="form-input"
                 style={{ width: '100%', paddingRight: '2.5rem', fontSize: '0.88rem', boxSizing: 'border-box' }}
-                placeholder="Nhập mật khẩu mới (từ 4 ký tự trở lên)..."
+                placeholder="Nhập mật khẩu mới (từ 6 ký tự trở lên)..."
                 value={newPass}
                 onChange={e => setNewPass(e.target.value)}
+                required
               />
               <button type="button" onClick={() => setShowNewPass(v => !v)} style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}>
                 {showNewPass ? '🙈' : '👁️'}
@@ -124,6 +135,7 @@ function ChangeTeacherPasswordModal({ onClose }) {
                 placeholder="Nhập lại mật khẩu mới..."
                 value={confirmPass}
                 onChange={e => setConfirmPass(e.target.value)}
+                required
               />
               <button type="button" onClick={() => setShowConfirmPass(v => !v)} style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}>
                 {showConfirmPass ? '🙈' : '👁️'}
@@ -132,16 +144,17 @@ function ChangeTeacherPasswordModal({ onClose }) {
           </div>
 
           <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.3rem' }}>
-            <button type="button" onClick={onClose} style={{ padding: '0.55rem 1.2rem', borderRadius: '0.6rem', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem' }}>
+            <button type="button" onClick={onClose} style={{ padding: '0.5rem 1.2rem', borderRadius: '0.6rem', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem' }}>
               Hủy
             </button>
-            <button type="submit" className="btn-primary" style={{ padding: '0.55rem 1.4rem', background: '#7c3aed', fontSize: '0.82rem', boxShadow: '0 4px 14px rgba(124,58,237,0.3)' }}>
-              💾 Cập Nhật Mật Khẩu GVCN
+            <button type="submit" disabled={loading} className="btn-primary" style={{ padding: '0.5rem 1.4rem', background: '#2563eb', fontSize: '0.82rem', boxShadow: '0 4px 14px rgba(37,99,235,0.3)', opacity: loading ? 0.7 : 1 }}>
+              {loading ? 'Đang cập nhật...' : '💾 Cập Nhật Mật Khẩu'}
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -153,8 +166,9 @@ function ChangePinModal({ onClose }) {
   const [showOldPass, setShowOldPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newPin.trim() || newPin.length < 4) { toast.error('Mã PIN mới phải từ 4 chữ số trở lên!'); return; }
     if (newPin !== confirmPin) { toast.error('Mã PIN mới không khớp!'); return; }
@@ -168,32 +182,43 @@ function ChangePinModal({ onClose }) {
       return;
     }
 
-    changeStudentPin(user.id, newPin);
-    toast.success(`✅ Đã đổi mã PIN thành công! Hãy ghi nhớ mã PIN mới.`);
-    onClose();
+    setLoading(true);
+    try {
+      const res = await changeStudentPin(user.id, newPin);
+      if (res && res.success) {
+        toast.success('✅ Đã đổi mã PIN thành công! Hãy ghi nhớ mã PIN mới.');
+        onClose();
+      } else {
+        toast.error(res?.message || 'Có lỗi khi cập nhật PIN!');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Lỗi đổi PIN');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return (
+  return createPortal(
     <div onClick={onClose} style={{
-      position: 'fixed', inset: 0, zIndex: 9999,
-      background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)',
-      display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-      padding: '2.5rem 1rem 1.5rem 1rem', overflowY: 'auto'
+      position: 'fixed', inset: 0, zIndex: 999999,
+      background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(6px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: '1rem', overflowY: 'auto'
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        background: 'white', borderRadius: '1.25rem', padding: '1.5rem 1.75rem',
-        width: '100%', maxWidth: '420px', maxHeight: '85vh', overflowY: 'auto',
+        background: 'white', borderRadius: '1.25rem', padding: '1.5rem',
+        width: '100%', maxWidth: '420px', maxHeight: '90vh', overflowY: 'auto',
         display: 'flex', flexDirection: 'column', gap: '1rem',
-        boxShadow: '0 25px 60px rgba(0,0,0,0.25)', border: '1.5px solid #bae6fd',
-        boxSizing: 'border-box', margin: 'auto 0'
+        boxShadow: '0 25px 60px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0',
+        boxSizing: 'border-box'
       }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.65rem' }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0c4a6e', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               🔑 Đổi Mã PIN Cá Nhân
             </h3>
-            <div style={{ fontSize: '0.75rem', color: '#0369a1', fontWeight: 700, marginTop: '0.1rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginTop: '0.1rem' }}>
               Học sinh: {user?.name} (STT {String(user?.id).padStart(2, '0')})
             </div>
           </div>
@@ -236,6 +261,7 @@ function ChangePinModal({ onClose }) {
                 value={newPin}
                 onChange={e => setNewPin(e.target.value)}
                 inputMode="numeric"
+                required
               />
               <button type="button" onClick={() => setShowNewPass(v => !v)} style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}>
                 {showNewPass ? '🙈' : '👁️'}
@@ -257,6 +283,7 @@ function ChangePinModal({ onClose }) {
                 value={confirmPin}
                 onChange={e => setConfirmPin(e.target.value)}
                 inputMode="numeric"
+                required
               />
               <button type="button" onClick={() => setShowConfirmPass(v => !v)} style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}>
                 {showConfirmPass ? '🙈' : '👁️'}
@@ -269,16 +296,17 @@ function ChangePinModal({ onClose }) {
           </div>
 
           <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.3rem' }}>
-            <button type="button" onClick={onClose} style={{ padding: '0.55rem 1.2rem', borderRadius: '0.6rem', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem' }}>
+            <button type="button" onClick={onClose} style={{ padding: '0.5rem 1.2rem', borderRadius: '0.6rem', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem' }}>
               Hủy
             </button>
-            <button type="submit" className="btn-primary" style={{ padding: '0.55rem 1.4rem', background: '#0284c7', fontSize: '0.82rem', boxShadow: '0 4px 14px rgba(2,132,199,0.3)' }}>
-              💾 Lưu Mã PIN Mới
+            <button type="submit" disabled={loading} className="btn-primary" style={{ padding: '0.5rem 1.4rem', background: '#0284c7', fontSize: '0.82rem', boxShadow: '0 4px 14px rgba(2,132,199,0.3)', opacity: loading ? 0.7 : 1 }}>
+              {loading ? 'Đang lưu...' : '💾 Lưu Mã PIN Mới'}
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

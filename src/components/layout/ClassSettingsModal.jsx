@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useClassSettings } from '../../context/ClassSettingsContext';
 import toast from 'react-hot-toast';
 
@@ -17,10 +18,10 @@ export default function ClassSettingsModal({ onClose }) {
     onClose();
   };
 
-  return (
+  return createPortal(
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 220,
-      background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)',
+      position: 'fixed', inset: 0, zIndex: 999999,
+      background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(6px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem'
     }}>
       <div style={{
@@ -92,6 +93,7 @@ export default function ClassSettingsModal({ onClose }) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
