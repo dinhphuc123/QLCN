@@ -61,6 +61,7 @@ export const api = {
 
   // ── Announcements Dynamic API ──────────────────────────────────────────
   createAnnouncement: (ann) => request('/api/announcements', { method: 'POST', body: JSON.stringify(ann) }),
+  syncAnnouncements:   (announcements) => request('/api/announcements/sync', { method: 'POST', body: JSON.stringify({ announcements }) }),
   updateAnnouncement: (id, data) => request(`/api/announcements/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   markRead:           (id)  => request(`/api/announcements/${id}/read`, { method: 'POST' }),
   deleteAnnouncement: (id)  => request(`/api/announcements/${id}`, { method: 'DELETE' }),

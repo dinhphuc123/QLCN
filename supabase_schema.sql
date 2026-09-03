@@ -158,3 +158,60 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
     target VARCHAR(255),
     details TEXT
 );
+
+-- ==============================================================================
+-- CẤU HÌNH BẢO MẬT ROW LEVEL SECURITY (RLS) POLICIES
+-- Cho phép truy cập đồng bộ hai chiều an toàn giữa Web Máy Tính và Điện Thoại
+-- ==============================================================================
+ALTER TABLE IF EXISTS public.announcements ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all access to announcements" ON public.announcements;
+CREATE POLICY "Allow all access to announcements" ON public.announcements FOR ALL TO public, anon, authenticated, service_role USING (true) WITH CHECK (true);
+
+ALTER TABLE IF EXISTS public.leave_requests ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all access to leave_requests" ON public.leave_requests;
+CREATE POLICY "Allow all access to leave_requests" ON public.leave_requests FOR ALL TO public, anon, authenticated, service_role USING (true) WITH CHECK (true);
+
+ALTER TABLE IF EXISTS public.home_requests ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all access to home_requests" ON public.home_requests;
+CREATE POLICY "Allow all access to home_requests" ON public.home_requests FOR ALL TO public, anon, authenticated, service_role USING (true) WITH CHECK (true);
+
+ALTER TABLE IF EXISTS public.confessions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all access to confessions" ON public.confessions;
+CREATE POLICY "Allow all access to confessions" ON public.confessions FOR ALL TO public, anon, authenticated, service_role USING (true) WITH CHECK (true);
+
+ALTER TABLE IF EXISTS public.finance ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all access to finance" ON public.finance;
+CREATE POLICY "Allow all access to finance" ON public.finance FOR ALL TO public, anon, authenticated, service_role USING (true) WITH CHECK (true);
+
+ALTER TABLE IF EXISTS public.attendance ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all access to attendance" ON public.attendance;
+CREATE POLICY "Allow all access to attendance" ON public.attendance FOR ALL TO public, anon, authenticated, service_role USING (true) WITH CHECK (true);
+
+ALTER TABLE IF EXISTS public.dorm_attendance ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all access to dorm_attendance" ON public.dorm_attendance;
+CREATE POLICY "Allow all access to dorm_attendance" ON public.dorm_attendance FOR ALL TO public, anon, authenticated, service_role USING (true) WITH CHECK (true);
+
+ALTER TABLE IF EXISTS public.competition_records ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all access to competition_records" ON public.competition_records;
+CREATE POLICY "Allow all access to competition_records" ON public.competition_records FOR ALL TO public, anon, authenticated, service_role USING (true) WITH CHECK (true);
+
+ALTER TABLE IF EXISTS public.students ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all access to students" ON public.students;
+CREATE POLICY "Allow all access to students" ON public.students FOR ALL TO public, anon, authenticated, service_role USING (true) WITH CHECK (true);
+
+ALTER TABLE IF EXISTS public.teacher_config ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all access to teacher_config" ON public.teacher_config;
+CREATE POLICY "Allow all access to teacher_config" ON public.teacher_config FOR ALL TO public, anon, authenticated, service_role USING (true) WITH CHECK (true);
+
+ALTER TABLE IF EXISTS public.timetable ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all access to timetable" ON public.timetable;
+CREATE POLICY "Allow all access to timetable" ON public.timetable FOR ALL TO public, anon, authenticated, service_role USING (true) WITH CHECK (true);
+
+ALTER TABLE IF EXISTS public.class_map ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all access to class_map" ON public.class_map;
+CREATE POLICY "Allow all access to class_map" ON public.class_map FOR ALL TO public, anon, authenticated, service_role USING (true) WITH CHECK (true);
+
+ALTER TABLE IF EXISTS public.audit_logs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all access to audit_logs" ON public.audit_logs;
+CREATE POLICY "Allow all access to audit_logs" ON public.audit_logs FOR ALL TO public, anon, authenticated, service_role USING (true) WITH CHECK (true);
+

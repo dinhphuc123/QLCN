@@ -104,11 +104,20 @@ export default function App() {
 
       const serverAnn = Array.isArray(result.announcements) ? result.announcements : [];
       const mergedAnn = [...serverAnn];
+      const unsyncedAnns = [];
       localAnn.forEach(la => {
         if (!mergedAnn.some(a => String(a.id) === String(la.id))) {
           mergedAnn.unshift(la);
+          unsyncedAnns.push(la);
         }
       });
+
+      // Auto-sync unsynced local announcements to Cloud when teacher is active
+      if (unsyncedAnns.length > 0 && isTeacher) {
+        api.syncAnnouncements(unsyncedAnns).catch(err => {
+          console.warn('Auto-sync announcements to cloud failed:', err.message);
+        });
+      }
 
       const serverReqs = Array.isArray(result.leaveRequests) ? result.leaveRequests : [];
       const mergedReqs = [...serverReqs];

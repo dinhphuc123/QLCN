@@ -170,12 +170,13 @@ export default function Notifications({ announcements = [], students = [], onRef
     } catch {}
 
     try {
-      await api.createAnnouncement(body);
+      await api.createAnnouncement(newAnn);
+      toast.success('Thông báo đã được đăng và lưu lên Cloud thành công!');
     } catch (err) {
       console.warn('API sync failover (saved locally):', err.message);
+      toast.warning(`Đã lưu trên máy. Đang chờ kết nối Cloud: ${err.message}`);
     }
 
-    toast.success('Thông báo đã được đăng thành công!');
     setShowModal(false);
     onRefresh();
   };

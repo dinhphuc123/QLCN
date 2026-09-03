@@ -626,7 +626,8 @@ app.post('/api/requests', async (req, res) => {
     };
 
     if (supabase) {
-      await supabase.from('leave_requests').insert(newReq);
+      const { error } = await supabase.from('leave_requests').insert(newReq);
+      if (error) throw error;
     } else {
       demoStore.leaveRequests.unshift(newReq);
     }
@@ -643,7 +644,8 @@ app.put('/api/requests/:id', requireTeacher, async (req, res) => {
     const id = req.params.id;
     const { status } = req.body;
     if (supabase) {
-      await supabase.from('leave_requests').update({ status }).eq('id', id);
+      const { error } = await supabase.from('leave_requests').update({ status }).eq('id', id);
+      if (error) throw error;
     } else {
       const item = demoStore.leaveRequests.find(r => String(r.id) === String(id));
       if (item) item.status = status;
@@ -670,7 +672,8 @@ app.post('/api/home-requests', async (req, res) => {
     };
 
     if (supabase) {
-      await supabase.from('home_requests').insert(newReq);
+      const { error } = await supabase.from('home_requests').insert(newReq);
+      if (error) throw error;
     } else {
       demoStore.homeRequests.unshift(newReq);
     }
@@ -704,24 +707,63 @@ app.post('/api/announcements', requireTeacher, async (req, res) => {
   try {
     const ann = req.body;
     const newAnn = {
-      id: Date.now(),
+      id: ann.id || Date.now(),
       title: ann.title,
       content: ann.content,
       tag: ann.tag || 'Chung',
-      date: new Date().toLocaleDateString('vi-VN'),
+      date: ann.date || new Date().toLocaleDateString('vi-VN'),
       attachment: ann.attachment || null,
-      read_by: [],
-      created_at: new Date().toISOString()
+      read_by: Array.isArray(ann.readBy) ? ann.readBy : (Array.isArray(ann.read_by) ? ann.read_by : []),
+      created_at: ann.createdAt || new Date().toISOString()
     };
 
     if (supabase) {
-      await supabase.from('announcements').insert(newAnn);
+      const { error } = await supabase.from('announcements').insert(newAnn);
+      if (error) {
+        console.error('⚠️ Supabase error inserting announcement:', error.message);
+        throw error;
+      }
     } else {
       demoStore.announcements.unshift(newAnn);
     }
 
     addAuditLog(req.user, 'ĐĂNG THÔNG BÁO', ann.title);
     return res.json({ success: true, announcement: newAnn });
+  } catch (err) {
+    console.error('Lỗi đăng thông báo:', err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Bulk sync announcements from local to Supabase
+app.post('/api/announcements/sync', requireTeacher, async (req, res) => {
+  try {
+    const { announcements } = req.body;
+    if (!Array.isArray(announcements) || announcements.length === 0) {
+      return res.json({ success: true, synced: 0 });
+    }
+
+    if (supabase) {
+      const rows = announcements.map(a => ({
+        id: a.id || Date.now(),
+        title: a.title,
+        content: a.content,
+        tag: a.tag || 'Chung',
+        date: a.date || new Date().toLocaleDateString('vi-VN'),
+        attachment: a.attachment || null,
+        read_by: Array.isArray(a.readBy) ? a.readBy : (Array.isArray(a.read_by) ? a.read_by : []),
+        created_at: a.createdAt || a.created_at || new Date().toISOString()
+      }));
+
+      const { error } = await supabase.from('announcements').upsert(rows, { onConflict: 'id' });
+      if (error) {
+        console.error('⚠️ Supabase error bulk syncing announcements:', error.message);
+        throw error;
+      }
+      return res.json({ success: true, synced: rows.length });
+    }
+
+    return res.json({ success: true, synced: announcements.length });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
   }
@@ -731,7 +773,8 @@ app.delete('/api/announcements/:id', requireTeacher, async (req, res) => {
   try {
     const id = req.params.id;
     if (supabase) {
-      await supabase.from('announcements').delete().eq('id', id);
+      const { error } = await supabase.from('announcements').delete().eq('id', id);
+      if (error) throw error;
     } else {
       demoStore.announcements = demoStore.announcements.filter(a => String(a.id) !== String(id));
     }
@@ -757,7 +800,8 @@ app.post('/api/finance', requireTeacher, async (req, res) => {
     };
 
     if (supabase) {
-      await supabase.from('finance').insert(newEntry);
+      const { error } = await supabase.from('finance').insert(newEntry);
+      if (error) throw error;
     } else {
       demoStore.finance.unshift(newEntry);
     }
@@ -773,7 +817,8 @@ app.delete('/api/finance/:id', requireTeacher, async (req, res) => {
   try {
     const id = req.params.id;
     if (supabase) {
-      await supabase.from('finance').delete().eq('id', id);
+      const { error } = await supabase.from('finance').delete().eq('id', id);
+      if (error) throw error;
     } else {
       demoStore.finance = demoStore.finance.filter(f => String(f.id) !== String(id));
     }
@@ -797,7 +842,8 @@ app.post('/api/confessions', async (req, res) => {
     };
 
     if (supabase) {
-      await supabase.from('confessions').insert(newConf);
+      const { error } = await supabase.from('confessions').insert(newConf);
+      if (error) throw error;
     } else {
       demoStore.confessions.unshift(newConf);
     }
