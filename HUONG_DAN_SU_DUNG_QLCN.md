@@ -24,9 +24,8 @@
    - 4.1. Đăng nhập lần đầu & Đổi mã PIN cá nhân
    - 4.2. Tự nộp phiếu thi đua hàng tuần (Tự đánh giá)
    - 4.3. Điểm danh nhanh (Check-in) & Theo dõi điểm rèn luyện
-   - 4.4. Trắc nghiệm hướng nghiệp RIASEC & Chính sách ưu đãi DTTS
-   - 4.5. Gửi tâm sự ẩn danh cho Cô GVCN
-   - 4.6. Nộp đơn xin phép vắng / Về thăm nhà cuối tuần
+   - 4.4. Gửi tâm sự ẩn danh cho Cô GVCN
+   - 4.5. Nộp đơn xin phép vắng / Về thăm nhà cuối tuần
 5. [CÂU HỎI THƯỜNG GẶP (FAQ) & HỖ TRỢ KỸ THUẬT](#5-câu-hỏi-thường-gặp-faq)
 
 ---
@@ -122,7 +121,6 @@ Vào menu **"🤖 Trợ Lý AI"**:
 2. Chọn mẫu nhiệm vụ AI:
    - 📋 **Báo cáo Họp Phụ Huynh Toàn Diện:** Tự động tổng hợp điểm chuyên cần 5 buổi, nề nếp KTX, kết quả học tập và định hướng ôn thi THPT.
    - 📱 **Tin nhắn Zalo/SMS Tuần Gửi Cha Mẹ:** Lời nhắn ngắn gọn, ấm áp, cập nhật điểm thi đua tuần và nhắc nhở thời gian tự học.
-   - 🧭 **Tư vấn Định hướng Thi ĐH & Hệ DTTS:** Phân tích thế mạnh khối thi, gợi ý hệ Dự bị Đại học Dân tộc hoặc Cao đẳng nghề miễn học phí.
 3. **Ghi chú thêm của GVCN (Tùy chọn):** Nhập yêu cầu riêng (ví dụ: *"nhắc em chú ý môn Tiếng Anh", "khen ngợi em vừa đạt giải văn nghệ"*).
 4. Bấm **"✨ Bắt Đầu Tổng Hợp Báo Cáo AI"** $\rightarrow$ Sao chép kết quả gửi cho phụ huynh.
 
@@ -197,17 +195,7 @@ Vào menu **"🤖 Trợ Lý AI"**:
 
 ---
 
-### 4.4. Trắc nghiệm hướng nghiệp RIASEC & Chính sách ưu đãi DTTS
-- Vào menu **"🧭 Hướng Nghiệp 12"**:
-  - Làm bài trắc nghiệm tính cách nghề nghiệp **Holland (6 nhóm: Kỹ thuật, Nghiên cứu, Nghệ thuật, Xã hội, Quản lý, Nghiệp vụ)** để biết bản thân phù hợp ngành nghề nào.
-  - **Tra cứu chính sách đặc thù học sinh DTTS:**
-    - Hệ **Sư phạm / Y khoa:** Hỗ trợ tiền đóng học phí và sinh hoạt phí (Nghị định 116).
-    - Hệ **Dự bị Đại học Dân tộc (Sầm Sơn, Nha Trang, TP.HCM):** Cơ hội học 1 năm chuyển tiếp thẳng vào các trường Đại học trọng điểm.
-    - Hệ **Cao đẳng nghề:** Miễn 100% học phí (Nghị định 81).
-
----
-
-### 4.5. Gửi tâm sự ẩn danh cho Cô GVCN
+### 4.4. Gửi tâm sự ẩn danh cho Cô GVCN
 - Nếu em gặp chuyện buồn, áp lực ôn thi THPT, xích mích bạn bè ở phòng KTX mà ngại nói trực tiếp:
   1. Vào menu **"🤫 Hòm Thư Tâm Sự"**.
   2. Viết nội dung muốn chia sẻ (Hệ thống **hoàn toàn ẩn danh**, không ai biết ai gửi).
@@ -215,7 +203,7 @@ Vào menu **"🤖 Trợ Lý AI"**:
 
 ---
 
-### 4.6. Nộp đơn xin phép vắng / Về thăm nhà cuối tuần
+### 4.5. Nộp đơn xin phép vắng / Về thăm nhà cuối tuần
 - Vào menu **"📝 Đơn Nghỉ Phép / Về Nhà"**:
   - Điền lý do xin về (Ốm đau, việc gia đình, về nhà cuối tuần).
   - Ghi rõ ngày giờ đi và ngày giờ có mặt lại KTX.

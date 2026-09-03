@@ -39,19 +39,14 @@
    - Quy trình duyệt 3 cấp: *Học sinh tự đánh giá $\rightarrow$ Cán sự lớp rà soát $\rightarrow$ GVCN duyệt tối hậu*.
    - Biểu đồ theo dõi tiến độ nề nếp cá nhân qua từng tuần.
 
-4. **🧭 Hướng Nghiệp & Ôn Thi TN THPT (Chuyên biệt cho HS DTTS):**
-   - Trắc nghiệm tính cách nghề nghiệp **Holland (RIASEC)**.
-   - Tư vấn các khối thi thế mạnh: Khối **C00** (hưởng hỗ trợ học phí & sinh hoạt phí theo Nghị định 116), hệ **Dự bị Đại học Dân tộc** (chuyển tiếp thẳng vào các trường ĐH lớn), và hệ **Cao đẳng nghề** (miễn 100% học phí theo Nghị định 81).
-
-5. **🤖 Trợ Lý Sư Phạm AI (Google Gemini 2.5 Flash):**
+4. **🤖 Trợ Lý Sư Phạm AI (Google Gemini 2.5 Flash):**
    - Tự động phân tích học bạ, điểm thi đua và chuyên cần để soạn **Báo cáo Họp Phụ Huynh**.
    - Soạn tin nhắn Zalo/SMS ân cần gửi cha mẹ học sinh hàng tuần.
-   - Gợi ý tổ hợp thi Đại học dựa trên sở thích và năng lực học sinh.
 
-6. **🤫 Hòm Thư Tâm Sự Ẩn Danh (Confessions):**
+5. **🤫 Hòm Thư Tâm Sự Ẩn Danh (Confessions):**
    - Kênh kết nối giải tỏa áp lực tâm lý cho học sinh xa nhà, phát hiện sớm các vấn đề tâm lý học đường.
 
-7. **📋 Sổ Quỹ Lớp Minh Bạch & Xuất Báo Cáo Chuẩn BGH:**
+6. **📋 Sổ Quỹ Lớp Minh Bạch & Xuất Báo Cáo Chuẩn BGH:**
    - Quản lý Thu - Chi quỹ lớp realtime.
    - Xuất Báo cáo sơ kết nề nếp theo thể thức văn bản hành chính Việt Nam.
 

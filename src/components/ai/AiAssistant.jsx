@@ -52,7 +52,7 @@ export default function AiAssistant({ students = [] }) {
             <span>🤖</span> Trợ Lý Sư Phạm AI (Google Gemini 2.5 Flash)
           </h3>
           <p style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.3rem' }}>
-            Phân tích tự động hồ sơ 32 học sinh, chuyên cần 5 buổi, nề nếp KTX và gợi ý hướng nghiệp chuyên biệt cho học sinh DTTS
+            Phân tích tự động hồ sơ 32 học sinh, chuyên cần 5 buổi và nề nếp KTX để soạn báo cáo họp và tin nhắn gửi phụ huynh
           </p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -99,7 +99,6 @@ export default function AiAssistant({ students = [] }) {
           >
             <option value="parent_meeting">📋 Báo cáo Họp Phụ Huynh Toàn Diện</option>
             <option value="zalo_sms">📱 Tin nhắn Zalo/SMS Tuần Gửi Phụ Huynh</option>
-            <option value="academic_advice">🧭 Tư vấn Định hướng Khối thi & Hệ Đào tạo DTTS</option>
           </select>
         </div>
       </div>

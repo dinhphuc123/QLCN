@@ -71,7 +71,6 @@ const demoStore = {
   attendance: {},
   dormAttendance: {},
   competitionRecords: {},
-  activities: [],
   finance: [],
   auditLogs: []
 };
@@ -340,11 +339,9 @@ app.post('/api/ai/generate', requireAuth, async (req, res) => {
     // Build prompt based on report type
     let promptInstruction = '';
     if (reportType === 'parent_meeting') {
-      promptInstruction = `Viết BÁO CÁO ĐÁNH GIÁ CÁ NHÂN HỌC SINH dùng trong buổi Họp Phụ Huynh Lớp 12.7 (Trường Phổ thông Dân tộc Nội trú). Báo cáo cần bao gồm: 1) Tác phong nề nếp KTX & chuyên cần 5 buổi, 2) Kết quả học tập và phong độ ôn thi tốt nghiệp THPT, 3) Khối thi thế mạnh & nguyện vọng xét tuyển, 4) Lời khuyên và sự phối hợp giữa GVCN (Đỗ Kim Tuyền) với Gia đình.`;
-    } else if (reportType === 'zalo_sms') {
-      promptInstruction = `Soạn một TIN NHẮN THÔNG BÁO gửi phụ huynh qua Zalo/SMS từ GVCN Cô Đỗ Kim Tuyền. Giọng điệu ấm áp, ân cần, súc tích (khoảng 100-150 từ), cập nhật điểm thi đua tuần, nề nếp KTX và lời nhắc nhở giờ tự học tối chuẩn bị cho kỳ thi THPT.`;
+      promptInstruction = `Viết BÁO CÁO ĐÁNH GIÁ CÁ NHÂN HỌC SINH dùng trong buổi Họp Phụ Huynh Lớp 12.7 (Trường Phổ thông Dân tộc Nội trú). Báo cáo cần bao gồm: 1) Tác phong nề nếp KTX & chuyên cần 5 buổi, 2) Kết quả học tập và phong độ ôn thi tốt nghiệp THPT, 3) Lời khuyên và sự phối hợp giữa GVCN (Đỗ Kim Tuyền) với Gia đình.`;
     } else {
-      promptInstruction = `Phân tích và TƯ VẤN ĐỊNH HƯỚNG TỔ HỢP THI ĐẠI HỌC, NGHỀ VÀ HỆ DỰ BỊ ĐẠI HỌC DÂN TỘC phù hợp nhất cho học sinh dân tộc thiểu số. Đề xuất cụ thể 3 phương án (ĐH chính quy, Dự bị ĐH nội trú hưởng học bổng NĐ 116, hoặc Cao đẳng nghề miễn 100% học phí theo NĐ 81).`;
+      promptInstruction = `Soạn một TIN NHẮN THÔNG BÁO gửi phụ huynh qua Zalo/SMS từ GVCN Cô Đỗ Kim Tuyền. Giọng điệu ấm áp, ân cần, súc tích (khoảng 100-150 từ), cập nhật điểm thi đua tuần, nề nếp KTX và lời nhắc nhở giờ tự học tối chuẩn bị cho kỳ thi THPT.`;
     }
 
     const systemPrompt = `Bạn là Trợ lý Sư phạm AI đắc lực của Cô Đỗ Kim Tuyền - Giáo viên chủ nhiệm lớp 12.7 trường Phổ thông Dân tộc Nội trú. Hãy phân tích hồ sơ học sinh sau đây và đưa ra nhận xét chính xác, giàu tính sư phạm, khuyến khích sự tiến bộ của học sinh:\n\n` +
@@ -406,7 +403,6 @@ app.get('/api/data', async (req, res) => {
         { data: attendanceRows },
         { data: dormAttendanceRows },
         { data: compRecords },
-        { data: activities },
         { data: finance },
         { data: auditLogs },
         { data: timetableRow },
@@ -420,7 +416,6 @@ app.get('/api/data', async (req, res) => {
         supabase.from('attendance').select('*'),
         supabase.from('dorm_attendance').select('*'),
         supabase.from('competition_records').select('*'),
-        supabase.from('activities').select('*').order('created_at', { ascending: false }),
         supabase.from('finance').select('*').order('created_at', { ascending: false }),
         supabase.from('audit_logs').select('*').order('timestamp', { ascending: false }).limit(200),
         supabase.from('timetable').select('*').eq('id', 1).single(),
@@ -486,7 +481,6 @@ app.get('/api/data', async (req, res) => {
         attendance,
         dormAttendance,
         competitionRecords,
-        activities: activities || [],
         finance: finance || [],
         auditLogs: auditLogs || []
       });
@@ -862,33 +856,6 @@ app.delete('/api/finance/:id', requireTeacher, async (req, res) => {
       demoStore.finance = demoStore.finance.filter(f => String(f.id) !== String(id));
     }
     return res.json({ success: true });
-  } catch (err) {
-    return res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// ── Activities ──
-app.post('/api/activities', async (req, res) => {
-  try {
-    const act = req.body;
-    const newAct = {
-      id: act.id || Date.now(),
-      title: act.title,
-      description: act.description,
-      category: act.category,
-      image: act.image,
-      date: act.date || new Date().toISOString().split('T')[0],
-      created_at: new Date().toISOString()
-    };
-
-    if (supabase) {
-      await supabase.from('activities').insert(newAct);
-    } else {
-      demoStore.activities.unshift(newAct);
-    }
-
-    addAuditLog(req.user, 'ĐĂNG HOẠT ĐỘNG', act.title);
-    return res.json({ success: true, activity: newAct });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
   }

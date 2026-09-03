@@ -114,11 +114,6 @@ export const api = {
   // Lịch sử điểm cá nhân qua các tuần
   getHistory:      (studentId) => request(`/api/competition/history/${studentId}`),
 
-  // ── Activities Dynamic API ────────────────────────────────────────────
-  getActivities:    ()       => request('/api/activities'),
-  createActivity:   (data)   => request('/api/activities', { method: 'POST', body: JSON.stringify(data) }),
-  deleteActivity:   (id)     => request(`/api/activities/${id}`, { method: 'DELETE' }),
-
   // ── Finance Dynamic API ────────────────────────────────────────────────
   getFinance:    ()           => request('/api/finance'),
   createFinance: (entry)      => request('/api/finance', { method: 'POST', body: JSON.stringify(entry) }),

@@ -13,10 +13,8 @@ import Students from './components/students/Students';
 import Attendance from './components/attendance/Attendance';
 import Requests from './components/requests/Requests';
 import Notifications from './components/notifications/Notifications';
-import Activities from './components/activities/Activities';
 import Finance from './components/finance/Finance';
 import Evaluation from './components/evaluation/Evaluation';
-import Exam from './components/exam/Exam';
 import Confessions from './components/confessions/Confessions';
 import Reports from './components/reports/Reports';
 import AiAssistant from './components/ai/AiAssistant';
@@ -80,7 +78,6 @@ export default function App() {
     confessions: [],
     attendance: {},
     dormAttendance: {},
-    activities: [],
     finance: [],
   });
 
@@ -99,12 +96,11 @@ export default function App() {
 
       const localTkb = localStorage.getItem('qlcn_timetable_image') || '';
       const localMap = localStorage.getItem('qlcn_class_map_image') || '';
-      let localAnn = [], localReqs = [], localHomeReqs = [], localFinance = [], localActivities = [], localConfessions = [];
+      let localAnn = [], localReqs = [], localHomeReqs = [], localFinance = [], localConfessions = [];
       try { localAnn = JSON.parse(localStorage.getItem('qlcn_announcements') || '[]'); } catch {}
       try { localReqs = JSON.parse(localStorage.getItem('qlcn_leave_requests') || '[]'); } catch {}
       try { localHomeReqs = JSON.parse(localStorage.getItem('qlcn_home_requests') || '[]'); } catch {}
       try { localFinance = JSON.parse(localStorage.getItem('qlcn_finance') || '[]'); } catch {}
-      try { localActivities = JSON.parse(localStorage.getItem('qlcn_activities') || '[]'); } catch {}
       try { localConfessions = JSON.parse(localStorage.getItem('qlcn_confessions') || '[]'); } catch {}
 
       const serverAnn = Array.isArray(result.announcements) ? result.announcements : [];
@@ -136,14 +132,6 @@ export default function App() {
       localFinance.forEach(lf => {
         if (!mergedFinance.some(f => String(f.id) === String(lf.id))) {
           mergedFinance.unshift(lf);
-        }
-      });
-
-      const serverActivities = Array.isArray(result.activities) ? result.activities : [];
-      const mergedActivities = [...serverActivities];
-      localActivities.forEach(la => {
-        if (!mergedActivities.some(a => String(a.id) === String(la.id))) {
-          mergedActivities.unshift(la);
         }
       });
 
@@ -179,7 +167,6 @@ export default function App() {
         leaveRequests: mergedReqs,
         homeRequests: mergedHomeReqs,
         finance: mergedFinance,
-        activities: mergedActivities,
         confessions: mergedConfessions,
         timetableImage: result.timetableImage || localTkb || prev.timetableImage,
         classMapImage: result.classMapImage || localMap || prev.classMapImage,
@@ -190,12 +177,11 @@ export default function App() {
       }
       const localTkb = localStorage.getItem('qlcn_timetable_image') || '';
       const localMap = localStorage.getItem('qlcn_class_map_image') || '';
-      let localAnn = [], localReqs = [], localHomeReqs = [], localFinance = [], localActivities = [], localConfessions = [];
+      let localAnn = [], localReqs = [], localHomeReqs = [], localFinance = [], localConfessions = [];
       try { localAnn = JSON.parse(localStorage.getItem('qlcn_announcements') || '[]'); } catch {}
       try { localReqs = JSON.parse(localStorage.getItem('qlcn_leave_requests') || '[]'); } catch {}
       try { localHomeReqs = JSON.parse(localStorage.getItem('qlcn_home_requests') || '[]'); } catch {}
       try { localFinance = JSON.parse(localStorage.getItem('qlcn_finance') || '[]'); } catch {}
-      try { localActivities = JSON.parse(localStorage.getItem('qlcn_activities') || '[]'); } catch {}
       try { localConfessions = JSON.parse(localStorage.getItem('qlcn_confessions') || '[]'); } catch {}
 
       setData(prev => ({
@@ -204,7 +190,6 @@ export default function App() {
         leaveRequests: localReqs.length > 0 ? localReqs : prev.leaveRequests,
         homeRequests: localHomeReqs.length > 0 ? localHomeReqs : prev.homeRequests,
         finance: localFinance.length > 0 ? localFinance : prev.finance,
-        activities: localActivities.length > 0 ? localActivities : prev.activities,
         confessions: localConfessions.length > 0 ? localConfessions : prev.confessions,
         timetableImage: prev.timetableImage || localTkb,
         classMapImage: prev.classMapImage || localMap,
@@ -457,10 +442,8 @@ export default function App() {
       case 'attendance':    return <Attendance {...props} homeRequests={data.homeRequests} />;
       case 'requests':      return <Requests leaveRequests={data.leaveRequests} students={data.students} isTeacher={isTeacher} onRefresh={fetchData} />;
       case 'notifications': return <Notifications announcements={data.announcements} students={data.students} onRefresh={fetchData} />;
-      case 'activities':    return <Activities activities={data.activities} onRefresh={fetchData} />;
       case 'finance':       return <Finance finance={data.finance} onRefresh={fetchData} />;
       case 'evaluation':    return <Evaluation {...props} />;
-      case 'exam':          return <Exam students={data.students} isTeacher={isTeacher} onRefresh={fetchData} />;
       case 'ai_assistant':  return isTeacher ? <AiAssistant students={data.students} /> : <AccessDeniedCard onLogin={() => setShowAuth(true)} title="AI Trợ Lý GVCN" />;
       case 'parent_portal': return <ParentPortal />;
       case 'confessions':   return <Confessions confessions={data.confessions} isTeacher={isTeacher} onRefresh={fetchData} />;
