@@ -356,13 +356,14 @@ export default function Header({ activeTab, setActiveTab, onMenuClick, onLoginCl
           }}
           title="Chuyển đổi Ngôn Ngữ / Switch Language"
           style={{
-            padding: '0.35rem 0.65rem', borderRadius: '9999px',
-            background: darkMode ? '#1e293b' : '#ffffff', border: '1px solid #94a3b8',
-            fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', color: darkMode ? '#67e8f9' : '#0369a1',
-            display: 'flex', alignItems: 'center', gap: '0.25rem', whiteSpace: 'nowrap'
+            padding: '0.3rem 0.55rem', borderRadius: '9999px',
+            background: darkMode ? '#1e293b' : '#ffffff', border: '1px solid #cbd5e1',
+            fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', color: darkMode ? '#67e8f9' : '#0369a1',
+            display: 'flex', alignItems: 'center', gap: '0.2rem', whiteSpace: 'nowrap'
           }}
         >
-          {(localStorage.getItem('qlcn_lang') || 'vi') === 'vi' ? '🇻🇳 VN' : '🇬🇧 EN'}
+          <span>{(localStorage.getItem('qlcn_lang') || 'vi') === 'vi' ? '🇻🇳' : '🇬🇧'}</span>
+          <span className="hide-mobile">{(localStorage.getItem('qlcn_lang') || 'vi') === 'vi' ? 'VN' : 'EN'}</span>
         </button>
 
         {/* Dark Mode Toggle */}
@@ -370,13 +371,14 @@ export default function Header({ activeTab, setActiveTab, onMenuClick, onLoginCl
           onClick={toggleDarkMode}
           title={darkMode ? "Chuyển sang Chế độ Sáng" : "Chuyển sang Chế độ Ban Đêm"}
           style={{
-            padding: '0.35rem 0.65rem', borderRadius: '9999px',
-            background: darkMode ? '#334155' : '#f3f4f6', border: '1px solid #94a3b8',
-            fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', color: darkMode ? '#f8fafc' : '#334155',
-            display: 'flex', alignItems: 'center', gap: '0.25rem', whiteSpace: 'nowrap'
+            padding: '0.3rem 0.55rem', borderRadius: '9999px',
+            background: darkMode ? '#334155' : '#f8fafc', border: '1px solid #cbd5e1',
+            fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', color: darkMode ? '#f8fafc' : '#334155',
+            display: 'flex', alignItems: 'center', gap: '0.2rem', whiteSpace: 'nowrap'
           }}
         >
-          {darkMode ? '🌙 Ban đêm' : '☀️ Ban sáng'}
+          <span>{darkMode ? '🌙' : '☀️'}</span>
+          <span className="hide-mobile">{darkMode ? 'Đêm' : 'Sáng'}</span>
         </button>
 
         {/* Change PIN button for Students */}
@@ -384,14 +386,15 @@ export default function Header({ activeTab, setActiveTab, onMenuClick, onLoginCl
           <button
             onClick={() => setShowPinModal(true)}
             style={{
-              padding: '0.35rem 0.7rem', borderRadius: '9999px',
+              padding: '0.3rem 0.6rem', borderRadius: '9999px',
               background: '#fef3c7', border: '1px solid #fde68a',
-              fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer', color: '#92400e',
-              whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '0.25rem'
+              fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer', color: '#92400e',
+              whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '0.2rem'
             }}
             title="Đổi mã PIN bảo mật cá nhân"
           >
-            🔑 Đổi PIN
+            <span>🔑</span>
+            <span className="hide-mobile">Đổi PIN</span>
           </button>
         )}
 
@@ -401,25 +404,28 @@ export default function Header({ activeTab, setActiveTab, onMenuClick, onLoginCl
             <button
               onClick={() => setShowTeacherPassModal(true)}
               style={{
-                padding: '0.35rem 0.7rem', borderRadius: '9999px',
+                padding: '0.3rem 0.6rem', borderRadius: '9999px',
                 background: '#f3e8ff', border: '1px solid #d8b4fe',
                 fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer', color: '#6b21a8',
-                whiteSpace: 'nowrap',
+                whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '0.2rem'
               }}
               title="Đổi mật khẩu tài khoản Cô GVCN"
             >
-              🔑 Đổi Mật Khẩu
+              <span>🔑</span>
+              <span className="hide-mobile">Đổi Mật Khẩu</span>
             </button>
             <button
               onClick={() => setShowSettingsModal(true)}
               style={{
-                padding: '0.35rem 0.7rem', borderRadius: '9999px',
-                background: '#f3f4f6', border: '1px solid #d1d5db',
+                padding: '0.3rem 0.6rem', borderRadius: '9999px',
+                background: '#f8fafc', border: '1px solid #cbd5e1',
                 fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', color: '#374151',
-                whiteSpace: 'nowrap',
+                whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '0.2rem'
               }}
+              title="Cấu hình lớp học"
             >
-              ⚙️ <span className="header-week-badge">Cấu hình</span>
+              <span>⚙️</span>
+              <span className="hide-mobile">Cấu hình</span>
             </button>
           </>
         )}

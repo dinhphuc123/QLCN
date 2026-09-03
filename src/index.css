@@ -249,14 +249,27 @@ h1, h2, h3, .font-serif { font-family: var(--font-serif); color: var(--color-pri
     font-size: 1.1rem !important;
   }
 
-  /* Dashboard seat map: hide on mobile */
-  .dashboard-seat-section { display: none !important; }
+  /* Dashboard seat map: show on mobile with horizontal swipe */
+  .dashboard-seat-section {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .seating-scroll-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.5rem;
+  }
+  .seating-scroll-inner {
+    min-width: 580px;
+  }
 
   /* Dashboard KPI: 2×2 grid */
   .dashboard-kpi-grid {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
-    gap: 0.75rem !important;
+    gap: 0.5rem !important;
   }
 
   /* Tree Branches & Monthly Titles Grid on Mobile */
@@ -268,7 +281,7 @@ h1, h2, h3, .font-serif { font-family: var(--font-serif); color: var(--color-pri
   /* Quick Actions Hero Bar on Mobile (2×2 grid) */
   .quick-actions-grid {
     grid-template-columns: 1fr 1fr !important;
-    gap: 0.75rem !important;
+    gap: 0.5rem !important;
   }
 
   /* Header compact */
@@ -276,26 +289,57 @@ h1, h2, h3, .font-serif { font-family: var(--font-serif); color: var(--color-pri
   .header-user-full { display: inline-block !important; font-size: 0.68rem !important; padding: 0.2rem 0.5rem !important; }
 }
 
-/* ── CAREER GUIDANCE PORTAL RESPONSIVE GRID ──────────────────────────── */
-.career-main-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1.55fr);
-  gap: 1.5rem;
+/* ── MODERN SAAS UI COMPONENTS ──────────────────────────── */
+.card-saas {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.85rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.card-saas:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
-.nv-input-grid {
-  display: grid;
-  grid-template-columns: 1.1fr 1fr 1fr 90px;
-  gap: 0.5rem;
+.btn-saas-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.38rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #334155;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.btn-saas-secondary:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
 }
 
-@media (max-width: 768px) {
-  .career-main-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .nv-input-grid {
-    grid-template-columns: 1fr !important;
-  }
+.btn-saas-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.38rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: #2563eb;
+  border: 1px solid #1d4ed8;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+  white-space: nowrap;
+}
+.btn-saas-primary:hover {
+  background: #1d4ed8;
 }
 
 /* ── SMALL PHONE (<= 480px) ─────────────────────────────────────────────── */
