@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cẩm Nang Hướng Dẫn Sử Dụng Sổ Chủ Nhiệm Số — Lớp 12.7</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-dark: #172554;
+      --accent: #0284c7;
+      --success: #16a34a;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --bg: #f8fafc;
+      --text: #1e293b;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.65;
+      color: var(--text);
+      background: var(--bg);
+      margin: 0;
+      padding: 0;
+    }
+    .page-container {
+      max-width: 960px;
+      margin: 2rem auto;
+      background: white;
+      padding: 3rem 3.5rem;
+      border-radius: 1.25rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+    }
+    @media print {
+      body { background: white; }
+      .page-container {
+        margin: 0;
+        padding: 1.5cm;
+        box-shadow: none;
+        border: none;
+        max-width: 100%;
+      }
+      .no-print { display: none !important; }
+      .page-break { page-break-before: always; }
+    }
+    .header-banner {
+      text-align: center;
+      border-bottom: 3px solid var(--primary);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.35rem 0.9rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: #e0f2fe;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      color: var(--primary-dark);
+      margin: 0.25rem 0;
+      line-height: 1.25;
+    }
+    .subtitle {
+      font-size: 1.05rem;
+      color: #64748b;
+      margin: 0;
+    }
+    h2 {
+      font-size: 1.45rem;
+      color: var(--primary);
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 0.5rem;
+      margin-top: 2.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    h3 {
+      font-size: 1.15rem;
+      color: #0f172a;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    p, li {
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    ul, ol {
+      padding-left: 1.5rem;
+      margin-top: 0.4rem;
+    }
+    li { margin-bottom: 0.35rem; }
+    .card {
+      background: #f8fafc;
+      border: 1.5px solid var(--border);
+      border-radius: 0.85rem;
+      padding: 1.25rem 1.5rem;
+      margin: 1.25rem 0;
+    }
+    .card-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .alert-box {
+      border-left: 4px solid var(--accent);
+      background: #f0f9ff;
+      padding: 1rem 1.25rem;
+      border-radius: 0 0.65rem 0.65rem 0;
+      margin: 1rem 0;
+      font-size: 0.92rem;
+    }
+    .alert-box strong { color: var(--accent); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.9rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.75rem 1rem;
+      text-align: left;
+    }
+    th {
+      background: #f1f5f9;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+    tr:nth-child(even) {
+      background: #fbfcfe;
+    }
+    .btn-print {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.65rem 1.25rem;
+      border-radius: 9999px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 12px rgba(30,58,138,0.2);
+    }
+    .btn-print:hover {
+      background: var(--primary-dark);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-container">
+    
+    <!-- Print action top bar -->
+    <div class="no-print" style="display: flex; justify-content: flex-end; margin-bottom: 1.5rem;">
+      <button class="btn-print" onclick="window.print()">
+        🖨️ In / Lưu file PDF tài liệu này
+      </button>
+    </div>
+
+    <!-- Header Banner -->
+    <div class="header-banner">
+      <span class="badge">Năm học 2026 – 2027 • Trường PTDTNT</span>
+      <h1>SỔ CHỦ NHIỆM SỐ — LỚP 12.7</h1>
+      <p class="subtitle">Cẩm Nang Hướng Dẫn Sử Dụng Dành Cho Giáo Viên Chủ Nhiệm & Toàn Thể Học Sinh</p>
+    </div>
+
+    <!-- Section 1 -->
+    <h2>🌐 1. CÀI ĐẶT ỨNG DỤNG LÊN ĐIỆN THOẠI (DÙNG NHƯ APP)</h2>
+    <p>Hệ thống hỗ trợ công nghệ <strong>Progressive Web App (PWA)</strong>, cho phép cài đặt trực tiếp lên màn hình điện thoại mà không cần vào App Store hay Google Play:</p>
+    
+    <div class="card">
+      <div class="card-title">📱 Hướng dẫn trên iPhone / iPad (Trình duyệt Safari)</div>
+      <ol>
+        <li>Mở trình duyệt <strong>Safari</strong> và truy cập địa chỉ ứng dụng: <code>https://qlcn-psi.vercel.app</code></li>
+        <li>Bấm nút <strong>Chia sẻ (Share)</strong> (biểu tượng ô vuông có mũi tên chỉ lên ở thanh dưới cùng).</li>
+        <li>Cuộn xuống chọn <strong>"Thêm vào Màn hình chính" (Add to Home Screen)</strong>.</li>
+        <li>Bấm <strong>Thêm (Add)</strong>. Biểu tượng ứng dụng Sổ Chủ Nhiệm sẽ xuất hiện trên màn hình điện thoại.</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🤖 Hướng dẫn trên điện thoại Android (Chrome / Cốc Cốc)</div>
+      <ol>
+        <li>Mở trình duyệt <strong>Chrome</strong> truy cập địa chỉ ứng dụng.</li>
+        <li>Bấm dấu <strong>3 chấm (⋮)</strong> ở góc phải phía trên màn hình.</li>
+        <li>Chọn <strong>"Cài đặt ứng dụng"</strong> hoặc <strong>"Thêm vào Màn hình chính"</strong>.</li>
+      </ol>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Section 2 -->
+    <h2>👩‍🏫 2. HƯỚNG DẪN DÀNH CHO CÔ GIÁO VIÊN CHỦ NHIỆM (GVCN)</h2>
+
+    <h3>2.1. Đăng nhập & Bảo mật tài khoản</h3>
+    <ul>
+      <li>Chọn thẻ <strong>"Cổng GVCN"</strong> $\rightarrow$ Nhập mật khẩu GVCN $\rightarrow$ Bấm <strong>"Đăng Nhập Quản Trị"</strong>.</li>
+      <li><strong>Đổi mật khẩu:</strong> Bấm vào biểu tượng tài khoản góc trên bên phải $\rightarrow$ Chọn <em>"Đổi mật khẩu GVCN"</em>.</li>
+    </ul>
+
+    <h3>2.2. Điểm danh nề nếp 5 buổi/ngày & Khóa sổ an toàn</h3>
+    <p>Đặc thù trường PTDTNT quản lý học sinh 24/7 theo 5 khung giờ trong ngày:</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Buổi</th>
+          <th>Khung giờ</th>
+          <th>Nội dung kiểm tra</th>
+          <th>Người phụ trách</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1. Sáng</strong></td>
+          <td>07:00</td>
+          <td>Tiết học chính khóa trên lớp</td>
+          <td>Tổ trưởng & GVCN</td>
+        </tr>
+        <tr>
+          <td><strong>2. Chiều</strong></td>
+          <td>13:30</td>
+          <td>Học phụ đạo / Ôn luyện tốt nghiệp</td>
+          <td>Tổ trưởng & GVCN</td>
+        </tr>
+        <tr>
+          <td><strong>3. Tự học tối</strong></td>
+          <td>19:30 – 21:30</td>
+          <td>Giờ tự học nghiêm túc tại phòng KTX / Lớp</td>
+          <td>Ban cán sự & GVCN</td>
+        </tr>
+        <tr>
+          <td><strong>4. KTX Tắt đèn</strong></td>
+          <td>22:30</td>
+          <td>Kiểm tra quân số ngủ đúng giường, tắt đèn</td>
+          <td>Trưởng phòng KTX</td>
+        </tr>
+        <tr>
+          <td><strong>5. Tập thể</strong></td>
+          <td>Linh hoạt</td>
+          <td>Chào cờ đầu tuần, thể dục, lao động</td>
+          <td>Lớp trưởng & GVCN</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="alert-box">
+      <strong>🔒 Tính năng Khóa Sổ Điểm Danh:</strong> Sau khi hoàn tất kiểm tra, GVCN bấm nút <em>"Khóa Sổ Điểm Danh"</em> để đảm bảo tính minh bạch, ngăn cán bộ lớp chỉnh sửa điểm danh ngoài giờ quy định.
+    </div>
+
+    <h3>2.3. Quy trình duyệt thi đua 3 cấp (47 tiêu chí)</h3>
+    <ol>
+      <li><strong>Cấp 1 (Học sinh):</strong> Học sinh tự nộp phiếu đánh giá nề nếp cá nhân vào cuối tuần.</li>
+      <li><strong>Cấp 2 (Tổ trưởng):</strong> Rà soát chéo giữa các thành viên trong tổ.</li>
+      <li><strong>Cấp 3 (GVCN duyệt tối hậu):</strong> GVCN vào menu <em>"Thi Đua"</em>, kiểm tra bảng tổng hợp, có thể cộng/trừ điểm khích lệ và bấm <strong>"Phê Duyệt Tối Hậu"</strong> để chốt kết quả tuần.</li>
+    </ol>
+
+    <h3>2.4. Trợ lý Sư phạm AI (Google Gemini 2.5 Flash)</h3>
+    <ul>
+      <li>Vào menu <strong>"🤖 Trợ Lý AI"</strong> $\rightarrow$ Chọn học sinh cần phân tích trong 32 em.</li>
+      <li><strong>3 chế độ báo cáo:</strong>
+        <ol>
+          <li>📋 <em>Báo cáo Họp Phụ Huynh toàn diện:</em> Phân tích điểm danh, nề nếp KTX, học lực lớp 11 và phong độ ôn thi THPT.</li>
+          <li>📱 <em>Tin nhắn Zalo tuần:</em> Tự động soạn lời nhắn ngắn gọn, ấm áp gửi phụ huynh kèm điểm số thi đua.</li>
+          <li>🧭 <em>Tư vấn hướng nghiệp DTTS:</em> Gợi ý tổ hợp thi Đại học, chính sách miễn học phí theo Nghị định 81/116 và chuyển tiếp Dự bị Đại học Dân tộc.</li>
+        </ol>
+      </li>
+      <li>GVCN có thể nhập thêm ghi chú cá nhân $\rightarrow$ Bấm <strong>"Bắt Đầu Tổng Hợp Báo Cáo AI"</strong> để sao chép kết quả.</li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <!-- Section 3 -->
+    <h2>⭐ 3. HƯỚNG DẪN DÀNH CHO CÁN BỘ LỚP & TRƯỞNG PHÒNG KTX</h2>
+    <ul>
+      <li><strong>Đăng nhập:</strong> Chọn thẻ <em>"Cán Bộ Lớp"</em> $\rightarrow$ Chọn tên chức vụ của mình $\rightarrow$ Nhập Mã PIN 6 số.</li>
+      <li><strong>4 Tổ trưởng:</strong> Hàng ngày kiểm tra sĩ số tổ; cuối tuần vào mục <em>Thi Đua</em> để duyệt phiếu tự khai của các thành viên trong tổ mình.</li>
+      <li><strong>6 Trưởng phòng KTX (Phòng A1-07 đến C08):</strong> Đúng <strong>22:30 mỗi tối</strong>, kiểm tra tất cả các bạn trong phòng đã có mặt trên giường ngủ $\rightarrow$ Mở mục <em>"KTX Đi Ngủ (22h30)"</em> để bấm xác nhận.</li>
+    </ul>
+
+    <!-- Section 4 -->
+    <h2>🎓 4. HƯỚNG DẪN DÀNH CHO HỌC SINH</h2>
+    
+    <div class="card">
+      <div class="card-title">🔑 4.1. Đăng nhập lần đầu & Đổi mã PIN cá nhân</div>
+      <ol>
+        <li>Chọn thẻ <strong>"Học Sinh"</strong> $\rightarrow$ Chọn đúng <strong>STT và Họ tên</strong> của mình trong danh sách 32 bạn.</li>
+        <li>Nhập <strong>Mã PIN cá nhân</strong> được Cô GVCN phát riêng $\rightarrow$ Bấm <strong>"Đăng Nhập"</strong>.</li>
+        <li><strong>Đổi mã PIN:</strong> Vào mục Cài đặt cá nhân để đổi sang mã PIN riêng (4-6 chữ số) để bảo mật tài khoản.</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📝 4.2. Tự nộp phiếu thi đua hàng tuần</div>
+      <p>Vào tối Thứ 6 hàng tuần, mở mục <strong>"Thi Đua"</strong> $\rightarrow$ Tích chọn trung thực các vi phạm nếu có $\rightarrow$ Bấm <strong>"Gửi Phiếu Cho Tổ Trưởng"</strong>.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🧭 4.3. Trắc nghiệm tính cách nghề nghiệp RIASEC (Holland)</div>
+      <p>Mở mục <strong>"Hướng Nghiệp 12"</strong> làm bài kiểm tra 6 nhóm tính cách để khám phá điểm mạnh bản thân và tìm hiểu chính sách cử tuyển, miễn học phí dành riêng cho học sinh dân tộc thiểu số.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🤫 4.4. Hòm thư tâm sự gửi Cô GVCN</div>
+      <p>Khi gặp chuyện buồn, áp lực học tập hoặc khúc mắc ở phòng KTX mà ngại nói trực tiếp, hãy gửi vào <strong>Hòm Thư Tâm Sự</strong>. Hệ thống <strong>hoàn toàn ẩn danh</strong>, Cô GVCN sẽ lắng nghe và giải đáp giúp em.</p>
+    </div>
+
+    <!-- Section 5 -->
+    <h2>❓ 5. CÂU HỎI THƯỜNG GẶP (FAQ)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Tình huống</th>
+          <th>Nguyên nhân</th>
+          <th>Cách giải quyết</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Quên mã PIN đăng nhập</strong></td>
+          <td>Học sinh đổi PIN nhưng quên</td>
+          <td>Báo cho Cô GVCN để Cô mở danh sách cấp lại PIN mới.</td>
+        </tr>
+        <tr>
+          <td><strong>Không bấm lưu điểm danh được</strong></td>
+          <td>GVCN đã khóa sổ</td>
+          <td>Chỉ tài khoản Cô GVCN mới có quyền mở khóa sổ để sửa.</td>
+        </tr>
+        <tr>
+          <td><strong>Mạng KTX yếu</strong></td>
+          <td>Sóng wifi chập chờn</td>
+          <td>App hoạt động tốt ở chế độ offline, sẽ tự đồng bộ khi có sóng.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top: 3rem; text-align: center; border-top: 1px dashed var(--border); padding-top: 1.5rem; color: #64748b; font-size: 0.85rem;">
+      © Năm học 2026 – 2027 • Lớp 12.7 Trường Phổ Thông Dân Tộc Nội Trú • GVCN: Cô Đỗ Kim Tuyền
+    </div>
+
+  </div>
+
+</body>
+</html>
