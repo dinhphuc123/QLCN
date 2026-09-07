@@ -702,4 +702,3 @@ export const CLASS_OFFICERS = [
   { title: 'Cờ đỏ', name: 'Nguyễn Mang Kỳ Thư' },
   { title: 'Cờ đỏ', name: 'Huỳnh Thị Thảo Sướng' },
 ];
-
