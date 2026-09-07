@@ -128,6 +128,34 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
     e.target.value = '';
   };
 
+  const handleResetDemoData = async () => {
+    if (!window.confirm('⚠️ BẠN CÓ CHẮC CHẮN MUỐN XÓA SẠCH DỮ LIỆU DEMO?\n\nHệ thống sẽ xóa toàn bộ các bản ghi thử nghiệm (Thông báo, Đơn xin nghỉ, Tâm sự, Quỹ lớp demo) và nạp dữ liệu chuẩn 32 học sinh từ file Excel vào Supabase & CSDL.')) {
+      return;
+    }
+
+    try {
+      // Clear demo local storage keys
+      localStorage.removeItem('qlcn_announcements');
+      localStorage.removeItem('qlcn_leave_requests');
+      localStorage.removeItem('qlcn_home_requests');
+      localStorage.removeItem('qlcn_confessions');
+      localStorage.removeItem('qlcn_activities');
+      localStorage.removeItem('qlcn_finance');
+      localStorage.removeItem('qlcn_attendance');
+      localStorage.removeItem('qlcn_students_data');
+
+      const res = await api.post('/api/admin/reset-demo', {});
+      if (res && res.success) {
+        toast.success('🎉 ' + (res.message || 'Đã xóa sạch dữ liệu demo và nạp 32 học sinh từ Excel vào Supabase!'));
+      } else {
+        toast.success('🎉 Đã xóa sạch dữ liệu demo và làm mới danh sách 32 học sinh!');
+      }
+      onRefresh();
+    } catch (err) {
+      toast.error('❌ Có lỗi khi làm mới dữ liệu: ' + (err.message || 'Lỗi server'));
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       
@@ -146,14 +174,13 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button className="btn-primary" onClick={handleResetDemoData} style={{ background: '#dc2626', padding: '0.65rem 1.25rem', boxShadow: '0 4px 14px rgba(220,38,38,0.3)' }}>
+              🧹 Xóa Demo & Nạp Excel/Supabase
+            </button>
             <button className="btn-primary" onClick={handleExportBackup} style={{ background: '#16a34a', padding: '0.65rem 1.25rem' }}>
               💾 Sao lưu Dữ liệu
             </button>
-            <label className="btn-primary" style={{ background: '#0284c7', padding: '0.65rem 1.25rem', cursor: 'pointer' }}>
-              📥 Phục hồi Backup
-              <input type="file" accept=".json" style={{ display: 'none' }} onChange={handleImportBackup} />
-            </label>
           </div>
         </div>
       </div>

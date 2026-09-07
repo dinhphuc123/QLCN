@@ -961,6 +961,18 @@ app.put('/api/confessions/:id/reply', requireTeacher, (req, res) => {
   res.json({ success: true });
 });
 
+// Clear Demo Data & Sync Real Excel/Supabase Endpoint
+app.post('/api/admin/reset-demo', requireTeacher, async (req, res) => {
+  try {
+    const { seedData } = await import('./scripts/seed_excel_data.js');
+    const cleanData = await seedData();
+    addAuditLog(req.user, 'XÓA SẠCH DỮ LIỆU DEMO', 'Nạp dữ liệu 32 HS từ Excel');
+    res.json({ success: true, message: 'Đã xóa sạch dữ liệu demo và nạp 32 học sinh từ Excel!', data: cleanData });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Global Express Error Handler Middleware (Prevents HTML 500 crashes)
 app.use((err, req, res, next) => {
   console.error('⚠️ Express Error Handler:', err.message);
