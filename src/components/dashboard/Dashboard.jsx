@@ -2,16 +2,13 @@ import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { api } from '../../lib/api';
 import { CLASS_OFFICERS } from '../../data/initialStudents';
-import SeatingGeneratorModal from './SeatingGeneratorModal';
 import Badges from '../gamification/Badges';
 import { useClassSettings } from '../../context/ClassSettingsContext';
 import StudentDashboard from './StudentDashboard';
 
-export default function Dashboard({ students, attendance, announcements, timetableImage, classMapImage, isTeacher, setActiveTab, handleTimetableChange, handleClassMapChange, onRefresh, onUpdateStudents }) {
+export default function Dashboard({ students, attendance, announcements, timetableImage, classMapImage, isTeacher, setActiveTab, handleTimetableChange, handleClassMapChange, handleDeleteClassMap, onRefresh, onUpdateStudents }) {
   const { settings } = useClassSettings();
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [swapSrc, setSwapSrc] = useState(null);
-  const [showSeatingModal, setShowSeatingModal] = useState(false);
   const [showMapModal, setShowMapModal] = useState(false);
   const [showTimetableEditor, setShowTimetableEditor] = useState(false);
   const [editingDay, setEditingDay] = useState('Thứ 2');
@@ -31,7 +28,7 @@ export default function Dashboard({ students, attendance, announcements, timetab
   });
 
   if (!isTeacher) {
-    return <StudentDashboard timetableImage={timetableImage} announcements={announcements} students={students} attendance={attendance} setActiveTab={setActiveTab} onRefresh={onRefresh} />;
+    return <StudentDashboard timetableImage={timetableImage} classMapImage={classMapImage} announcements={announcements} students={students} attendance={attendance} setActiveTab={setActiveTab} onRefresh={onRefresh} />;
   }
 
   const today = new Date().toISOString().split('T')[0];
@@ -52,107 +49,6 @@ export default function Dashboard({ students, attendance, announcements, timetab
     }
     return false;
   });
-
-  const handleSmartArrange = async (type) => {
-    let arranged = [...students];
-    if (type === 'group') {
-      const g1 = students.filter(s => s.group === 'Tổ 1').sort((a, b) => a.id - b.id);
-      const g2 = students.filter(s => s.group === 'Tổ 2').sort((a, b) => a.id - b.id);
-      const g3 = students.filter(s => s.group === 'Tổ 3').sort((a, b) => a.id - b.id);
-      const g4 = students.filter(s => s.group === 'Tổ 4').sort((a, b) => a.id - b.id);
-      const other = students.filter(s => !['Tổ 1', 'Tổ 2', 'Tổ 3', 'Tổ 4'].includes(s.group)).sort((a, b) => a.id - b.id);
-
-      // Day 1 (Left Row - Desk 1 to 5): Tổ 1 then Tổ 2 (20 seats max)
-      const day1 = [...g1, ...g2];
-      while (day1.length < 20) day1.push(null);
-
-      // Day 2 (Right Row - Desk 6 to 10): Tổ 3 then Tổ 4 + others (20 seats max)
-      const day2 = [...g3, ...g4, ...other];
-      while (day2.length < 20) day2.push(null);
-
-      arranged = [...day1.slice(0, 20), ...day2.slice(0, 20)].filter(Boolean);
-      toast.success('🧠 Đã xếp chỗ theo 4 Tổ: Dãy 1 (Tổ 1 & Tổ 2), Dãy 2 (Tổ 3 & Tổ 4)!');
-    } else if (type === 'gender') {
-      const males = students.filter(s => s.gender === 'Nam');
-      const females = students.filter(s => s.gender === 'Nữ');
-      arranged = [];
-      let i = 0, j = 0;
-      while (i < females.length || j < males.length) {
-        if (i < females.length) arranged.push(females[i++]);
-        if (j < males.length) arranged.push(males[j++]);
-      }
-      toast.success('🧠 Đã xếp chỗ thông minh: Xen kẽ Nam - Nữ!');
-    } else if (type === 'academic') {
-      arranged.sort((a, b) => (a.id % 2 === 0 ? -1 : 1));
-      toast.success('🧠 Đã xếp chỗ thông minh: Ghép đôi học tập Khá - Yếu!');
-    }
-
-    try { localStorage.setItem('qlcn_students_data', JSON.stringify(arranged)); } catch {}
-    if (typeof onUpdateStudents === 'function') onUpdateStudents(arranged);
-    try { await api.updateStudents(arranged); } catch {}
-  };
-
-  const handleSeatClick = async (targetStudent, targetIdx) => {
-    if (!isTeacher) { 
-      if (targetStudent) setSelectedStudent(targetStudent); 
-      return; 
-    }
-    
-    // 1. First click: select source seat
-    if (!swapSrc) {
-      if (!targetStudent) {
-        toast.error('Vui lòng click chọn một học sinh có trong sơ đồ trước!');
-        return;
-      }
-      setSwapSrc({ student: targetStudent, idx: targetIdx });
-      return;
-    }
-
-    // 2. Click same seat again -> cancel
-    if (swapSrc.idx === targetIdx) {
-      setSwapSrc(null);
-      return;
-    }
-
-    // 3. Perform array index swap
-    const srcIdx = swapSrc.idx;
-    const updated = [...students];
-
-    // Ensure array has enough elements
-    const maxIdx = Math.max(srcIdx, targetIdx);
-    while (updated.length <= maxIdx) {
-      updated.push(null);
-    }
-
-    const temp = updated[srcIdx];
-    updated[srcIdx] = updated[targetIdx];
-    updated[targetIdx] = temp;
-
-    // Compact list (remove trailing nulls)
-    const finalStudents = updated.filter(Boolean);
-
-    // Save to local storage for instant persistence
-    try {
-      localStorage.setItem('qlcn_students_data', JSON.stringify(finalStudents));
-    } catch {}
-
-    // Update parent state immediately
-    if (typeof onUpdateStudents === 'function') {
-      onUpdateStudents(finalStudents);
-    }
-
-    // Persist to backend asynchronously
-    try {
-      await api.updateStudents(finalStudents);
-    } catch (e) {
-      console.warn('Backend update notice:', e.message);
-    }
-
-    toast.success(`✅ Đã tráo đổi chỗ ngồi: ${swapSrc.student.name} ↔ ${targetStudent ? targetStudent.name : 'Ghế trống'}`);
-    setSwapSrc(null);
-  };
-
-
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -216,272 +112,124 @@ export default function Dashboard({ students, attendance, announcements, timetab
       {/* Main Grid: Seating Map + Class Officers + Timetable */}
       <div className="responsive-2col" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) minmax(0, 1fr)', gap: '1.5rem' }}>
         
-        {/* Left col: Interactive Seating Map (hidden on mobile) */}
-        <div className="dashboard-seat-section" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {/* Left col: Uploaded Seating Chart Image */}
+        <div className="dashboard-seat-section" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
           <div className="glass-panel" style={{ padding: '1.5rem 1.75rem' }}>
+            {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
               <div>
-                <h3 style={{ margin: 0, color: 'var(--color-primary-dark)', fontSize: '1.15rem', fontWeight: 800 }}>
-                  🏫 Sơ Đồ Lớp 2 Dãy • 10 Bàn Học (Tối Đa 4 Chỗ/Bàn)
+                <h3 style={{ margin: 0, color: 'var(--color-primary-dark)', fontSize: '1.15rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                  🏫 Sơ Đồ Chỗ Ngồi Lớp {settings.className}
                 </h3>
                 <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>
-                  ⚡ Click 2 học sinh bất kỳ để tráo đổi chỗ ngồi • 🟢 Badge điểm danh thực tế
+                  🖼️ Sơ đồ bố trí chỗ ngồi chính thức năm học {settings.schoolYear || '2026-2027'}
                 </p>
               </div>
 
               {isTeacher && (
                 <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
-                  <button
+                  {classMapImage && (
+                    <>
+                      <button
+                        className="btn-primary"
+                        style={{ padding: '0.4rem 0.85rem', fontSize: '0.75rem', background: '#0284c7', boxShadow: '0 4px 10px rgba(2,132,199,0.2)' }}
+                        onClick={() => setShowMapModal(true)}
+                      >
+                        🔍 Phóng To Sơ Đồ
+                      </button>
+                      <button
+                        onClick={handleDeleteClassMap}
+                        style={{ padding: '0.4rem 0.85rem', fontSize: '0.75rem', background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '8px', cursor: 'pointer', fontWeight: 700 }}
+                        title="Xóa ảnh sơ đồ lớp hiện tại"
+                      >
+                        🗑️ Xóa Ảnh
+                      </button>
+                    </>
+                  )}
+                  <label
                     className="btn-primary"
-                    style={{ padding: '0.4rem 0.85rem', fontSize: '0.75rem', background: '#0284c7', boxShadow: '0 4px 10px rgba(2,132,199,0.2)' }}
-                    onClick={() => handleSmartArrange('group')}
-                    title="Xếp theo 4 Tổ: Dãy 1 (Tổ 1 & Tổ 2), Dãy 2 (Tổ 3 & Tổ 4)"
+                    style={{ padding: '0.4rem 0.85rem', fontSize: '0.75rem', background: '#16a34a', boxShadow: '0 4px 10px rgba(22,163,74,0.2)', cursor: 'pointer' }}
                   >
-                    🧠 Xếp theo 4 Tổ
-                  </button>
-                  <button
-                    className="btn-primary"
-                    style={{ padding: '0.4rem 0.85rem', fontSize: '0.75rem', background: '#0891b2', boxShadow: '0 4px 10px rgba(8,145,178,0.2)' }}
-                    onClick={() => handleSmartArrange('gender')}
-                    title="Xếp chỗ thông minh: Xen kẽ Nam và Nữ"
-                  >
-                    🧠 Xen kẽ Nam-Nữ
-                  </button>
-                  <button
-                    className="btn-primary"
-                    style={{ padding: '0.4rem 0.85rem', fontSize: '0.75rem', background: '#16a34a', boxShadow: '0 4px 10px rgba(22,163,74,0.2)' }}
-                    onClick={() => handleSmartArrange('academic')}
-                    title="Xếp chỗ thông minh: Ghép đôi học tập Khá - Yếu"
-                  >
-                    🧠 Ghép đôi Học tập
-                  </button>
-                  <button
-                    className="btn-primary"
-                    style={{ padding: '0.4rem 0.85rem', fontSize: '0.75rem', background: '#7c3aed', boxShadow: '0 4px 10px rgba(124,58,237,0.2)' }}
-                    onClick={() => setShowSeatingModal(true)}
-                  >
-                    🎲 Xếp ngẫu nhiên
-                  </button>
+                    {classMapImage ? '📷 Đổi Ảnh Sơ Đồ' : '📷 Tải Lên Ảnh Sơ Đồ'}
+                    <input type="file" accept="image/*,.pdf" style={{ display: 'none' }} onChange={handleClassMapChange} />
+                  </label>
                 </div>
               )}
             </div>
 
-            {/* Active Swap Indicator */}
-            {swapSrc && (
-              <div style={{ background: '#e0f2fe', border: '1.5px solid #0284c7', padding: '0.55rem 0.85rem', borderRadius: '0.65rem', marginBottom: '1rem', fontSize: '0.8rem', color: '#0369a1', fontWeight: 800, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>🔄 Đang chọn HS #{String(swapSrc.student.id).padStart(2, '0')} - {swapSrc.student.name} ➔ Click vào chỗ ngồi thứ 2 (hoặc ghế trống) để tráo đổi!</span>
-                <button onClick={() => setSwapSrc(null)} style={{ background: '#dc2626', color: 'white', border: 'none', borderRadius: '0.4rem', padding: '0.2rem 0.55rem', cursor: 'pointer', fontWeight: 700, fontSize: '0.72rem' }}>Hủy</button>
+            {/* Seating Map Image Display / Empty Placeholder */}
+            {classMapImage ? (
+              <div style={{
+                position: 'relative',
+                borderRadius: '1rem',
+                overflow: 'hidden',
+                border: '1.5px solid #cbd5e1',
+                background: '#f8fafc',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+                textAlign: 'center'
+              }}>
+                <img
+                  src={classMapImage}
+                  alt={`Sơ đồ lớp ${settings.className}`}
+                  onClick={() => setShowMapModal(true)}
+                  style={{
+                    width: '100%',
+                    maxHeight: '560px',
+                    objectFit: 'contain',
+                    cursor: 'zoom-in',
+                    display: 'block'
+                  }}
+                />
+                <div style={{
+                  padding: '0.65rem 1rem',
+                  background: 'rgba(255,255,255,0.95)',
+                  borderTop: '1px solid #e2e8f0',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: '0.75rem',
+                  color: '#64748b'
+                }}>
+                  <span style={{ fontWeight: 600 }}>💡 Click trực tiếp vào ảnh để phóng to toàn màn hình</span>
+                  <button
+                    onClick={() => setShowMapModal(true)}
+                    style={{ background: 'none', border: 'none', color: '#0284c7', fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem' }}
+                  >
+                    Xem chi tiết ↗
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{
+                borderRadius: '1rem',
+                border: '2px dashed #cbd5e1',
+                background: '#f8fafc',
+                padding: '3.5rem 1.5rem',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '0.75rem'
+              }}>
+                <div style={{ fontSize: '3rem' }}>📷</div>
+                <h4 style={{ margin: 0, color: '#334155', fontSize: '1.05rem', fontWeight: 800 }}>
+                  Chưa có hình ảnh Sơ đồ chỗ ngồi
+                </h4>
+                <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b', maxWidth: '380px', lineHeight: 1.5 }}>
+                  Cô GVCN vui lòng bấm nút bên dưới để tải lên ảnh chụp sơ đồ bàn ghế, phân chỗ ngồi cho lớp {settings.className}.
+                </p>
+                {isTeacher && (
+                  <label
+                    className="btn-primary"
+                    style={{ marginTop: '0.5rem', padding: '0.65rem 1.5rem', fontSize: '0.85rem', background: '#0284c7', boxShadow: '0 4px 14px rgba(2,132,199,0.3)', cursor: 'pointer' }}
+                  >
+                    📷 Chọn File Ảnh Sơ Đồ Lớp
+                    <input type="file" accept="image/*,.pdf" style={{ display: 'none' }} onChange={handleClassMapChange} />
+                  </label>
+                )}
               </div>
             )}
-
-            {/* Blackboard Banner */}
-            <div style={{
-              textAlign: 'center', background: 'linear-gradient(135deg, #0f172a, #1e293b)',
-              color: '#f8fafc', padding: '0.65rem 1rem', borderRadius: '0.75rem',
-              marginBottom: '1.25rem', fontWeight: 800, fontSize: '0.85rem',
-              letterSpacing: '0.08em', border: '1px solid #334155',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.12)'
-            }}>
-              📋 BẢNG ĐEN / BÀN GIÁO VIÊN / CỬA RA VÀO
-            </div>
-
-            {/* 2 Rows of Desks Grid (Dãy 1 & Dãy 2) */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-              
-              {/* Dãy 1 (Dãy Trái - Bàn 1 đến 5: CHỈ TỔ 1 & TỔ 2) */}
-              <div style={{ background: '#f8fafc', borderRadius: '1rem', padding: '0.85rem', border: '1.5px solid #cbd5e1', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <div style={{ textAlign: 'center', fontSize: '0.88rem', fontWeight: 900, color: '#0369a1', paddingBottom: '0.4rem', borderBottom: '2px solid #bae6fd', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>🚪 DÃY 1 (Phía Cửa) • CHỈ TỔ 1 & TỔ 2</span>
-                  <span style={{ fontSize: '0.7rem', color: '#0284c7', background: '#e0f2fe', padding: '0.15rem 0.5rem', borderRadius: '9999px' }}>5 Bàn • 16-20 Chỗ</span>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {Array.from({ length: 5 }).map((_, bIdx) => {
-                    const deskNum = bIdx + 1;
-                    // Dãy 1 gets students from Tổ 1 & Tổ 2
-                    const day1List = students.filter(s => s.group === 'Tổ 1' || s.group === 'Tổ 2');
-                    // 3-4 seats per desk
-                    const deskStudents = day1List.slice(bIdx * 3, bIdx * 3 + 3);
-
-                    return (
-                      <div key={deskNum} style={{ background: 'white', borderRadius: '0.75rem', padding: '0.55rem 0.65rem', border: '1px solid #cbd5e1', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
-                        <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b', marginBottom: '0.35rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span>🪑 BÀN {deskNum} (Tổ 1 & 2)</span>
-                          <span style={{ fontSize: '0.6rem', color: '#0284c7', fontWeight: 700 }}>{deskStudents.length} HS</span>
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(65px, 1fr))', gap: '0.35rem' }}>
-                          {Array.from({ length: Math.max(3, deskStudents.length) }).map((_, sIdx) => {
-                            const s = deskStudents[sIdx];
-                            const globalSeatIdx = students.findIndex(st => st?.id === s?.id);
-
-                            if (!s) {
-                              return (
-                                <div
-                                  key={sIdx}
-                                  onClick={() => handleSeatClick(null, bIdx * 4 + sIdx)}
-                                  style={{
-                                    background: swapSrc ? '#fef2f2' : '#f1f5f9',
-                                    border: swapSrc ? '1.5px dashed #0284c7' : '1px dashed #cbd5e1',
-                                    borderRadius: '0.5rem', padding: '0.4rem 0.25rem',
-                                    textAlign: 'center', fontSize: '0.62rem', color: '#94a3b8', fontStyle: 'italic',
-                                    cursor: swapSrc ? 'pointer' : 'default'
-                                  }}
-                                  title="Ghế trống - Click để chuyển HS đến đây"
-                                >
-                                  Ghế {sIdx + 1}<br/>(Trống)
-                                </div>
-                              );
-                            }
-
-                            const attStatus = todayAtt[s.id];
-                            const isAbsent = attStatus === 'absent';
-                            const isLate = attStatus === 'late';
-                            const isSelected = swapSrc?.idx === globalSeatIdx;
-
-                            return (
-                              <div
-                                key={s.id}
-                                className="seat-item"
-                                onClick={() => handleSeatClick(s, globalSeatIdx)}
-                                style={{
-                                  background: isSelected
-                                    ? '#fef2f2'
-                                    : s.gender === 'Nữ' ? '#fdf2f8' : '#eff6ff',
-                                  border: isSelected
-                                    ? '2px dashed #dc2626'
-                                    : selectedStudent?.id === s.id
-                                    ? '2px solid #0284c7'
-                                    : '1.5px solid #cbd5e1',
-                                  cursor: 'pointer',
-                                  padding: '0.4rem 0.35rem',
-                                  borderRadius: '0.5rem',
-                                  transition: 'all 0.15s ease',
-                                  position: 'relative'
-                                }}
-                                title={`Click để tráo đổi chỗ ngồi: ${s.name}`}
-                              >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <div style={{ fontWeight: 800, fontSize: '0.68rem', color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {String(s.id).padStart(2, '0')}. {s.name.split(' ').pop()}
-                                  </div>
-                                  <span style={{ fontSize: '0.55rem' }}>
-                                    {isAbsent ? '🔴' : isLate ? '🟡' : '🟢'}
-                                  </span>
-                                </div>
-
-                                <div style={{ fontSize: '0.58rem', color: '#64748b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.15rem' }}>
-                                  <span style={{ fontWeight: 800, color: '#0369a1' }}>{s.group}</span>
-                                  {s.position && <span style={{ color: '#0369a1', fontWeight: 800 }} title={s.position}>⭐</span>}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Dãy 2 (Dãy Phải - Bàn 6 đến 10: CHỈ TỔ 3 & TỔ 4) */}
-              <div style={{ background: '#f8fafc', borderRadius: '1rem', padding: '0.85rem', border: '1.5px solid #cbd5e1', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <div style={{ textAlign: 'center', fontSize: '0.88rem', fontWeight: 900, color: '#0369a1', paddingBottom: '0.4rem', borderBottom: '2px solid #bae6fd', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>🪟 DÃY 2 (Phía Cửa Sổ) • CHỈ TỔ 3 & TỔ 4</span>
-                  <span style={{ fontSize: '0.7rem', color: '#0284c7', background: '#e0f2fe', padding: '0.15rem 0.5rem', borderRadius: '9999px' }}>5 Bàn • 16-20 Chỗ</span>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {Array.from({ length: 5 }).map((_, bIdx) => {
-                    const deskNum = bIdx + 6;
-                    // Dãy 2 gets students from Tổ 3 & Tổ 4
-                    const day2List = students.filter(s => s.group === 'Tổ 3' || s.group === 'Tổ 4' || !['Tổ 1', 'Tổ 2'].includes(s.group));
-                    // 3-4 seats per desk
-                    const deskStudents = day2List.slice(bIdx * 3, bIdx * 3 + 3);
-
-                    return (
-                      <div key={deskNum} style={{ background: 'white', borderRadius: '0.75rem', padding: '0.55rem 0.65rem', border: '1px solid #cbd5e1', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
-                        <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b', marginBottom: '0.35rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span>🪑 BÀN {deskNum} (Tổ 3 & 4)</span>
-                          <span style={{ fontSize: '0.6rem', color: '#0284c7', fontWeight: 700 }}>{deskStudents.length} HS</span>
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(65px, 1fr))', gap: '0.35rem' }}>
-                          {Array.from({ length: Math.max(3, deskStudents.length) }).map((_, sIdx) => {
-                            const s = deskStudents[sIdx];
-                            const globalSeatIdx = students.findIndex(st => st?.id === s?.id);
-
-                            if (!s) {
-                              return (
-                                <div
-                                  key={sIdx}
-                                  onClick={() => handleSeatClick(null, (bIdx + 5) * 4 + sIdx)}
-                                  style={{
-                                    background: swapSrc ? '#fef2f2' : '#f1f5f9',
-                                    border: swapSrc ? '1.5px dashed #0284c7' : '1px dashed #cbd5e1',
-                                    borderRadius: '0.5rem', padding: '0.4rem 0.25rem',
-                                    textAlign: 'center', fontSize: '0.62rem', color: '#94a3b8', fontStyle: 'italic',
-                                    cursor: swapSrc ? 'pointer' : 'default'
-                                  }}
-                                  title="Ghế trống - Click để chuyển HS đến đây"
-                                >
-                                  Ghế {sIdx + 1}<br/>(Trống)
-                                </div>
-                              );
-                            }
-
-                            const attStatus = todayAtt[s.id];
-                            const isAbsent = attStatus === 'absent';
-                            const isLate = attStatus === 'late';
-                            const isSelected = swapSrc?.idx === globalSeatIdx;
-
-                            return (
-                              <div
-                                key={s.id}
-                                className="seat-item"
-                                onClick={() => handleSeatClick(s, globalSeatIdx)}
-                                style={{
-                                  background: isSelected
-                                    ? '#fef2f2'
-                                    : s.gender === 'Nữ' ? '#fdf2f8' : '#eff6ff',
-                                  border: isSelected
-                                    ? '2px dashed #dc2626'
-                                    : selectedStudent?.id === s.id
-                                    ? '2px solid #0284c7'
-                                    : '1.5px solid #cbd5e1',
-                                  cursor: 'pointer',
-                                  padding: '0.4rem 0.35rem',
-                                  borderRadius: '0.5rem',
-                                  transition: 'all 0.15s ease',
-                                  position: 'relative'
-                                }}
-                                title={`Click để tráo đổi chỗ ngồi: ${s.name}`}
-                              >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <div style={{ fontWeight: 800, fontSize: '0.68rem', color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {String(s.id).padStart(2, '0')}. {s.name.split(' ').pop()}
-                                  </div>
-                                  <span style={{ fontSize: '0.55rem' }}>
-                                    {isAbsent ? '🔴' : isLate ? '🟡' : '🟢'}
-                                  </span>
-                                </div>
-
-                                <div style={{ fontSize: '0.58rem', color: '#64748b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.15rem' }}>
-                                  <span style={{ fontWeight: 800, color: '#0369a1' }}>{s.group}</span>
-                                  {s.position && <span style={{ color: '#0369a1', fontWeight: 800 }} title={s.position}>⭐</span>}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-            </div>
           </div>
 
         </div>
@@ -586,17 +334,7 @@ export default function Dashboard({ students, attendance, announcements, timetab
           </div>
         );
       })()}
-      {/* Seating Generator Modal */}
-      {showSeatingModal && (
-        <SeatingGeneratorModal
-          students={students}
-          onClose={() => setShowSeatingModal(false)}
-          onSaveSeats={async (updated) => {
-            await api.updateStudents(updated);
-            onRefresh();
-          }}
-        />
-      )}
+
 
       {/* Timetable Structured Editor Modal for GVCN */}
       {showTimetableEditor && (
@@ -702,6 +440,77 @@ export default function Dashboard({ students, attendance, announcements, timetab
                 💾 Lưu & Đồng Bộ
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen Seating Map Modal */}
+      {showMapModal && classMapImage && (
+        <div
+          onClick={() => setShowMapModal(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            background: 'rgba(0,0,0,0.85)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1.5rem',
+            cursor: 'zoom-out'
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              position: 'relative',
+              maxWidth: '96vw',
+              maxHeight: '94vh',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              cursor: 'default',
+              background: 'rgba(255,255,255,0.05)',
+              borderRadius: '1rem',
+              padding: '0.5rem'
+            }}
+          >
+            <button
+              onClick={() => setShowMapModal(false)}
+              style={{
+                position: 'absolute',
+                top: '-2.5rem',
+                right: 0,
+                background: 'white',
+                color: '#0f172a',
+                border: 'none',
+                borderRadius: '50%',
+                width: '36px',
+                height: '36px',
+                fontSize: '1.1rem',
+                fontWeight: 900,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+              }}
+              title="Đóng (ESC)"
+            >
+              ✕
+            </button>
+            <img
+              src={classMapImage}
+              alt="Sơ đồ lớp toàn màn hình"
+              style={{
+                maxWidth: '94vw',
+                maxHeight: '88vh',
+                objectFit: 'contain',
+                borderRadius: '0.75rem',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+              }}
+            />
           </div>
         </div>
       )}

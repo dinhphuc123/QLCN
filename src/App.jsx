@@ -414,6 +414,19 @@ export default function App() {
     e.target.value = '';
   }, [fetchData]);
 
+  const handleDeleteClassMap = useCallback(async () => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa ảnh sơ đồ lớp hiện tại?')) return;
+    try {
+      localStorage.removeItem('qlcn_class_map_image');
+      setData(prev => ({ ...prev, classMapImage: '' }));
+      await api.uploadClassMap('');
+      toast.success('🗑️ Đã xóa ảnh sơ đồ lớp!');
+      fetchData();
+    } catch (err) {
+      toast.success('🗑️ Đã xóa ảnh sơ đồ lớp!');
+    }
+  }, [fetchData]);
+
   // ── Access Denied Lock Banner ─────────────────────────────────────────────
   const AccessDeniedCard = ({ title, onLogin }) => {
     const { loginTeacher } = useAuth();
@@ -450,7 +463,7 @@ export default function App() {
     const props = { ...data, isTeacher, onRefresh: fetchData, onUpdateStudents: handleUpdateStudents };
 
     switch (activeTab) {
-      case 'dashboard':     return <Dashboard {...props} setActiveTab={setActiveTab} handleTimetableChange={handleTimetableChange} handleClassMapChange={handleClassMapChange} />;
+      case 'dashboard':     return <Dashboard {...props} setActiveTab={setActiveTab} handleTimetableChange={handleTimetableChange} handleClassMapChange={handleClassMapChange} handleDeleteClassMap={handleDeleteClassMap} />;
       case 'students':      return <Students {...props} handleExcelUpload={handleExcelUpload} />;
       case 'attendance':    return <Attendance {...props} homeRequests={data.homeRequests} />;
       case 'requests':      return <Requests leaveRequests={data.leaveRequests} students={data.students} isTeacher={isTeacher} onRefresh={fetchData} />;
@@ -464,7 +477,7 @@ export default function App() {
       case 'confessions':   return <Confessions confessions={data.confessions} isTeacher={isTeacher} onRefresh={fetchData} />;
       case 'reports':       return isTeacher ? <Reports {...props} /> : <AccessDeniedCard onLogin={() => setShowAuth(true)} title="Biểu Mẫu & Excel" />;
       case 'cms_admin':     return isTeacher ? <CmsAdminPanel students={data.students} onRefresh={fetchData} /> : <AccessDeniedCard onLogin={() => setShowAuth(true)} title="Quản Trị CMS Admin" />;
-      default:              return <Dashboard {...props} setActiveTab={setActiveTab} handleTimetableChange={handleTimetableChange} handleClassMapChange={handleClassMapChange} />;
+      default:              return <Dashboard {...props} setActiveTab={setActiveTab} handleTimetableChange={handleTimetableChange} handleClassMapChange={handleClassMapChange} handleDeleteClassMap={handleDeleteClassMap} />;
     }
   };
 

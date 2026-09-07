@@ -84,7 +84,7 @@ const MONTHLY_TITLES = [
   { title: '🏆 Tập thể tiến bộ', desc: 'Đồng lòng cùng phòng/tổ hoàn thành xuất sắc mục tiêu', bg: '#ccfbf1', color: '#0f766e' }
 ];
 
-export default function StudentDashboard({ timetableImage = '', students = [], attendance = {}, setActiveTab, announcements = [], onRefresh }) {
+export default function StudentDashboard({ timetableImage = '', classMapImage = '', students = [], attendance = {}, setActiveTab, announcements = [], onRefresh }) {
   const { user } = useAuth();
   const { settings } = useClassSettings();
 
@@ -92,8 +92,10 @@ export default function StudentDashboard({ timetableImage = '', students = [], a
   const [activeBranch, setActiveBranch] = useState(null);
   const [viewMode, setViewMode] = useState('card');
   const [showImageModal, setShowImageModal] = useState(false);
+  const [showClassMapModal, setShowClassMapModal] = useState(false);
 
   const activeTimetableImg = timetableImage || localStorage.getItem('qlcn_timetable_image') || '';
+  const activeClassMapImg = classMapImage || localStorage.getItem('qlcn_class_map_image') || '';
 
   // Combine prop announcements with localStorage announcements posted by GVCN
   const activeAnnouncements = useMemo(() => {
@@ -366,7 +368,68 @@ export default function StudentDashboard({ timetableImage = '', students = [], a
 
       </div>
 
+      {/* Sơ đồ chỗ ngồi lớp */}
+      <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1.25rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div>
+            <h3 style={{ margin: 0, color: 'var(--color-primary-dark)', fontSize: '1.1rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              🪑 Sơ Đồ Chỗ Ngồi Lớp {settings.className}
+            </h3>
+            <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, marginTop: '0.15rem' }}>
+              🗺️ Sơ đồ bàn ghế và phân chỗ ngồi chính thức do GVCN ban hành
+            </div>
+          </div>
+          {activeClassMapImg && (
+            <span style={{ fontSize: '0.72rem', background: '#dcfce7', color: '#166534', padding: '0.18rem 0.6rem', borderRadius: '9999px', fontWeight: 800 }}>
+              ✓ Đã cập nhật
+            </span>
+          )}
+        </div>
 
+        {activeClassMapImg ? (
+          <div style={{ background: '#f8fafc', borderRadius: '0.85rem', padding: '0.85rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+            <img
+              src={activeClassMapImg}
+              alt={`Sơ đồ chỗ ngồi ${settings.className}`}
+              onClick={() => setShowClassMapModal(true)}
+              style={{
+                width: '100%',
+                maxHeight: '420px',
+                borderRadius: '0.65rem',
+                cursor: 'zoom-in',
+                objectFit: 'contain',
+                border: '1.5px solid #cbd5e1',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.06)'
+              }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => setShowClassMapModal(true)}
+                style={{ padding: '0.4rem 0.95rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 800, background: '#0284c7', color: 'white', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+              >
+                🔍 Phóng To Xem Chi Tiết
+              </button>
+              <a
+                href={activeClassMapImg}
+                download={`SoDoLop_${settings.className}.png`}
+                style={{ padding: '0.4rem 0.95rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 800, background: '#16a34a', color: 'white', border: 'none', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+              >
+                📥 Tải Ảnh Về Máy
+              </a>
+            </div>
+          </div>
+        ) : (
+          <div style={{ padding: '2rem 1rem', textAlign: 'center', background: '#f8fafc', borderRadius: '0.85rem', border: '1.5px dashed #cbd5e1' }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🪑</div>
+            <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#1B4D53', marginBottom: '0.3rem' }}>
+              GVCN chưa đăng Ảnh Sơ Đồ Chỗ Ngồi Lớp
+            </div>
+            <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+              Hình ảnh sơ đồ phân chỗ ngồi sẽ hiển thị trực tiếp tại đây ngay khi GVCN cập nhật từ cổng quản lý.
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Modal View Timetable Image Zoom */}
       {showImageModal && activeTimetableImg && (
@@ -378,6 +441,22 @@ export default function StudentDashboard({ timetableImage = '', students = [], a
             </div>
             <img src={activeTimetableImg} alt="TKB Gốc" style={{ maxWidth: '100%', maxHeight: '75vh', borderRadius: '0.75rem', objectFit: 'contain', border: '1px solid #e5e7eb' }} />
             <a href={activeTimetableImg} download="ThoiKhoaBieu_12.7.png" style={{ padding: '0.5rem 1.5rem', borderRadius: '9999px', background: '#0284c7', color: 'white', fontWeight: 800, textDecoration: 'none' }}>
+              📥 Tải Ảnh Về Máy
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* Modal View Seating Map Image Zoom */}
+      {showClassMapModal && activeClassMapImg && (
+        <div onClick={() => setShowClassMapModal(false)} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '1.25rem', padding: '1.5rem', maxWidth: '94vw', maxHeight: '92vh', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#1B4D53' }}>🪑 Sơ Đồ Chỗ Ngồi Lớp {settings.className}</h3>
+              <button onClick={() => setShowClassMapModal(false)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '50%', width: '32px', height: '32px', fontWeight: 900, cursor: 'pointer' }}>✕</button>
+            </div>
+            <img src={activeClassMapImg} alt="Sơ Đồ Chỗ Ngồi" style={{ maxWidth: '100%', maxHeight: '75vh', borderRadius: '0.75rem', objectFit: 'contain', border: '1px solid #e5e7eb' }} />
+            <a href={activeClassMapImg} download={`SoDoLop_${settings.className}.png`} style={{ padding: '0.5rem 1.5rem', borderRadius: '9999px', background: '#0284c7', color: 'white', fontWeight: 800, textDecoration: 'none' }}>
               📥 Tải Ảnh Về Máy
             </a>
           </div>
