@@ -63,6 +63,21 @@ const compressImageFile = (file, maxWidth = 1600, quality = 0.82) => {
   });
 };
 
+// Automatic mobile cache cleaner on new version release
+const QLCN_SYNC_VERSION = 'qlcn_v2026_clean_v2';
+if (typeof window !== 'undefined') {
+  try {
+    if (localStorage.getItem('qlcn_sync_version') !== QLCN_SYNC_VERSION) {
+      [
+        'qlcn_announcements', 'qlcn_leave_requests', 'qlcn_home_requests',
+        'qlcn_confessions', 'qlcn_activities', 'qlcn_finance',
+        'qlcn_attendance', 'qlcn_students_data'
+      ].forEach(k => localStorage.removeItem(k));
+      localStorage.setItem('qlcn_sync_version', QLCN_SYNC_VERSION);
+    }
+  } catch {}
+}
+
 // ── App Entry Point ─────────────────────────────────────────────────────────
 export default function App() {
   const { user, isTeacher, isStudent } = useAuth();
@@ -108,79 +123,45 @@ export default function App() {
       try { localConfessions = JSON.parse(localStorage.getItem('qlcn_confessions') || '[]'); } catch {}
 
       const serverAnn = Array.isArray(result.announcements) ? result.announcements : [];
-      const mergedAnn = [...serverAnn];
-      localAnn.forEach(la => {
-        if (!mergedAnn.some(a => String(a.id) === String(la.id))) {
-          mergedAnn.unshift(la);
-        }
-      });
-
       const serverReqs = Array.isArray(result.leaveRequests) ? result.leaveRequests : [];
-      const mergedReqs = [...serverReqs];
-      localReqs.forEach(lr => {
-        if (!mergedReqs.some(r => String(r.id) === String(lr.id))) {
-          mergedReqs.unshift(lr);
-        }
-      });
-
       const serverHomeReqs = Array.isArray(result.homeRequests) ? result.homeRequests : [];
-      const mergedHomeReqs = [...serverHomeReqs];
-      localHomeReqs.forEach(lhr => {
-        if (!mergedHomeReqs.some(r => String(r.id) === String(lhr.id))) {
-          mergedHomeReqs.unshift(lhr);
-        }
-      });
-
       const serverFinance = Array.isArray(result.finance) ? result.finance : [];
-      const mergedFinance = [...serverFinance];
-      localFinance.forEach(lf => {
-        if (!mergedFinance.some(f => String(f.id) === String(lf.id))) {
-          mergedFinance.unshift(lf);
-        }
-      });
-
       const serverActivities = Array.isArray(result.activities) ? result.activities : [];
-      const mergedActivities = [...serverActivities];
-      localActivities.forEach(la => {
-        if (!mergedActivities.some(a => String(a.id) === String(la.id))) {
-          mergedActivities.unshift(la);
-        }
-      });
-
       const serverConfessions = Array.isArray(result.confessions) ? result.confessions : [];
-      const mergedConfessions = [...serverConfessions];
-      localConfessions.forEach(lc => {
-        if (!mergedConfessions.some(c => String(c.id) === String(lc.id))) {
-          mergedConfessions.unshift(lc);
-        }
-      });
 
       let localSt = null;
       try { localSt = JSON.parse(localStorage.getItem('qlcn_students_data') || 'null'); } catch {}
 
       const serverSt = (result.students && result.students.length > 0) ? result.students : INITIAL_STUDENTS;
       let finalStudents = serverSt;
-      if (Array.isArray(localSt) && localSt.length > 0) {
+      if (Array.isArray(localSt) && localSt.length === serverSt.length) {
         const serverMap = new Map(serverSt.map(s => [s.id, s]));
-        const orderedFromLocal = localSt.map(ls => ({ ...(serverMap.get(ls.id) || {}), ...ls })).filter(Boolean);
-        serverSt.forEach(s => {
-          if (!orderedFromLocal.some(os => os.id === s.id)) {
-            orderedFromLocal.push(s);
-          }
-        });
-        finalStudents = orderedFromLocal;
+        const orderedFromLocal = localSt.map(ls => ({ ...(serverMap.get(ls.id) || {}), seatIndex: ls.seatIndex })).filter(Boolean);
+        if (orderedFromLocal.length === serverSt.length) {
+          finalStudents = orderedFromLocal;
+        }
       }
+
+      // Cache authoritative server data to phone localStorage for offline support
+      try {
+        localStorage.setItem('qlcn_announcements', JSON.stringify(serverAnn));
+        localStorage.setItem('qlcn_leave_requests', JSON.stringify(serverReqs));
+        localStorage.setItem('qlcn_home_requests', JSON.stringify(serverHomeReqs));
+        localStorage.setItem('qlcn_finance', JSON.stringify(serverFinance));
+        localStorage.setItem('qlcn_activities', JSON.stringify(serverActivities));
+        localStorage.setItem('qlcn_confessions', JSON.stringify(serverConfessions));
+      } catch {}
 
       setData(prev => ({
         ...prev,
         ...result,
         students: finalStudents,
-        announcements: mergedAnn,
-        leaveRequests: mergedReqs,
-        homeRequests: mergedHomeReqs,
-        finance: mergedFinance,
-        activities: mergedActivities,
-        confessions: mergedConfessions,
+        announcements: serverAnn,
+        leaveRequests: serverReqs,
+        homeRequests: serverHomeReqs,
+        finance: serverFinance,
+        activities: serverActivities,
+        confessions: serverConfessions,
         timetableImage: result.timetableImage || localTkb || prev.timetableImage,
         classMapImage: result.classMapImage || localMap || prev.classMapImage,
       }));
@@ -215,12 +196,29 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    // Initial fetch
     fetchData(true);
-    // Realtime background sync polling every 5 seconds
+
+    // Periodic background sync (every 5 seconds)
     const timer = setInterval(() => {
       fetchData(false);
     }, 5000);
-    return () => clearInterval(timer);
+
+    // Mobile Phone Sync: Automatically refresh data when user switches to app or unlocks screen
+    const handleSyncOnVisible = () => {
+      if (document.visibilityState === 'visible') {
+        fetchData(false);
+      }
+    };
+
+    window.addEventListener('visibilitychange', handleSyncOnVisible);
+    window.addEventListener('focus', handleSyncOnVisible);
+
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('visibilitychange', handleSyncOnVisible);
+      window.removeEventListener('focus', handleSyncOnVisible);
+    };
   }, [fetchData]);
 
   // ── Multi-sheet Excel Upload Handler for tonghop12_7.xlsx ─────────────────

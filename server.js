@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import multer from 'multer';
 import jwt from 'jsonwebtoken';
 import { createClient } from '@supabase/supabase-js';
+import { INITIAL_STUDENTS } from './src/data/initialStudents.js';
 
 dotenv.config();
 
@@ -26,8 +27,6 @@ const fileFilter = (req, file, cb) => {
 };
 const upload = multer({ storage, fileFilter, limits: { fileSize: 10 * 1024 * 1024 } });
 
-const DB_FILE = path.join(process.cwd(), 'db_data_12.7.json');
-
 // Initialize Supabase Client if credentials are provided
 let supabase = null;
 const isSupabaseConfigured = process.env.SUPABASE_URL && 
@@ -47,7 +46,7 @@ let inMemoryDB = null;
 
 function readDB() {
   if (inMemoryDB) {
-    if (!Array.isArray(inMemoryDB.students)) inMemoryDB.students = [];
+    if (!Array.isArray(inMemoryDB.students) || inMemoryDB.students.length === 0) inMemoryDB.students = [...INITIAL_STUDENTS];
     if (!Array.isArray(inMemoryDB.announcements)) inMemoryDB.announcements = [];
     if (!Array.isArray(inMemoryDB.leaveRequests)) inMemoryDB.leaveRequests = [];
     if (!Array.isArray(inMemoryDB.homeRequests)) inMemoryDB.homeRequests = [];
@@ -62,7 +61,7 @@ function readDB() {
   }
   
   let data = {
-    students: [],
+    students: [...INITIAL_STUDENTS],
     timetableImage: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&q=80&w=800',
     classMapImage: '',
     announcements: [],
@@ -77,38 +76,12 @@ function readDB() {
     auditLogs: []
   };
 
-  try {
-    if (fs.existsSync(DB_FILE)) {
-      const parsed = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
-      data = { ...data, ...parsed };
-    }
-  } catch {
-    /* Ignore read restriction in serverless */
-  }
-
-  if (!Array.isArray(data.students)) data.students = [];
-  if (!Array.isArray(data.announcements)) data.announcements = [];
-  if (!Array.isArray(data.leaveRequests)) data.leaveRequests = [];
-  if (!Array.isArray(data.homeRequests)) data.homeRequests = [];
-  if (!Array.isArray(data.confessions)) data.confessions = [];
-  if (!data.attendance || typeof data.attendance !== 'object') data.attendance = {};
-  if (!data.dormAttendance || typeof data.dormAttendance !== 'object') data.dormAttendance = {};
-  if (!data.competitionRecords || typeof data.competitionRecords !== 'object') data.competitionRecords = {};
-  if (!Array.isArray(data.activities)) data.activities = [];
-  if (!Array.isArray(data.finance)) data.finance = [];
-  if (!Array.isArray(data.auditLogs)) data.auditLogs = [];
-
   inMemoryDB = data;
   return data;
 }
 
 function writeDB(data) {
   inMemoryDB = data;
-  try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
-  } catch {
-    /* Serverless read-only filesystem failover */
-  }
 }
 
 function addAuditLog(user, action, target, details = '') {

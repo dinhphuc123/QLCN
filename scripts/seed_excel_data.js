@@ -7,7 +7,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const EXCEL_FILE = path.join(process.cwd(), 'danh_sach_hoc_sinh_12_7 (2).xlsx');
-const DB_FILE = path.join(process.cwd(), 'db_data_12.7.json');
 
 // Parse Excel File
 export function parseExcelData() {
@@ -132,8 +131,7 @@ export async function seedData() {
     ]
   };
 
-  fs.writeFileSync(DB_FILE, JSON.stringify(cleanData, null, 2), 'utf-8');
-  console.log('✅ Đã xóa sạch dữ liệu demo và cập nhật db_data_12.7.json!');
+  console.log('✅ Đã trích xuất và chuẩn bị 32 học sinh thật từ file Excel!');
 
   // 2. Clear & update Supabase Cloud Database if configured
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
