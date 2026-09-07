@@ -221,148 +221,246 @@ export default function App() {
     };
   }, [fetchData]);
 
-  // ── Multi-sheet Excel Upload Handler for tonghop12_7.xlsx ─────────────────
+  // ── Multi-sheet / Single-sheet Smart Excel Upload Handler ─────────────────
   const handleExcelUpload = useCallback(async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const toastId = toast.loading('Đang đọc file tonghop12_7.xlsx...');
+    const toastId = toast.loading('Đang đọc và phân tích file Excel...');
     try {
       const buf = await file.arrayBuffer();
       const wb = XLSX.read(buf, { type: 'array' });
 
-      // 1. Read DS học sinh 12.7 sheet
-      const dsSheetName = wb.SheetNames.find(n => n.includes('DS học sinh') || n.includes('DS') || n === wb.SheetNames[0]);
+      const clean = str => String(str || '').trim();
+      const norm = str => clean(str)
+        .toLowerCase()
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'd')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s]/gi, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      const isNameHeader = (cell) => {
+        const n = norm(cell);
+        if (n.includes('danh sach') || n.includes('can bo') || n.includes('so dien thoai')) return false;
+        return n === 'ho va ten' || n === 'ho va ten hoc sinh' || n === 'ho ten' || n === 'ten hoc sinh' || n === 'ho ten hs' || n === 'name' || (n.includes('ho') && n.includes('ten'));
+      };
+
+      // 1. Read main student sheet
+      const dsSheetName = wb.SheetNames.find(n => norm(n).includes('ds hoc sinh') || norm(n).includes('danh sach') || norm(n).includes('hoc sinh') || norm(n).includes('ds')) || wb.SheetNames[0];
       const dsSheet = wb.Sheets[dsSheetName];
       const dsRows = XLSX.utils.sheet_to_json(dsSheet, { header: 1, defval: '' });
 
-      const headerRow = dsRows.findIndex(r => r.some(c => String(c).toLowerCase().includes('họ')));
-      if (headerRow < 0) { toast.error('Không tìm thấy cột Họ và Tên!', { id: toastId }); return; }
+      let headerRow = dsRows.findIndex(row => {
+        const cells = row.map(norm);
+        const hasName = cells.some(isNameHeader);
+        const hasOther = cells.some(c => c.includes('stt') || c.includes('gioi tinh') || c.includes('ngay sinh') || c.includes('dan toc') || c.includes('sdt') || c.includes('dien thoai'));
+        return hasName && (hasOther || cells.filter(Boolean).length >= 3);
+      });
 
-      const headers = dsRows[headerRow].map(h => String(h).toLowerCase().trim());
-      const findIdx = (...names) => headers.findIndex(h => names.some(n => h.includes(n)));
+      if (headerRow < 0) {
+        headerRow = dsRows.findIndex(row => row.some(isNameHeader));
+      }
 
-      const nameIdx = findIdx('họ và tên', 'tên', 'name');
-      const genderIdx = findIdx('giới tính', 'gioi tinh');
-      const dobIdx = findIdx('ngày sinh', 'ngay sinh');
-      const ethIdx = findIdx('dân tộc', 'dan toc');
-      const addrIdx = findIdx('địa chỉ', 'dia chi');
-      const phoneIdx = findIdx('số điện thoại', 'sđt', 'phone');
+      if (headerRow < 0) {
+        toast.error('Không tìm thấy dòng tiêu đề (Họ và Tên) trong file Excel!', { id: toastId });
+        return;
+      }
 
-      const getVal = (row, idx) => idx >= 0 ? String(row[idx] || '').trim() : '';
+      const headers = dsRows[headerRow].map(norm);
+      const findIdx = (...keywords) => headers.findIndex(h => keywords.some(k => {
+        if (k === 'to') return h === 'to' || h.startsWith('to ') || h.includes(' to ') || h.endsWith(' to');
+        return h.includes(k);
+      }));
 
-      // 2. Read Contacts sheet
-      const contactSheetName = wb.SheetNames.find(n => n.includes('Liên lạc'));
+      const nameIdx = findIdx('ho va ten', 'ho ten', 'ten hoc sinh', 'ten');
+      const genderIdx = findIdx('gioi tinh', 'phai', 'nam nu');
+      const dobIdx = findIdx('ngay sinh', 'ngaysinh', 'nam sinh', 'dob');
+      const ethIdx = findIdx('dan toc');
+      const addrIdx = findIdx('dia chi', 'noi o', 'ho khau');
+      const phoneIdx = findIdx('so dien thoai', 'sdt', 'dien thoai', 'phone');
+      const dormIdx = findIdx('phong', 'ktx', 'dorm');
+      const groupIdx = findIdx('to', 'nhom', 'group');
+      const posIdx = findIdx('chuc vu', 'nhiem vu', 'role', 'position');
+
+      if (nameIdx < 0) {
+        toast.error('Không tìm thấy cột Họ và Tên trong bảng!', { id: toastId });
+        return;
+      }
+
+      const getVal = (row, idx) => idx >= 0 ? clean(row[idx]) : '';
+
+      // 2. Read Contacts sheet (if available)
+      const contactSheetName = wb.SheetNames.find(n => norm(n).includes('lien lac') || norm(n).includes('phu huynh') || norm(n).includes('gia dinh') || norm(n).includes('contact'));
       const contactMap = {};
       if (contactSheetName) {
         const cRows = XLSX.utils.sheet_to_json(wb.Sheets[contactSheetName], { header: 1, defval: '' });
-        cRows.slice(4).forEach(r => {
-          const name = String(r[1] || '').trim();
-          if (name) {
+        const cHeaderRow = cRows.findIndex(row => row.some(isNameHeader));
+        const cStart = cHeaderRow >= 0 ? cHeaderRow + 1 : 1;
+        const cHeaders = cHeaderRow >= 0 ? cRows[cHeaderRow].map(norm) : [];
+        const cNameIdx = cHeaderRow >= 0 ? cHeaders.findIndex(h => h.includes('ho va ten') || h.includes('ho ten') || h.includes('ten')) : 1;
+        const cMomIdx = cHeaderRow >= 0 ? cHeaders.findIndex(h => h === 'me' || h.includes('ten me') || h.includes('me')) : 3;
+        const cMomPhoneIdx = cHeaderRow >= 0 ? cHeaders.findIndex(h => (h.includes('dien thoai') || h.includes('sdt')) && h.includes('me')) : 4;
+        const cDadIdx = cHeaderRow >= 0 ? cHeaders.findIndex(h => h === 'ba' || h === 'bo' || h.includes('ten ba') || h.includes('ten bo') || h.includes('ba') || h.includes('bo')) : 5;
+        const cDadPhoneIdx = cHeaderRow >= 0 ? cHeaders.findIndex(h => (h.includes('dien thoai') || h.includes('sdt')) && (h.includes('ba') || h.includes('bo'))) : 6;
+
+        cRows.slice(cStart).forEach(r => {
+          const name = clean(r[cNameIdx >= 0 ? cNameIdx : 1]);
+          if (name && !norm(name).includes('ho va ten') && !norm(name).includes('tong so')) {
             contactMap[name] = {
-              motherName: String(r[3] || '').trim(),
-              motherPhone: String(r[4] || '').trim(),
-              fatherName: String(r[5] || '').trim(),
-              fatherPhone: String(r[6] || '').trim(),
+              motherName: clean(r[cMomIdx >= 0 ? cMomIdx : 3]),
+              motherPhone: clean(r[cMomPhoneIdx >= 0 ? cMomPhoneIdx : 4]),
+              fatherName: clean(r[cDadIdx >= 0 ? cDadIdx : 5]),
+              fatherPhone: clean(r[cDadPhoneIdx >= 0 ? cDadPhoneIdx : 6]),
             };
           }
         });
       }
 
-      // 3. Read Officers sheet
-      const officerSheetName = wb.SheetNames.find(n => n.includes('Cán bộ'));
+      // 3. Read Officers sheet (if available)
+      const officerSheetName = wb.SheetNames.find(n => norm(n).includes('can bo') || norm(n).includes('ban can su') || norm(n).includes('chuc vu') || norm(n).includes('officer'));
       const officerMap = {};
       if (officerSheetName) {
         const oRows = XLSX.utils.sheet_to_json(wb.Sheets[officerSheetName], { header: 1, defval: '' });
-        oRows.slice(4).forEach(r => {
-          const pos = String(r[1] || '').trim();
-          const name = String(r[2] || '').trim();
-          if (name) {
+        const oHeaderRow = oRows.findIndex(row => row.some(isNameHeader) || row.some(c => norm(c).includes('chuc vu')));
+        const oStart = oHeaderRow >= 0 ? oHeaderRow + 1 : 1;
+        const oHeaders = oHeaderRow >= 0 ? oRows[oHeaderRow].map(norm) : [];
+        const oNameIdx = oHeaderRow >= 0 ? oHeaders.findIndex(h => h.includes('ho va ten') || h.includes('ho ten') || h.includes('ten')) : 2;
+        const oPosIdx = oHeaderRow >= 0 ? oHeaders.findIndex(h => h.includes('chuc vu') || h.includes('nhiem vu') || h.includes('vi tri')) : 1;
+
+        oRows.slice(oStart).forEach(r => {
+          const name = clean(r[oNameIdx >= 0 ? oNameIdx : 2]);
+          const pos = clean(r[oPosIdx >= 0 ? oPosIdx : 1]);
+          if (name && pos && !norm(name).includes('ho va ten') && !norm(name).includes('tong so')) {
             if (!officerMap[name]) officerMap[name] = [];
             officerMap[name].push(pos);
           }
         });
       }
 
-      // 4. Read Dorm sheet
-      const dormSheetName = wb.SheetNames.find(n => n.includes('Phòng KTX'));
+      // 4. Read Dorm sheet (if available)
+      const dormSheetName = wb.SheetNames.find(n => norm(n).includes('phong ktx') || norm(n).includes('ktx'));
       const dormMap = {};
       if (dormSheetName) {
         const dRows = XLSX.utils.sheet_to_json(wb.Sheets[dormSheetName], { header: 1, defval: '' });
         let currentRoom = 'A1-07';
         dRows.forEach(r => {
-          const cellA = String(r[0] || '').trim();
-          if (cellA.includes('PHÒNG')) {
+          const cellA = clean(r[0]);
+          if (cellA.toUpperCase().includes('PHÒNG') || cellA.toUpperCase().includes('PHONG')) {
             const match = cellA.match(/A1-\d+|C08/i);
             if (match) currentRoom = match[0].toUpperCase();
           }
-          const name = String(r[1] || '').trim();
-          if (name && !name.includes('Họ và tên') && !name.includes('DANH SÁCH')) {
+          const name = clean(r[1]);
+          if (name && !norm(name).includes('ho va ten') && !norm(name).includes('danh sach')) {
             dormMap[name] = currentRoom;
           }
         });
       }
 
-      // 5. Read Groups sheet
-      const groupSheetName = wb.SheetNames.find(n => n.includes('Danh sách 4 tổ') || n.includes('4 tổ'));
+      // 5. Read Groups sheet (if available)
+      const groupSheetName = wb.SheetNames.find(n => norm(n).includes('4 to') || norm(n).includes('danh sach to'));
       const groupMap = {};
       if (groupSheetName) {
         const gRows = XLSX.utils.sheet_to_json(wb.Sheets[groupSheetName], { header: 1, defval: '' });
         let currentGroup = 'Tổ 1';
         gRows.forEach(r => {
-          const cellA = String(r[0] || '').trim();
-          if (cellA.includes('TỔ')) {
-            const match = cellA.match(/TỔ \d/i);
-            if (match) currentGroup = match[0].replace('TỔ', 'Tổ');
+          const cellA = clean(r[0]);
+          if (cellA.toUpperCase().includes('TỔ') || cellA.toUpperCase().includes('TO ')) {
+            const match = cellA.match(/TỔ \d|TO \d/i);
+            if (match) currentGroup = match[0].toUpperCase().replace('TO', 'Tổ');
           }
-          const name = String(r[1] || '').trim();
-          if (name && !name.includes('Họ và tên')) {
+          const name = clean(r[1]);
+          if (name && !norm(name).includes('ho va ten')) {
             groupMap[name] = currentGroup;
           }
         });
       }
 
       // Build parsed student list
-      const newStudents = dsRows.slice(headerRow + 1)
-        .filter(row => getVal(row, nameIdx))
-        .map((row, i) => {
-          const name = getVal(row, nameIdx);
-          const cInfo = contactMap[name] || {};
-          const positions = officerMap[name] || [];
-          const positionStr = positions.join(', ');
+      const rawStudents = dsRows.slice(headerRow + 1).filter(row => {
+        const name = getVal(row, nameIdx);
+        const n = norm(name);
+        return name && !n.includes('ho va ten') && !n.includes('tong so') && !n.includes('nguoi lap') && !n.includes('giao vien');
+      });
 
-          let role = 'member';
-          if (positionStr.includes('Lớp trưởng')) role = 'monitor';
-          else if (positionStr.includes('Tổ trưởng')) role = 'group_leader';
-          else if (positionStr.includes('Trưởng phòng')) role = 'room_leader';
+      if (rawStudents.length === 0) {
+        toast.error('Không tìm thấy dữ liệu học sinh trong file!', { id: toastId });
+        return;
+      }
 
-          return {
-            id: i + 1,
-            studentCode: `24047661${15 + i}`,
-            name,
-            gender: getVal(row, genderIdx) || (i < 23 ? 'Nữ' : 'Nam'),
-            dob: getVal(row, dobIdx),
-            ethnicity: getVal(row, ethIdx),
-            address: getVal(row, addrIdx),
-            phone: getVal(row, phoneIdx),
-            motherName: cInfo.motherName || '',
-            motherPhone: cInfo.motherPhone || '',
-            fatherName: cInfo.fatherName || '',
-            fatherPhone: cInfo.fatherPhone || '',
-            group: groupMap[name] || (i < 8 ? 'Tổ 1' : i < 16 ? 'Tổ 2' : i < 25 ? 'Tổ 3' : 'Tổ 4'),
-            dormRoom: dormMap[name] || (i < 22 ? `A1-0${7 + Math.floor(i / 5)}` : 'C08'),
-            role,
-            position: positionStr,
-            isPoor: [5, 6, 12, 18, 24, 27].includes(i + 1),
-            points: 100,
-            seatIndex: i,
-          };
-        });
+      const newStudents = rawStudents.map((row, i) => {
+        const id = i + 1;
+        const name = getVal(row, nameIdx);
+        const cInfo = contactMap[name] || {};
+        const positions = officerMap[name] || (posIdx >= 0 && getVal(row, posIdx) ? [getVal(row, posIdx)] : []);
+        const positionStr = positions.join(', ');
 
-      if (newStudents.length === 0) { toast.error('Không có dữ liệu trong file!', { id: toastId }); return; }
+        let role = 'member';
+        if (positionStr.includes('Lớp trưởng')) role = 'monitor';
+        else if (positionStr.includes('Tổ trưởng')) role = 'group_leader';
+        else if (positionStr.includes('Trưởng phòng')) role = 'room_leader';
+
+        let group = groupMap[name] || (groupIdx >= 0 ? getVal(row, groupIdx) : '');
+        if (!group) {
+          if (id <= 8) group = 'Tổ 1';
+          else if (id <= 16) group = 'Tổ 2';
+          else if (id <= 24) group = 'Tổ 3';
+          else group = 'Tổ 4';
+        }
+        if (positionStr.includes('Tổ trưởng tổ 1')) group = 'Tổ 1';
+        if (positionStr.includes('Tổ trưởng tổ 2')) group = 'Tổ 2';
+        if (positionStr.includes('Tổ trưởng tổ 3')) group = 'Tổ 3';
+        if (positionStr.includes('Tổ trưởng tổ 4')) group = 'Tổ 4';
+
+        const gender = getVal(row, genderIdx) || (i < 23 ? 'Nữ' : 'Nam');
+        const isMale = gender === 'Nam';
+
+        let dormRoom = dormMap[name] || (dormIdx >= 0 ? getVal(row, dormIdx) : '');
+        if (!dormRoom) {
+          if (isMale) {
+            dormRoom = 'C08';
+          } else {
+            if (id <= 6) dormRoom = 'A1-07';
+            else if (id <= 12) dormRoom = 'A1-08';
+            else if (id <= 18) dormRoom = 'A1-09';
+            else if (id <= 24) dormRoom = 'A1-10';
+            else dormRoom = 'A1-11';
+          }
+        }
+
+        return {
+          id,
+          studentCode: '2404766' + String(115 + i).padStart(3, '0'),
+          name,
+          gender,
+          dob: getVal(row, dobIdx),
+          ethnicity: getVal(row, ethIdx),
+          address: getVal(row, addrIdx),
+          phone: getVal(row, phoneIdx),
+          motherName: cInfo.motherName || '',
+          motherPhone: cInfo.motherPhone || '',
+          fatherName: cInfo.fatherName || '',
+          fatherPhone: cInfo.fatherPhone || '',
+          group,
+          dormRoom,
+          role,
+          position: positionStr,
+          isPoor: [5, 6, 12, 18, 24, 27].includes(id),
+          points: 100,
+          seatIndex: i
+        };
+      });
+
+      // Update state immediately for instant responsive UI
+      setData(prev => ({ ...prev, students: newStudents }));
+      try {
+        localStorage.setItem('qlcn_custom_students', JSON.stringify(newStudents));
+      } catch {}
 
       await api.bulkImport(newStudents);
-      toast.success(`✅ Đã nạp thành công ${newStudents.length} học sinh từ 5 Sheet!`, { id: toastId });
+      toast.success(`✅ Đã nạp thành công ${newStudents.length} học sinh!`, { id: toastId });
       fetchData();
     } catch (err) {
       console.error(err);

@@ -437,7 +437,7 @@ export default function Students({ students, attendance, onRefresh, handleExcelU
           {isTeacher && (
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               <label className="btn-primary" style={{ padding: '0.55rem 1rem', cursor: 'pointer', fontSize: '0.85rem' }}>
-                📥 Nạp file tonghop12_7.xlsx
+                📥 Nạp file Excel danh sách lớp
                 <input type="file" accept=".xlsx,.xls" style={{ display: 'none' }} onChange={handleExcelUpload} />
               </label>
               <button className="btn-primary" style={{ padding: '0.55rem 1rem', fontSize: '0.85rem', background: 'var(--color-accent-green)' }} onClick={() => setShowAddModal(true)}>

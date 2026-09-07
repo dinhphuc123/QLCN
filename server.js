@@ -214,7 +214,29 @@ app.get('/api/data', async (req, res) => {
           supabase.from('finance').select('*').order('created_at', { ascending: false })
         ]);
 
-        if (dbStudents && dbStudents.length > 0) data.students = dbStudents;
+        if (dbStudents && dbStudents.length > 0) {
+          data.students = dbStudents.map(s => ({
+            id: s.id,
+            studentCode: s.studentCode || s.student_code || '',
+            name: s.name || '',
+            gender: s.gender || '',
+            dob: s.dob || '',
+            ethnicity: s.ethnicity || '',
+            address: s.address || '',
+            phone: s.phone || '',
+            motherName: s.motherName || s.mother_name || '',
+            motherPhone: s.motherPhone || s.mother_phone || '',
+            fatherName: s.fatherName || s.father_name || '',
+            fatherPhone: s.fatherPhone || s.father_phone || '',
+            group: s.group || s.group_name || '',
+            dormRoom: s.dormRoom || s.dorm_room || '',
+            role: s.role || 'member',
+            position: s.position || '',
+            isPoor: s.isPoor !== undefined ? s.isPoor : (s.is_poor !== undefined ? s.is_poor : false),
+            points: s.points !== undefined ? s.points : 100,
+            seatIndex: s.seatIndex !== undefined ? s.seatIndex : (s.seat_index !== undefined ? s.seat_index : 0)
+          }));
+        }
         if (dbAnnouncements) data.announcements = dbAnnouncements;
         if (dbLeaveReqs) data.leaveRequests = dbLeaveReqs;
         if (dbHomeReqs) data.homeRequests = dbHomeReqs;
@@ -314,12 +336,42 @@ app.put('/api/students/:id', (req, res) => {
   res.json({ success: true, student: db.students[idx] });
 });
 
-app.post('/api/students/bulk', requireTeacher, (req, res) => {
+app.post('/api/students/bulk', requireTeacher, async (req, res) => {
   const { students: newStudents } = req.body;
   const db = readDB();
   db.students = newStudents;
   writeDB(db);
-  addAuditLog(req.user, 'NẠP EXCEL BULK', `${newStudents.length} HS`);
+
+  if (supabase && Array.isArray(newStudents) && newStudents.length > 0) {
+    try {
+      const rows = newStudents.map(s => ({
+        id: s.id,
+        student_code: s.studentCode || s.student_code || '',
+        name: s.name || '',
+        gender: s.gender || 'Nữ',
+        dob: s.dob || '',
+        ethnicity: s.ethnicity || '',
+        address: s.address || '',
+        phone: s.phone || '',
+        mother_name: s.motherName || s.mother_name || '',
+        mother_phone: s.motherPhone || s.mother_phone || '',
+        father_name: s.fatherName || s.father_name || '',
+        father_phone: s.fatherPhone || s.father_phone || '',
+        group_name: s.group || s.group_name || '',
+        dorm_room: s.dormRoom || s.dorm_room || '',
+        role: s.role || 'member',
+        position: s.position || '',
+        is_poor: !!s.isPoor,
+        points: s.points !== undefined ? s.points : 100,
+        seat_index: s.seatIndex !== undefined ? s.seatIndex : 0
+      }));
+      await supabase.from('students').upsert(rows, { onConflict: 'id' });
+    } catch (sbErr) {
+      console.warn('⚠️ Supabase bulk upsert error:', sbErr.message);
+    }
+  }
+
+  addAuditLog(req.user, 'NẠP EXCEL BULK', `${newStudents?.length || 0} HS`);
   res.json({ success: true });
 });
 
