@@ -31,7 +31,7 @@ import { api } from './lib/api';
 import { INITIAL_STUDENTS } from './data/initialStudents';
 
 // ── Image Compressor Helper ──────────────────────────────────────────────────
-const compressImageFile = (file, maxWidth = 1600, quality = 0.82) => {
+const compressImageFile = (file, maxWidth = 1400, quality = 0.78) => {
   return new Promise((resolve) => {
     if (!file || !file.type.startsWith('image/')) {
       const reader = new FileReader();
@@ -64,7 +64,7 @@ const compressImageFile = (file, maxWidth = 1600, quality = 0.82) => {
 };
 
 // Automatic mobile cache cleaner on new version release
-const QLCN_SYNC_VERSION = 'qlcn_v2026_clean_v2';
+const QLCN_SYNC_VERSION = 'qlcn_v2026_clean_v3';
 if (typeof window !== 'undefined') {
   try {
     if (localStorage.getItem('qlcn_sync_version') !== QLCN_SYNC_VERSION) {
@@ -88,6 +88,9 @@ export default function App() {
   const [data, setData] = useState({
     students: INITIAL_STUDENTS,
     timetableImage: localStorage.getItem('qlcn_timetable_image') || '',
+    timetableData: (() => {
+      try { return JSON.parse(localStorage.getItem('qlcn_timetable_data') || 'null'); } catch { return null; }
+    })(),
     classMapImage: localStorage.getItem('qlcn_class_map_image') || '',
     announcements: [],
     leaveRequests: [],
@@ -150,7 +153,13 @@ export default function App() {
         localStorage.setItem('qlcn_finance', JSON.stringify(serverFinance));
         localStorage.setItem('qlcn_activities', JSON.stringify(serverActivities));
         localStorage.setItem('qlcn_confessions', JSON.stringify(serverConfessions));
+        if (result.timetableData) localStorage.setItem('qlcn_timetable_data', JSON.stringify(result.timetableData));
+        if (result.timetableImage) localStorage.setItem('qlcn_timetable_image', result.timetableImage);
+        if (result.classMapImage) localStorage.setItem('qlcn_class_map_image', result.classMapImage);
       } catch {}
+
+      let localTkbData = null;
+      try { localTkbData = JSON.parse(localStorage.getItem('qlcn_timetable_data') || 'null'); } catch {}
 
       setData(prev => ({
         ...prev,
@@ -163,6 +172,7 @@ export default function App() {
         activities: serverActivities,
         confessions: serverConfessions,
         timetableImage: result.timetableImage || localTkb || prev.timetableImage,
+        timetableData: result.timetableData || localTkbData || prev.timetableData,
         classMapImage: result.classMapImage || localMap || prev.classMapImage,
       }));
     } catch {
@@ -171,6 +181,8 @@ export default function App() {
       }
       const localTkb = localStorage.getItem('qlcn_timetable_image') || '';
       const localMap = localStorage.getItem('qlcn_class_map_image') || '';
+      let localTkbData = null;
+      try { localTkbData = JSON.parse(localStorage.getItem('qlcn_timetable_data') || 'null'); } catch {}
       let localAnn = [], localReqs = [], localHomeReqs = [], localFinance = [], localActivities = [], localConfessions = [];
       try { localAnn = JSON.parse(localStorage.getItem('qlcn_announcements') || '[]'); } catch {}
       try { localReqs = JSON.parse(localStorage.getItem('qlcn_leave_requests') || '[]'); } catch {}
@@ -188,6 +200,7 @@ export default function App() {
         activities: localActivities.length > 0 ? localActivities : prev.activities,
         confessions: localConfessions.length > 0 ? localConfessions : prev.confessions,
         timetableImage: prev.timetableImage || localTkb,
+        timetableData: prev.timetableData || localTkbData,
         classMapImage: prev.classMapImage || localMap,
       }));
     } finally {
@@ -473,16 +486,20 @@ export default function App() {
   const handleTimetableChange = useCallback(async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const toastId = toast.loading('Đang xử lý ảnh thời khóa biểu...');
+    const toastId = toast.loading('Đang xử lý và đồng bộ ảnh thời khóa biểu...');
     try {
       const base64 = await compressImageFile(file);
       // Store in local storage immediately for instant rendering
       try { localStorage.setItem('qlcn_timetable_image', base64); } catch {}
       setData(prev => ({ ...prev, timetableImage: base64 }));
 
-      // Upload to server/API
-      await api.uploadTimetable(base64);
-      toast.success('✅ Đã cập nhật thời khóa biểu!', { id: toastId });
+      // Upload to server/API & Cloud CDN
+      const res = await api.uploadTimetable(base64);
+      const finalUrl = res?.timetableImage || base64;
+      try { localStorage.setItem('qlcn_timetable_image', finalUrl); } catch {}
+      setData(prev => ({ ...prev, timetableImage: finalUrl }));
+
+      toast.success('✅ Đã cập nhật và đồng bộ thời khóa biểu!', { id: toastId });
       fetchData();
     } catch (err) {
       console.warn('API error, fallback local storage:', err.message);
@@ -494,16 +511,20 @@ export default function App() {
   const handleClassMapChange = useCallback(async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const toastId = toast.loading('Đang xử lý ảnh sơ đồ lớp...');
+    const toastId = toast.loading('Đang xử lý và đồng bộ ảnh sơ đồ lớp...');
     try {
       const base64 = await compressImageFile(file);
       // Store in local storage immediately for instant rendering
       try { localStorage.setItem('qlcn_class_map_image', base64); } catch {}
       setData(prev => ({ ...prev, classMapImage: base64 }));
 
-      // Upload to server/API
-      await api.uploadClassMap(base64);
-      toast.success('✅ Đã cập nhật sơ đồ lớp!', { id: toastId });
+      // Upload to server/API & Cloud CDN
+      const res = await api.uploadClassMap(base64);
+      const finalUrl = res?.classMapImage || base64;
+      try { localStorage.setItem('qlcn_class_map_image', finalUrl); } catch {}
+      setData(prev => ({ ...prev, classMapImage: finalUrl }));
+
+      toast.success('✅ Đã cập nhật và đồng bộ sơ đồ lớp!', { id: toastId });
       fetchData();
     } catch (err) {
       console.warn('API error, fallback local storage:', err.message);

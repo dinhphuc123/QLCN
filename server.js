@@ -7,6 +7,7 @@ import multer from 'multer';
 import jwt from 'jsonwebtoken';
 import { createClient } from '@supabase/supabase-js';
 import { INITIAL_STUDENTS } from './src/data/initialStudents.js';
+import { uploadImageToCDN, fetchCloudData, saveCloudData } from './src/lib/cloudSync.js';
 
 dotenv.config();
 
@@ -62,7 +63,15 @@ function readDB() {
   
   let data = {
     students: [...INITIAL_STUDENTS],
-    timetableImage: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&q=80&w=800',
+    timetableImage: '',
+    timetableData: {
+      'Thứ 2': { morning: ['', '', '', '', ''], afternoon: ['', '', ''] },
+      'Thứ 3': { morning: ['', '', '', '', ''], afternoon: ['', '', ''] },
+      'Thứ 4': { morning: ['', '', '', '', ''], afternoon: ['', '', ''] },
+      'Thứ 5': { morning: ['', '', '', '', ''], afternoon: ['', '', ''] },
+      'Thứ 6': { morning: ['', '', '', '', ''], afternoon: ['', '', ''] },
+      'Thứ 7': { morning: ['', '', '', '', ''], afternoon: ['', '', ''] },
+    },
     classMapImage: '',
     announcements: [],
     leaveRequests: [],
@@ -189,10 +198,28 @@ app.post('/api/auth/login', (req, res) => {
   }
 });
 
-// API Data Route with Supabase Cloud Database Sync
+// API Data Route with Cloud Database Sync
 app.get('/api/data', async (req, res) => {
   try {
     let data = readDB();
+
+    // 1. Persistent Cloud Store Sync (guarantees cross-device sync on Serverless)
+    try {
+      const cloudData = await fetchCloudData();
+      if (cloudData && typeof cloudData === 'object') {
+        if (cloudData.timetableImage !== undefined) data.timetableImage = cloudData.timetableImage;
+        if (cloudData.timetableData !== undefined) data.timetableData = cloudData.timetableData;
+        if (cloudData.classMapImage !== undefined) data.classMapImage = cloudData.classMapImage;
+        if (Array.isArray(cloudData.announcements) && cloudData.announcements.length > 0) {
+          data.announcements = cloudData.announcements;
+        }
+        if (Array.isArray(cloudData.students) && cloudData.students.length > 0) {
+          data.students = cloudData.students;
+        }
+      }
+    } catch (cErr) {
+      console.warn('⚠️ Cloud sync fetch warning:', cErr.message);
+    }
 
     if (supabase) {
       try {
@@ -314,11 +341,12 @@ app.post('/api/students', requireTeacher, (req, res) => {
   res.json({ success: true, student: newStudent });
 });
 
-app.put('/api/students', requireTeacher, (req, res) => {
+app.put('/api/students', requireTeacher, async (req, res) => {
   const updatedStudents = req.body;
   const db = readDB();
   db.students = updatedStudents;
   writeDB(db);
+  await saveCloudData({ students: updatedStudents });
   addAuditLog(req.user, 'CẬP NHẬT SƠ ĐỒ LỚP / DANH SÁCH', `${updatedStudents.length} HS`);
   res.json({ success: true });
 });
@@ -341,6 +369,7 @@ app.post('/api/students/bulk', requireTeacher, async (req, res) => {
   const db = readDB();
   db.students = newStudents;
   writeDB(db);
+  await saveCloudData({ students: newStudents });
 
   if (supabase && Array.isArray(newStudents) && newStudents.length > 0) {
     try {
@@ -386,26 +415,61 @@ app.delete('/api/students/:id', requireTeacher, (req, res) => {
 });
 
 // Timetable & Class Map
-app.post('/api/timetable', requireTeacher, (req, res) => {
-  const { image } = req.body;
-  const db = readDB();
-  db.timetableImage = image;
-  writeDB(db);
-  addAuditLog(req.user, 'CẬP NHẬT TKB', 'Thời khóa biểu mới');
-  res.json({ success: true });
+app.post('/api/timetable', requireTeacher, async (req, res) => {
+  try {
+    let { image } = req.body;
+    if (image && typeof image === 'string' && image.startsWith('data:image')) {
+      const cdnUrl = await uploadImageToCDN(image, 'timetable.jpg');
+      if (cdnUrl) image = cdnUrl;
+    }
+    const db = readDB();
+    db.timetableImage = image;
+    writeDB(db);
+    await saveCloudData({ timetableImage: image });
+    addAuditLog(req.user, 'CẬP NHẬT TKB', 'Thời khóa biểu mới');
+    res.json({ success: true, timetableImage: image });
+  } catch (err) {
+    console.error('Error saving timetable image:', err);
+    res.status(200).json({ success: false, error: err.message });
+  }
 });
 
-app.post('/api/class-map', requireTeacher, (req, res) => {
-  const { image } = req.body;
-  const db = readDB();
-  db.classMapImage = image;
-  writeDB(db);
-  addAuditLog(req.user, 'CẬP NHẬT SƠ ĐỒ ÁNH', 'Sơ đồ lớp mới');
-  res.json({ success: true });
+app.post('/api/timetable-data', requireTeacher, async (req, res) => {
+  try {
+    const { timetableData } = req.body;
+    const db = readDB();
+    db.timetableData = timetableData;
+    writeDB(db);
+    await saveCloudData({ timetableData });
+    addAuditLog(req.user, 'CẬP NHẬT TIẾT HỌC TKB', 'Cập nhật bảng tiết học');
+    res.json({ success: true, timetableData });
+  } catch (err) {
+    console.error('Error saving timetable data:', err);
+    res.status(200).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/class-map', requireTeacher, async (req, res) => {
+  try {
+    let { image } = req.body;
+    if (image && typeof image === 'string' && image.startsWith('data:image')) {
+      const cdnUrl = await uploadImageToCDN(image, 'classmap.jpg');
+      if (cdnUrl) image = cdnUrl;
+    }
+    const db = readDB();
+    db.classMapImage = image;
+    writeDB(db);
+    await saveCloudData({ classMapImage: image });
+    addAuditLog(req.user, 'CẬP NHẬT SƠ ĐỒ ÁNH', 'Sơ đồ lớp mới');
+    res.json({ success: true, classMapImage: image });
+  } catch (err) {
+    console.error('Error saving class map image:', err);
+    res.status(200).json({ success: false, error: err.message });
+  }
 });
 
 // Announcements
-app.post('/api/announcements', (req, res) => {
+app.post('/api/announcements', async (req, res) => {
   try {
     const ann = req.body;
     if (!ann || !ann.title || !ann.content) {
@@ -421,6 +485,7 @@ app.post('/api/announcements', (req, res) => {
     };
     db.announcements.unshift(newAnn);
     writeDB(db);
+    await saveCloudData({ announcements: db.announcements });
     addAuditLog(req.user, 'ĐĂNG THÔNG BÁO', newAnn.title || 'Thông báo mới');
     return res.json({ success: true, announcement: newAnn });
   } catch (err) {
@@ -429,13 +494,14 @@ app.post('/api/announcements', (req, res) => {
   }
 });
 
-app.delete('/api/announcements/:id', (req, res) => {
+app.delete('/api/announcements/:id', async (req, res) => {
   try {
     const rawId = req.params.id;
     const db = readDB();
     if (!Array.isArray(db.announcements)) db.announcements = [];
     db.announcements = db.announcements.filter(a => String(a.id) !== String(rawId));
     writeDB(db);
+    await saveCloudData({ announcements: db.announcements });
     addAuditLog(req.user, 'XÓA THÔNG BÁO', `ID ${rawId}`);
     res.json({ success: true });
   } catch (err) {

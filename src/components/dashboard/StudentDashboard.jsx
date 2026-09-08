@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { useClassSettings } from '../../context/ClassSettingsContext';
+import { api } from '../../lib/api';
 
 // Empty Timetable Data structure (Strictly real data from GVCN, no mock/fake subjects)
 const EMPTY_TIMETABLE = {
@@ -84,7 +85,7 @@ const MONTHLY_TITLES = [
   { title: '🏆 Tập thể tiến bộ', desc: 'Đồng lòng cùng phòng/tổ hoàn thành xuất sắc mục tiêu', bg: '#ccfbf1', color: '#0f766e' }
 ];
 
-export default function StudentDashboard({ timetableImage = '', classMapImage = '', students = [], attendance = {}, setActiveTab, announcements = [], onRefresh }) {
+export default function StudentDashboard({ timetableImage = '', timetableData = null, classMapImage = '', students = [], attendance = {}, setActiveTab, announcements = [], onRefresh }) {
   const { user } = useAuth();
   const { settings } = useClassSettings();
 
@@ -96,6 +97,36 @@ export default function StudentDashboard({ timetableImage = '', classMapImage = 
 
   const activeTimetableImg = timetableImage || localStorage.getItem('qlcn_timetable_image') || '';
   const activeClassMapImg = classMapImage || localStorage.getItem('qlcn_class_map_image') || '';
+
+  const activeTimetableData = useMemo(() => {
+    if (timetableData && typeof timetableData === 'object' && Object.keys(timetableData).length > 0) {
+      return timetableData;
+    }
+    try {
+      const saved = JSON.parse(localStorage.getItem('qlcn_timetable_data') || 'null');
+      if (saved && typeof saved === 'object' && Object.keys(saved).length > 0) return saved;
+    } catch {}
+    return null;
+  }, [timetableData]);
+
+  const hasStructuredSchedule = useMemo(() => {
+    if (!activeTimetableData) return false;
+    return Object.values(activeTimetableData).some(d => 
+      (Array.isArray(d?.morning) && d.morning.some(s => s && String(s).trim())) || 
+      (Array.isArray(d?.afternoon) && d.afternoon.some(s => s && String(s).trim()))
+    );
+  }, [activeTimetableData]);
+
+  const [timetableMode, setTimetableMode] = useState(() => {
+    if (!activeTimetableImg && hasStructuredSchedule) return 'table';
+    return 'image';
+  });
+
+  const [studentTimetableDay, setStudentTimetableDay] = useState(() => {
+    const dayNames = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+    const currentDay = dayNames[new Date().getDay()];
+    return currentDay === 'Chủ Nhật' ? 'Thứ 2' : currentDay;
+  });
 
   // Combine prop announcements with localStorage announcements posted by GVCN
   const activeAnnouncements = useMemo(() => {
@@ -169,6 +200,18 @@ export default function StudentDashboard({ timetableImage = '', classMapImage = 
     }
     setWateredToday(true);
     toast.success('🎉 Bạn đã tưới nước rèn luyện! (+2 điểm tinh thần tích cực)');
+  };
+
+  const handleCheckInRead = async (ann) => {
+    try {
+      if (ann?.id && user?.id) {
+        await api.markRead(ann.id);
+        toast.success('✅ Đã xác nhận đọc thông báo!');
+        if (onRefresh) onRefresh();
+      }
+    } catch {
+      toast.success('✅ Đã ghi nhận bạn đã xem thông báo!');
+    }
   };
 
   return (
@@ -311,24 +354,131 @@ export default function StudentDashboard({ timetableImage = '', classMapImage = 
           </div>
         </div>
 
-        {/* Right Column: Original Timetable Image (Uploaded directly by GVCN) */}
+        {/* Right Column: Timetable (Image + Structured Schedule from GVCN) */}
         <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div>
                 <h3 style={{ margin: 0, color: 'var(--color-primary-dark)', fontSize: '1.1rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  📅 Thời Khóa Biểu Gốc
+                  📅 Thời Khóa Biểu
                 </h3>
                 <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, marginTop: '0.15rem' }}>
-                  🖼️ Ảnh TKB chính thức do GVCN Lớp 12.7 đăng
+                  {timetableMode === 'table' ? '📋 Bảng tiết học chi tiết từ GVCN' : '🖼️ Ảnh TKB chính thức do GVCN đăng'}
                 </div>
               </div>
-              <span style={{ fontSize: '0.72rem', background: '#dcfce7', color: '#166534', padding: '0.18rem 0.6rem', borderRadius: '9999px', fontWeight: 800 }}>
-                ✓ Đã cập nhật
-              </span>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                {activeTimetableImg && hasStructuredSchedule && (
+                  <div style={{ display: 'inline-flex', background: '#e2e8f0', borderRadius: '9999px', padding: '2px' }}>
+                    <button
+                      onClick={() => setTimetableMode('image')}
+                      style={{
+                        padding: '0.25rem 0.65rem', fontSize: '0.72rem', fontWeight: 800, borderRadius: '9999px', border: 'none', cursor: 'pointer',
+                        background: timetableMode === 'image' ? '#0284c7' : 'transparent',
+                        color: timetableMode === 'image' ? 'white' : '#64748b',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      🖼️ Ảnh Gốc
+                    </button>
+                    <button
+                      onClick={() => setTimetableMode('table')}
+                      style={{
+                        padding: '0.25rem 0.65rem', fontSize: '0.72rem', fontWeight: 800, borderRadius: '9999px', border: 'none', cursor: 'pointer',
+                        background: timetableMode === 'table' ? '#16a34a' : 'transparent',
+                        color: timetableMode === 'table' ? 'white' : '#64748b',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      📋 Bảng Tiết
+                    </button>
+                  </div>
+                )}
+                {(activeTimetableImg || hasStructuredSchedule) && (
+                  <span style={{ fontSize: '0.72rem', background: '#dcfce7', color: '#166534', padding: '0.18rem 0.6rem', borderRadius: '9999px', fontWeight: 800 }}>
+                    ✓ Đã cập nhật
+                  </span>
+                )}
+              </div>
             </div>
 
-            {activeTimetableImg ? (
+            {/* View Mode 1: Table (Tiết 1 - Tiết 8) */}
+            {(timetableMode === 'table' || (!activeTimetableImg && hasStructuredSchedule)) ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {/* Day Selector Pills */}
+                <div style={{ display: 'flex', gap: '0.35rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
+                  {['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'].map(day => (
+                    <button
+                      key={day}
+                      onClick={() => setStudentTimetableDay(day)}
+                      style={{
+                        padding: '0.35rem 0.65rem',
+                        borderRadius: '8px',
+                        border: 'none',
+                        fontSize: '0.75rem',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        background: studentTimetableDay === day ? '#1B4D53' : '#f1f5f9',
+                        color: studentTimetableDay === day ? 'white' : '#475569',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {day}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Day's Morning & Afternoon Periods */}
+                <div style={{ background: '#f8fafc', borderRadius: '0.85rem', padding: '0.85rem', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0369a1', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    ☀️ BUỔI SÁNG (Tiết 1 - 5)
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.35rem', marginBottom: '0.75rem' }}>
+                    {[0, 1, 2, 3, 4].map(idx => {
+                      const subject = (activeTimetableData?.[studentTimetableDay]?.morning || [])[idx] || '';
+                      return (
+                        <div key={idx} style={{
+                          background: subject ? '#e0f2fe' : '#ffffff',
+                          border: `1px solid ${subject ? '#bae6fd' : '#e2e8f0'}`,
+                          borderRadius: '6px',
+                          padding: '0.4rem 0.2rem',
+                          textAlign: 'center'
+                        }}>
+                          <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748b' }}>T{idx+1}</div>
+                          <div style={{ fontSize: '0.74rem', fontWeight: 800, color: subject ? '#0369a1' : '#cbd5e1', marginTop: '0.1rem', wordBreak: 'break-word' }}>
+                            {subject || '—'}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#b45309', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    ⛅ BUỔI CHIỀU (Tiết 6 - 8)
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.35rem' }}>
+                    {[0, 1, 2].map(idx => {
+                      const subject = (activeTimetableData?.[studentTimetableDay]?.afternoon || [])[idx] || '';
+                      return (
+                        <div key={idx} style={{
+                          background: subject ? '#fef3c7' : '#ffffff',
+                          border: `1px solid ${subject ? '#fde68a' : '#e2e8f0'}`,
+                          borderRadius: '6px',
+                          padding: '0.4rem 0.2rem',
+                          textAlign: 'center'
+                        }}>
+                          <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748b' }}>T{idx+6}</div>
+                          <div style={{ fontSize: '0.74rem', fontWeight: 800, color: subject ? '#92400e' : '#cbd5e1', marginTop: '0.1rem', wordBreak: 'break-word' }}>
+                            {subject || '—'}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            ) : activeTimetableImg ? (
+              /* View Mode 2: Official Photo */
               <div style={{ background: '#f8fafc', borderRadius: '0.85rem', padding: '0.85rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>
                 <img
                   src={activeTimetableImg}
@@ -353,13 +503,14 @@ export default function StudentDashboard({ timetableImage = '', classMapImage = 
                 </div>
               </div>
             ) : (
+              /* View Mode 3: Empty Placeholder */
               <div style={{ padding: '2rem 1rem', textAlign: 'center', background: '#f8fafc', borderRadius: '0.85rem', border: '1.5px dashed #cbd5e1' }}>
-                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🖼️</div>
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📅</div>
                 <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#1B4D53', marginBottom: '0.3rem' }}>
-                  GVCN chưa đăng Ảnh Thời Khóa Biểu Gốc
+                  GVCN chưa đăng Thời Khóa Biểu
                 </div>
                 <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
-                  Ảnh TKB chính thức từ Cổng GVCN sẽ hiển thị trực tiếp tại đây ngay khi GVCN cập nhật.
+                  Thời khóa biểu chính thức từ Cổng GVCN sẽ hiển thị trực tiếp tại đây ngay khi GVCN cập nhật.
                 </div>
               </div>
             )}

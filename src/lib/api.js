@@ -55,6 +55,7 @@ export const api = {
 
   // ── Timetable & Sơ đồ lớp Dynamic Upload ──────────────────────────────
   uploadTimetable:  (image) => request('/api/timetable',  { method: 'POST', body: JSON.stringify({ image }) }),
+  saveTimetableData:(timetableData) => request('/api/timetable-data', { method: 'POST', body: JSON.stringify({ timetableData }) }),
   uploadClassMap:   (image) => request('/api/class-map',  { method: 'POST', body: JSON.stringify({ image }) }),
 
   // ── Announcements Dynamic API ──────────────────────────────────────────

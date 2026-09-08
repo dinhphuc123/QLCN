@@ -6,13 +6,16 @@ import Badges from '../gamification/Badges';
 import { useClassSettings } from '../../context/ClassSettingsContext';
 import StudentDashboard from './StudentDashboard';
 
-export default function Dashboard({ students, attendance, announcements, timetableImage, classMapImage, isTeacher, setActiveTab, handleTimetableChange, handleClassMapChange, handleDeleteClassMap, onRefresh, onUpdateStudents }) {
+export default function Dashboard({ students, attendance, announcements, timetableImage, timetableData, classMapImage, isTeacher, setActiveTab, handleTimetableChange, handleClassMapChange, handleDeleteClassMap, onRefresh, onUpdateStudents }) {
   const { settings } = useClassSettings();
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showMapModal, setShowMapModal] = useState(false);
   const [showTimetableEditor, setShowTimetableEditor] = useState(false);
   const [editingDay, setEditingDay] = useState('Thứ 2');
   const [tempTimetable, setTempTimetable] = useState(() => {
+    if (timetableData && typeof timetableData === 'object' && Object.keys(timetableData).length > 0) {
+      return timetableData;
+    }
     try {
       const saved = JSON.parse(localStorage.getItem('qlcn_timetable_data') || 'null');
       if (saved && typeof saved === 'object' && Object.keys(saved).length > 0) return saved;
@@ -27,8 +30,14 @@ export default function Dashboard({ students, attendance, announcements, timetab
     };
   });
 
+  React.useEffect(() => {
+    if (timetableData && typeof timetableData === 'object' && Object.keys(timetableData).length > 0) {
+      setTempTimetable(timetableData);
+    }
+  }, [timetableData]);
+
   if (!isTeacher) {
-    return <StudentDashboard timetableImage={timetableImage} classMapImage={classMapImage} announcements={announcements} students={students} attendance={attendance} setActiveTab={setActiveTab} onRefresh={onRefresh} />;
+    return <StudentDashboard timetableImage={timetableImage} timetableData={timetableData} classMapImage={classMapImage} announcements={announcements} students={students} attendance={attendance} setActiveTab={setActiveTab} onRefresh={onRefresh} />;
   }
 
   const today = new Date().toISOString().split('T')[0];
@@ -422,7 +431,7 @@ export default function Dashboard({ students, attendance, announcements, timetab
                 Hủy
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   // Clean empty strings at ends
                   const cleaned = {};
                   Object.keys(tempTimetable).forEach(d => {
@@ -431,6 +440,11 @@ export default function Dashboard({ students, attendance, announcements, timetab
                     cleaned[d] = { morning: m, afternoon: a };
                   });
                   localStorage.setItem('qlcn_timetable_data', JSON.stringify(cleaned));
+                  try {
+                    await api.saveTimetableData(cleaned);
+                  } catch (err) {
+                    console.warn('Timetable cloud sync error:', err.message);
+                  }
                   toast.success('✅ Đã lưu Thời Khóa Biểu thực tế và đồng bộ Cổng Học Sinh!');
                   setShowTimetableEditor(false);
                   if (onRefresh) onRefresh();

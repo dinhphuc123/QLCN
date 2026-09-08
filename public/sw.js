@@ -22,8 +22,11 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // Always use Network-Only for API and database calls
-  if (url.pathname.startsWith('/api') || url.hostname.includes('supabase.co')) {
+  // Always use Network-Only for API, database, and CDN calls
+  if (url.pathname.startsWith('/api') || 
+      url.hostname.includes('supabase.co') || 
+      url.hostname.includes('catbox.moe') || 
+      url.hostname.includes('restful-api.dev')) {
     return event.respondWith(fetch(event.request));
   }
 
