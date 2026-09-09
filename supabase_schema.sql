@@ -31,17 +31,21 @@ CREATE TABLE IF NOT EXISTS public.students (
     seat_index INT
 );
 
--- 2. Table Thời khóa biểu
+-- 2. Table Thời khóa biểu (Lưu cả URL ảnh và bảng tiết học có cấu trúc)
 CREATE TABLE IF NOT EXISTS public.timetable (
     id INT PRIMARY KEY DEFAULT 1,
-    image TEXT
+    image TEXT,
+    data JSONB DEFAULT '{}'::jsonb
 );
+ALTER TABLE public.timetable ADD COLUMN IF NOT EXISTS data JSONB DEFAULT '{}'::jsonb;
+ALTER TABLE public.timetable ADD COLUMN IF NOT EXISTS image TEXT;
 
 -- 3. Table Sơ đồ lớp
 CREATE TABLE IF NOT EXISTS public.class_map (
     id INT PRIMARY KEY DEFAULT 1,
     image TEXT
 );
+ALTER TABLE public.class_map ADD COLUMN IF NOT EXISTS image TEXT;
 
 -- 4. Table Thông báo
 CREATE TABLE IF NOT EXISTS public.announcements (
@@ -144,3 +148,111 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
     target VARCHAR(255),
     details TEXT
 );
+
+-- 14. Thiết lập Quyền Truy Cập (Tắt RLS để đọc/ghi thông suốt qua API Key Anon)
+ALTER TABLE public.students DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.timetable DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.class_map DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.announcements DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.leave_requests DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.home_requests DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.attendance DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.dorm_attendance DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.competition_records DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.activities DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.finance DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.confessions DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.audit_logs DISABLE ROW LEVEL SECURITY;
+
+-- 15. KÍCH HOẠT SUPABASE REALTIME (WEBSOCKETS) CẬP NHẬT TỨC THÌ
+DO $$
+BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.students;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.timetable;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.class_map;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.announcements;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.leave_requests;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.home_requests;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.attendance;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.dorm_attendance;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.competition_records;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.activities;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.finance;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.confessions;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.audit_logs;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+-- 16. TẠO BUCKET LƯU ẢNH TRÊN SUPABASE STORAGE (class-media)
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('class-media', 'class-media', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+DO $$
+BEGIN
+    CREATE POLICY "Allow public all access on class-media"
+    ON storage.objects FOR ALL
+    USING (bucket_id = 'class-media')
+    WITH CHECK (bucket_id = 'class-media');
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;

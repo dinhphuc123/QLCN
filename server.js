@@ -7,7 +7,6 @@ import multer from 'multer';
 import jwt from 'jsonwebtoken';
 import { createClient } from '@supabase/supabase-js';
 import { INITIAL_STUDENTS } from './src/data/initialStudents.js';
-import { uploadImageToCDN, fetchCloudData, saveCloudData } from './src/lib/cloudSync.js';
 
 dotenv.config();
 
@@ -37,8 +36,30 @@ const isSupabaseConfigured = process.env.SUPABASE_URL &&
 if (isSupabaseConfigured) {
   try {
     supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+    console.log('✓ Supabase Client initialized successfully');
   } catch (err) {
     console.error('✗ Failed to initialize Supabase client:', err.message);
+  }
+}
+
+// Storage Helper: Upload to Supabase Storage bucket 'class-media'
+async function uploadToSupabaseStorage(buffer, filename, contentType = 'image/jpeg') {
+  if (!supabase) return null;
+  try {
+    const ext = filename.split('.').pop() || 'jpg';
+    const cleanPath = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+    const { data, error } = await supabase.storage
+      .from('class-media')
+      .upload(cleanPath, buffer, { upsert: true, contentType });
+    if (error) {
+      console.warn('Supabase storage upload error:', error.message);
+      return null;
+    }
+    const { data: pubData } = supabase.storage.from('class-media').getPublicUrl(data.path);
+    return pubData?.publicUrl || null;
+  } catch (err) {
+    console.warn('uploadToSupabaseStorage exception:', err.message);
+    return null;
   }
 }
 
@@ -203,24 +224,6 @@ app.get('/api/data', async (req, res) => {
   try {
     let data = readDB();
 
-    // 1. Persistent Cloud Store Sync (guarantees cross-device sync on Serverless)
-    try {
-      const cloudData = await fetchCloudData();
-      if (cloudData && typeof cloudData === 'object') {
-        if (cloudData.timetableImage !== undefined) data.timetableImage = cloudData.timetableImage;
-        if (cloudData.timetableData !== undefined) data.timetableData = cloudData.timetableData;
-        if (cloudData.classMapImage !== undefined) data.classMapImage = cloudData.classMapImage;
-        if (Array.isArray(cloudData.announcements) && cloudData.announcements.length > 0) {
-          data.announcements = cloudData.announcements;
-        }
-        if (Array.isArray(cloudData.students) && cloudData.students.length > 0) {
-          data.students = cloudData.students;
-        }
-      }
-    } catch (cErr) {
-      console.warn('⚠️ Cloud sync fetch warning:', cErr.message);
-    }
-
     if (supabase) {
       try {
         const [
@@ -230,7 +233,11 @@ app.get('/api/data', async (req, res) => {
           { data: dbHomeReqs },
           { data: dbConfessions },
           { data: dbActivities },
-          { data: dbFinance }
+          { data: dbFinance },
+          { data: dbTimetable },
+          { data: dbClassMap },
+          { data: dbAttendance },
+          { data: dbDormAttendance }
         ] = await Promise.all([
           supabase.from('students').select('*').order('id', { ascending: true }),
           supabase.from('announcements').select('*').order('created_at', { ascending: false }),
@@ -238,7 +245,11 @@ app.get('/api/data', async (req, res) => {
           supabase.from('home_requests').select('*').order('created_at', { ascending: false }),
           supabase.from('confessions').select('*').order('created_at', { ascending: false }),
           supabase.from('activities').select('*').order('created_at', { ascending: false }),
-          supabase.from('finance').select('*').order('created_at', { ascending: false })
+          supabase.from('finance').select('*').order('created_at', { ascending: false }),
+          supabase.from('timetable').select('*').limit(1),
+          supabase.from('class_map').select('*').limit(1),
+          supabase.from('attendance').select('*'),
+          supabase.from('dorm_attendance').select('*')
         ]);
 
         if (dbStudents && dbStudents.length > 0) {
@@ -264,12 +275,47 @@ app.get('/api/data', async (req, res) => {
             seatIndex: s.seatIndex !== undefined ? s.seatIndex : (s.seat_index !== undefined ? s.seat_index : 0)
           }));
         }
-        if (dbAnnouncements) data.announcements = dbAnnouncements;
+        if (dbAnnouncements) {
+          data.announcements = dbAnnouncements.map(a => ({
+            id: a.id,
+            title: a.title,
+            content: a.content,
+            tag: a.tag,
+            date: a.date,
+            fileName: a.attachment?.name || '',
+            fileUrl: a.attachment?.url || '',
+            readBy: a.read_by || [],
+            createdAt: a.created_at
+          }));
+        }
         if (dbLeaveReqs) data.leaveRequests = dbLeaveReqs;
         if (dbHomeReqs) data.homeRequests = dbHomeReqs;
         if (dbConfessions) data.confessions = dbConfessions;
         if (dbActivities) data.activities = dbActivities;
         if (dbFinance) data.finance = dbFinance;
+        if (dbTimetable && dbTimetable.length > 0) {
+          if (dbTimetable[0].image !== undefined) data.timetableImage = dbTimetable[0].image || '';
+          if (dbTimetable[0].data !== undefined && dbTimetable[0].data && Object.keys(dbTimetable[0].data).length > 0) {
+            data.timetableData = dbTimetable[0].data;
+          }
+        }
+        if (dbClassMap && dbClassMap.length > 0) {
+          if (dbClassMap[0].image !== undefined) data.classMapImage = dbClassMap[0].image || '';
+        }
+        if (dbAttendance && dbAttendance.length > 0) {
+          const attMap = {};
+          dbAttendance.forEach(item => {
+            if (item.date && item.record) attMap[item.date] = item.record;
+          });
+          data.attendance = attMap;
+        }
+        if (dbDormAttendance && dbDormAttendance.length > 0) {
+          const dormMap = {};
+          dbDormAttendance.forEach(item => {
+            if (item.date && item.record) dormMap[item.date] = item.record;
+          });
+          data.dormAttendance = dormMap;
+        }
       } catch (dbErr) {
         console.warn('⚠️ Supabase Cloud fetch warning (using in-memory fallback):', dbErr.message);
       }
@@ -346,12 +392,41 @@ app.put('/api/students', requireTeacher, async (req, res) => {
   const db = readDB();
   db.students = updatedStudents;
   writeDB(db);
-  await saveCloudData({ students: updatedStudents });
+
+  if (supabase && Array.isArray(updatedStudents) && updatedStudents.length > 0) {
+    try {
+      const rows = updatedStudents.map(s => ({
+        id: s.id,
+        student_code: s.studentCode || s.student_code || '',
+        name: s.name || '',
+        gender: s.gender || 'Nữ',
+        dob: s.dob || '',
+        ethnicity: s.ethnicity || '',
+        address: s.address || '',
+        phone: s.phone || '',
+        mother_name: s.motherName || s.mother_name || '',
+        mother_phone: s.motherPhone || s.mother_phone || '',
+        father_name: s.fatherName || s.father_name || '',
+        father_phone: s.fatherPhone || s.father_phone || '',
+        group_name: s.group || s.group_name || '',
+        dorm_room: s.dormRoom || s.dorm_room || '',
+        role: s.role || 'member',
+        position: s.position || '',
+        is_poor: !!s.isPoor,
+        points: s.points !== undefined ? s.points : 100,
+        seat_index: s.seatIndex !== undefined ? s.seatIndex : 0
+      }));
+      await supabase.from('students').upsert(rows, { onConflict: 'id' });
+    } catch (sbErr) {
+      console.warn('⚠️ Supabase update students error:', sbErr.message);
+    }
+  }
+
   addAuditLog(req.user, 'CẬP NHẬT SƠ ĐỒ LỚP / DANH SÁCH', `${updatedStudents.length} HS`);
   res.json({ success: true });
 });
 
-app.put('/api/students/:id', (req, res) => {
+app.put('/api/students/:id', async (req, res) => {
   const studentId = parseInt(req.params.id);
   const data = req.body;
   const db = readDB();
@@ -359,6 +434,36 @@ app.put('/api/students/:id', (req, res) => {
   if (idx !== -1) {
     db.students[idx] = { ...db.students[idx], ...data };
     writeDB(db);
+
+    if (supabase) {
+      try {
+        const s = db.students[idx];
+        await supabase.from('students').upsert({
+          id: s.id,
+          student_code: s.studentCode || s.student_code || '',
+          name: s.name || '',
+          gender: s.gender || 'Nữ',
+          dob: s.dob || '',
+          ethnicity: s.ethnicity || '',
+          address: s.address || '',
+          phone: s.phone || '',
+          mother_name: s.motherName || s.mother_name || '',
+          mother_phone: s.motherPhone || s.mother_phone || '',
+          father_name: s.fatherName || s.father_name || '',
+          father_phone: s.fatherPhone || s.father_phone || '',
+          group_name: s.group || s.group_name || '',
+          dorm_room: s.dormRoom || s.dorm_room || '',
+          role: s.role || 'member',
+          position: s.position || '',
+          is_poor: !!s.isPoor,
+          points: s.points !== undefined ? s.points : 100,
+          seat_index: s.seatIndex !== undefined ? s.seatIndex : 0
+        }, { onConflict: 'id' });
+      } catch (err) {
+        console.warn('⚠️ Supabase student update error:', err.message);
+      }
+    }
+
     addAuditLog(req.user, 'SỬA HỒ SƠ HS', db.students[idx].name);
   }
   res.json({ success: true, student: db.students[idx] });
@@ -369,7 +474,6 @@ app.post('/api/students/bulk', requireTeacher, async (req, res) => {
   const db = readDB();
   db.students = newStudents;
   writeDB(db);
-  await saveCloudData({ students: newStudents });
 
   if (supabase && Array.isArray(newStudents) && newStudents.length > 0) {
     try {
@@ -404,12 +508,21 @@ app.post('/api/students/bulk', requireTeacher, async (req, res) => {
   res.json({ success: true });
 });
 
-app.delete('/api/students/:id', requireTeacher, (req, res) => {
+app.delete('/api/students/:id', requireTeacher, async (req, res) => {
   const studentId = parseInt(req.params.id);
   const db = readDB();
   const st = db.students.find(s => s.id === studentId);
   db.students = db.students.filter(s => s.id !== studentId);
   writeDB(db);
+
+  if (supabase) {
+    try {
+      await supabase.from('students').delete().eq('id', studentId);
+    } catch (err) {
+      console.warn('⚠️ Supabase delete student error:', err.message);
+    }
+  }
+
   if (st) addAuditLog(req.user, 'XÓA HỌC SINH', st.name);
   res.json({ success: true });
 });
@@ -418,14 +531,25 @@ app.delete('/api/students/:id', requireTeacher, (req, res) => {
 app.post('/api/timetable', requireTeacher, async (req, res) => {
   try {
     let { image } = req.body;
-    if (image && typeof image === 'string' && image.startsWith('data:image')) {
-      const cdnUrl = await uploadImageToCDN(image, 'timetable.jpg');
+    if (image && typeof image === 'string' && image.startsWith('data:image') && supabase) {
+      const matches = image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      const buffer = matches ? Buffer.from(matches[2], 'base64') : Buffer.from(image, 'base64');
+      const ext = matches ? (matches[1].split('/')[1] || 'jpg') : 'jpg';
+      const cdnUrl = await uploadToSupabaseStorage(buffer, `timetable.${ext}`, matches ? matches[1] : 'image/jpeg');
       if (cdnUrl) image = cdnUrl;
     }
     const db = readDB();
     db.timetableImage = image;
     writeDB(db);
-    await saveCloudData({ timetableImage: image });
+
+    if (supabase) {
+      try {
+        await supabase.from('timetable').upsert({ id: 1, image }, { onConflict: 'id' });
+      } catch (err) {
+        console.warn('⚠️ Supabase timetable upsert error:', err.message);
+      }
+    }
+
     addAuditLog(req.user, 'CẬP NHẬT TKB', 'Thời khóa biểu mới');
     res.json({ success: true, timetableImage: image });
   } catch (err) {
@@ -440,7 +564,15 @@ app.post('/api/timetable-data', requireTeacher, async (req, res) => {
     const db = readDB();
     db.timetableData = timetableData;
     writeDB(db);
-    await saveCloudData({ timetableData });
+
+    if (supabase) {
+      try {
+        await supabase.from('timetable').upsert({ id: 1, data: timetableData }, { onConflict: 'id' });
+      } catch (err) {
+        console.warn('⚠️ Supabase timetable-data upsert error:', err.message);
+      }
+    }
+
     addAuditLog(req.user, 'CẬP NHẬT TIẾT HỌC TKB', 'Cập nhật bảng tiết học');
     res.json({ success: true, timetableData });
   } catch (err) {
@@ -452,14 +584,25 @@ app.post('/api/timetable-data', requireTeacher, async (req, res) => {
 app.post('/api/class-map', requireTeacher, async (req, res) => {
   try {
     let { image } = req.body;
-    if (image && typeof image === 'string' && image.startsWith('data:image')) {
-      const cdnUrl = await uploadImageToCDN(image, 'classmap.jpg');
+    if (image && typeof image === 'string' && image.startsWith('data:image') && supabase) {
+      const matches = image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      const buffer = matches ? Buffer.from(matches[2], 'base64') : Buffer.from(image, 'base64');
+      const ext = matches ? (matches[1].split('/')[1] || 'jpg') : 'jpg';
+      const cdnUrl = await uploadToSupabaseStorage(buffer, `classmap.${ext}`, matches ? matches[1] : 'image/jpeg');
       if (cdnUrl) image = cdnUrl;
     }
     const db = readDB();
     db.classMapImage = image;
     writeDB(db);
-    await saveCloudData({ classMapImage: image });
+
+    if (supabase) {
+      try {
+        await supabase.from('class_map').upsert({ id: 1, image }, { onConflict: 'id' });
+      } catch (err) {
+        console.warn('⚠️ Supabase class-map upsert error:', err.message);
+      }
+    }
+
     addAuditLog(req.user, 'CẬP NHẬT SƠ ĐỒ ÁNH', 'Sơ đồ lớp mới');
     res.json({ success: true, classMapImage: image });
   } catch (err) {
@@ -479,13 +622,29 @@ app.post('/api/announcements', async (req, res) => {
     if (!Array.isArray(db.announcements)) db.announcements = [];
     const newAnn = { 
       ...ann, 
-      id: Date.now(), 
-      readBy: [], 
-      createdAt: new Date().toISOString() 
+      id: ann.id || Date.now(), 
+      readBy: ann.readBy || [], 
+      createdAt: ann.createdAt || new Date().toISOString() 
     };
     db.announcements.unshift(newAnn);
     writeDB(db);
-    await saveCloudData({ announcements: db.announcements });
+
+    if (supabase) {
+      try {
+        await supabase.from('announcements').insert([{
+          id: newAnn.id,
+          title: newAnn.title,
+          content: newAnn.content,
+          tag: newAnn.tag || 'Chung',
+          date: newAnn.date || new Date().toLocaleDateString('vi-VN'),
+          attachment: newAnn.fileUrl ? { url: newAnn.fileUrl, name: newAnn.fileName } : null,
+          read_by: newAnn.readBy || []
+        }]);
+      } catch (err) {
+        console.warn('⚠️ Supabase insert announcement error:', err.message);
+      }
+    }
+
     addAuditLog(req.user, 'ĐĂNG THÔNG BÁO', newAnn.title || 'Thông báo mới');
     return res.json({ success: true, announcement: newAnn });
   } catch (err) {
@@ -501,7 +660,15 @@ app.delete('/api/announcements/:id', async (req, res) => {
     if (!Array.isArray(db.announcements)) db.announcements = [];
     db.announcements = db.announcements.filter(a => String(a.id) !== String(rawId));
     writeDB(db);
-    await saveCloudData({ announcements: db.announcements });
+
+    if (supabase) {
+      try {
+        await supabase.from('announcements').delete().eq('id', rawId);
+      } catch (err) {
+        console.warn('⚠️ Supabase delete announcement error:', err.message);
+      }
+    }
+
     addAuditLog(req.user, 'XÓA THÔNG BÁO', `ID ${rawId}`);
     res.json({ success: true });
   } catch (err) {
@@ -537,7 +704,7 @@ app.get('/api/home-requests', (req, res) => {
   res.json(db.homeRequests);
 });
 
-app.post('/api/home-requests', (req, res) => {
+app.post('/api/home-requests', async (req, res) => {
   try {
     const reqData = req.body;
     const db = readDB();
@@ -553,6 +720,24 @@ app.post('/api/home-requests', (req, res) => {
       db.homeRequests.unshift(newReq);
     }
     writeDB(db);
+
+    if (supabase) {
+      try {
+        await supabase.from('home_requests').upsert({
+          id: newReq.id,
+          student_id: newReq.studentId,
+          student_name: newReq.studentName,
+          leave_date: newReq.leaveDate,
+          return_date: newReq.returnDate,
+          reason: newReq.reason,
+          status: newReq.status || 'pending',
+          created_at: newReq.createdAt
+        }, { onConflict: 'id' });
+      } catch (err) {
+        console.warn('⚠️ Supabase home_request error:', err.message);
+      }
+    }
+
     addAuditLog(req.user, 'ĐĂNG KÝ VỀ NHÀ', reqData.studentName || 'Học sinh');
     return res.json({ success: true, request: newReq });
   } catch (err) {
@@ -562,7 +747,7 @@ app.post('/api/home-requests', (req, res) => {
 });
 
 
-app.put('/api/home-requests/:id', (req, res) => {
+app.put('/api/home-requests/:id', async (req, res) => {
   try {
     const rawId = req.params.id;
     const { status } = req.body;
@@ -572,6 +757,15 @@ app.put('/api/home-requests/:id', (req, res) => {
     if (item) {
       item.status = status;
       writeDB(db);
+
+      if (supabase) {
+        try {
+          await supabase.from('home_requests').update({ status }).eq('id', rawId);
+        } catch (err) {
+          console.warn('⚠️ Supabase update home_request error:', err.message);
+        }
+      }
+
       addAuditLog(req.user, `DUYỆT ĐƠN VỀ NHÀ (${status.toUpperCase()})`, item.studentName || 'Học sinh');
     }
     return res.json({ success: true });
@@ -581,7 +775,7 @@ app.put('/api/home-requests/:id', (req, res) => {
 });
 
 // Leave Requests
-app.post('/api/requests', (req, res) => {
+app.post('/api/requests', async (req, res) => {
   try {
     const leaveReq = req.body;
     const db = readDB();
@@ -591,6 +785,25 @@ app.post('/api/requests', (req, res) => {
       db.leaveRequests.unshift(newReq);
     }
     writeDB(db);
+
+    if (supabase) {
+      try {
+        await supabase.from('leave_requests').upsert({
+          id: newReq.id,
+          student_id: newReq.studentId,
+          student_name: newReq.studentName,
+          type: newReq.type,
+          reason: newReq.reason,
+          date: newReq.date,
+          status: newReq.status || 'pending',
+          confirmed_by_officer: !!newReq.confirmedByOfficer,
+          created_at: newReq.createdAt
+        }, { onConflict: 'id' });
+      } catch (err) {
+        console.warn('⚠️ Supabase leave_request error:', err.message);
+      }
+    }
+
     addAuditLog(req.user, 'TẠO ĐƠN XIN NGHỈ', leaveReq.studentName || 'Học sinh');
     return res.json({ success: true, request: newReq });
   } catch (err) {
@@ -599,7 +812,7 @@ app.post('/api/requests', (req, res) => {
   }
 });
 
-app.put('/api/requests/:id', (req, res) => {
+app.put('/api/requests/:id', async (req, res) => {
   try {
     const rawId = req.params.id;
     const updates = req.body;
@@ -609,6 +822,15 @@ app.put('/api/requests/:id', (req, res) => {
     if (reqIdx !== -1) {
       db.leaveRequests[reqIdx] = { ...db.leaveRequests[reqIdx], ...updates };
       writeDB(db);
+
+      if (supabase) {
+        try {
+          await supabase.from('leave_requests').update(updates).eq('id', rawId);
+        } catch (err) {
+          console.warn('⚠️ Supabase update leave_request error:', err.message);
+        }
+      }
+
       addAuditLog(req.user, 'CẬP NHẬT ĐƠN NGHỈ', db.leaveRequests[reqIdx].studentName || 'Học sinh');
     }
     return res.json({ success: true });
@@ -619,7 +841,7 @@ app.put('/api/requests/:id', (req, res) => {
 
 
 // Attendance (Support 5 sessions + Lock & Check-in)
-app.post('/api/attendance', (req, res) => {
+app.post('/api/attendance', async (req, res) => {
   const { date, session = 'morning', attendance: record } = req.body;
   const db = readDB();
   if (!db.attendance[date]) db.attendance[date] = { isLocked: false, sessions: {} };
@@ -636,6 +858,18 @@ app.post('/api/attendance', (req, res) => {
 
   db.attendance[date].sessions[session] = record;
   writeDB(db);
+
+  if (supabase) {
+    try {
+      await supabase.from('attendance').upsert({
+        date,
+        record: db.attendance[date]
+      }, { onConflict: 'date' });
+    } catch (err) {
+      console.warn('⚠️ Supabase attendance save error:', err.message);
+    }
+  }
+
   addAuditLog(req.user, 'ĐIỂM DANH 5 BUỔI', `Ngày ${date} - Session ${session}`);
   res.json({ success: true });
 });
@@ -956,7 +1190,7 @@ app.get('/api/activities', (req, res) => {
   res.json(db.activities);
 });
 
-app.post('/api/activities', (req, res) => {
+app.post('/api/activities', async (req, res) => {
   try {
     const item = req.body;
     const db = readDB();
@@ -971,6 +1205,23 @@ app.post('/api/activities', (req, res) => {
       db.activities.unshift(newItem);
     }
     writeDB(db);
+
+    if (supabase) {
+      try {
+        await supabase.from('activities').upsert({
+          id: newItem.id,
+          title: newItem.title,
+          description: newItem.description || '',
+          category: newItem.category || 'Hoạt động',
+          image: newItem.image || '',
+          date: newItem.date || new Date().toISOString().split('T')[0],
+          created_at: newItem.createdAt
+        }, { onConflict: 'id' });
+      } catch (err) {
+        console.warn('⚠️ Supabase activity error:', err.message);
+      }
+    }
+
     addAuditLog(req.user, 'ĐĂNG HOẠT ĐỘNG KỶ NIỆM', item.title || 'Hoạt động mới');
     res.json({ success: true, activity: newItem });
   } catch (err) {
@@ -978,11 +1229,20 @@ app.post('/api/activities', (req, res) => {
   }
 });
 
-app.delete('/api/activities/:id', requireTeacher, (req, res) => {
+app.delete('/api/activities/:id', requireTeacher, async (req, res) => {
   const id = parseInt(req.params.id);
   const db = readDB();
   db.activities = db.activities.filter(a => a.id !== id);
   writeDB(db);
+
+  if (supabase) {
+    try {
+      await supabase.from('activities').delete().eq('id', id);
+    } catch (err) {
+      console.warn('⚠️ Supabase delete activity error:', err.message);
+    }
+  }
+
   addAuditLog(req.user, 'XÓA HOẠT ĐỘNG', `ID ${id}`);
   res.json({ success: true });
 });
@@ -993,31 +1253,58 @@ app.get('/api/finance', (req, res) => {
   res.json(db.finance);
 });
 
-app.post('/api/finance', requireTeacher, (req, res) => {
+app.post('/api/finance', requireTeacher, async (req, res) => {
   const entry = req.body;
   const db = readDB();
   const newEntry = {
     ...entry,
-    id: Date.now(),
-    createdAt: new Date().toISOString()
+    id: entry.id || Date.now(),
+    createdAt: entry.createdAt || new Date().toISOString()
   };
   db.finance.unshift(newEntry);
   writeDB(db);
+
+  if (supabase) {
+    try {
+      await supabase.from('finance').upsert({
+        id: newEntry.id,
+        type: newEntry.type,
+        title: newEntry.title,
+        amount: newEntry.amount,
+        category: newEntry.category || 'Chung',
+        note: newEntry.note || '',
+        date: newEntry.date || new Date().toISOString().split('T')[0],
+        created_at: newEntry.createdAt
+      }, { onConflict: 'id' });
+    } catch (err) {
+      console.warn('⚠️ Supabase finance error:', err.message);
+    }
+  }
+
   addAuditLog(req.user, `GHI QUỸ LỚP (${entry.type.toUpperCase()})`, `${entry.title}: ${entry.amount} VNĐ`);
   res.json({ success: true, entry: newEntry });
 });
 
-app.delete('/api/finance/:id', requireTeacher, (req, res) => {
+app.delete('/api/finance/:id', requireTeacher, async (req, res) => {
   const id = parseInt(req.params.id);
   const db = readDB();
   db.finance = db.finance.filter(f => f.id !== id);
   writeDB(db);
+
+  if (supabase) {
+    try {
+      await supabase.from('finance').delete().eq('id', id);
+    } catch (err) {
+      console.warn('⚠️ Supabase delete finance error:', err.message);
+    }
+  }
+
   addAuditLog(req.user, 'XÓA KHOẢN THU/CHI', `ID ${id}`);
   res.json({ success: true });
 });
 
 // Confessions
-app.post('/api/confessions', (req, res) => {
+app.post('/api/confessions', async (req, res) => {
   try {
     const conf = req.body;
     const db = readDB();
@@ -1031,6 +1318,20 @@ app.post('/api/confessions', (req, res) => {
       db.confessions.unshift(newConf);
     }
     writeDB(db);
+
+    if (supabase) {
+      try {
+        await supabase.from('confessions').upsert({
+          id: newConf.id,
+          content: newConf.content,
+          reply: newConf.reply || null,
+          created_at: newConf.createdAt
+        }, { onConflict: 'id' });
+      } catch (err) {
+        console.warn('⚠️ Supabase confession error:', err.message);
+      }
+    }
+
     return res.json({ success: true, confession: newConf });
   } catch (err) {
     return res.status(200).json({ success: true });
@@ -1038,7 +1339,7 @@ app.post('/api/confessions', (req, res) => {
 });
 
 
-app.put('/api/confessions/:id/reply', requireTeacher, (req, res) => {
+app.put('/api/confessions/:id/reply', requireTeacher, async (req, res) => {
   const id = parseInt(req.params.id);
   const { reply } = req.body;
   const db = readDB();
@@ -1047,6 +1348,18 @@ app.put('/api/confessions/:id/reply', requireTeacher, (req, res) => {
     conf.reply = reply;
     conf.repliedAt = new Date().toISOString();
     writeDB(db);
+
+    if (supabase) {
+      try {
+        await supabase.from('confessions').update({
+          reply,
+          replied_at: conf.repliedAt
+        }).eq('id', id);
+      } catch (err) {
+        console.warn('⚠️ Supabase reply confession error:', err.message);
+      }
+    }
+
     addAuditLog(req.user, 'TRẢ LỜI HÒM THƯ TÂM SỰ', `Confession ID ${id}`);
   }
   res.json({ success: true });

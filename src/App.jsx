@@ -29,6 +29,7 @@ import LoadingSkeleton from './components/ui/LoadingSkeleton';
 import { useAuth } from './context/AuthContext';
 import { api } from './lib/api';
 import { INITIAL_STUDENTS } from './data/initialStudents';
+import { subscribeToClassChanges, uploadImageToSupabase } from './lib/supabase';
 
 // ── Image Compressor Helper ──────────────────────────────────────────────────
 const compressImageFile = (file, maxWidth = 1400, quality = 0.78) => {
@@ -212,10 +213,16 @@ export default function App() {
     // Initial fetch
     fetchData(true);
 
-    // Periodic background sync (every 5 seconds)
+    // ⚡ Supabase Realtime Push Listener: Instant push sync between PC & Mobile (< 500ms)
+    const channel = subscribeToClassChanges((payload) => {
+      console.log('⚡ Realtime database event received, refreshing state instantly:', payload.table);
+      fetchData(false);
+    });
+
+    // Periodic background sync (every 6 seconds fallback)
     const timer = setInterval(() => {
       fetchData(false);
-    }, 5000);
+    }, 6000);
 
     // Mobile Phone Sync: Automatically refresh data when user switches to app or unlocks screen
     const handleSyncOnVisible = () => {
@@ -229,6 +236,9 @@ export default function App() {
 
     return () => {
       clearInterval(timer);
+      if (channel && typeof channel.unsubscribe === 'function') {
+        channel.unsubscribe();
+      }
       window.removeEventListener('visibilitychange', handleSyncOnVisible);
       window.removeEventListener('focus', handleSyncOnVisible);
     };
@@ -493,9 +503,16 @@ export default function App() {
       try { localStorage.setItem('qlcn_timetable_image', base64); } catch {}
       setData(prev => ({ ...prev, timetableImage: base64 }));
 
-      // Upload to server/API & Cloud CDN
-      const res = await api.uploadTimetable(base64);
-      const finalUrl = res?.timetableImage || base64;
+      // Direct Supabase Storage upload if configured
+      let finalUrl = await uploadImageToSupabase(base64, 'timetable.jpg');
+      if (!finalUrl) {
+        // Fallback to API server upload
+        const res = await api.uploadTimetable(base64);
+        finalUrl = res?.timetableImage || base64;
+      } else {
+        await api.uploadTimetable(finalUrl);
+      }
+
       try { localStorage.setItem('qlcn_timetable_image', finalUrl); } catch {}
       setData(prev => ({ ...prev, timetableImage: finalUrl }));
 
@@ -518,9 +535,16 @@ export default function App() {
       try { localStorage.setItem('qlcn_class_map_image', base64); } catch {}
       setData(prev => ({ ...prev, classMapImage: base64 }));
 
-      // Upload to server/API & Cloud CDN
-      const res = await api.uploadClassMap(base64);
-      const finalUrl = res?.classMapImage || base64;
+      // Direct Supabase Storage upload if configured
+      let finalUrl = await uploadImageToSupabase(base64, 'classmap.jpg');
+      if (!finalUrl) {
+        // Fallback to API server upload
+        const res = await api.uploadClassMap(base64);
+        finalUrl = res?.classMapImage || base64;
+      } else {
+        await api.uploadClassMap(finalUrl);
+      }
+
       try { localStorage.setItem('qlcn_class_map_image', finalUrl); } catch {}
       setData(prev => ({ ...prev, classMapImage: finalUrl }));
 
