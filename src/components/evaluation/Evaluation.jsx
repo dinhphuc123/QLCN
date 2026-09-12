@@ -468,26 +468,21 @@ export default function Evaluation({ students = [], onRefresh }) {
           </div>
         </div>
 
-        {/* Weekly Badges Row: Best Group & Star Students */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9' }}>
-          <div style={{ background: '#fefce8', padding: '0.85rem 1.15rem', borderRadius: '0.85rem', border: '1.5px solid #fef08a', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-            <span style={{ fontSize: '1.75rem' }}>🏆</span>
-            <div>
-              <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#a16207', textTransform: 'uppercase', letterSpacing: '0.04em' }}>TỔ XUẤT SẮC NHẤT TUẦN</div>
-              <div style={{ fontSize: '1.05rem', fontWeight: 900, color: '#854d0e', marginTop: '0.1rem' }}>
-                {bestGroup ? `${bestGroup.name} (${bestGroup['Điểm TB']} điểm)` : 'Tổ 1'}
-              </div>
-            </div>
+        {/* Slim Weekly Summary Strip */}
+        <div style={{
+          display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between',
+          gap: '0.75rem', marginTop: '0.85rem', paddingTop: '0.85rem', borderTop: '1px solid #f1f5f9',
+          background: '#f8fafc', padding: '0.65rem 1rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
+            <span style={{ fontSize: '1.1rem' }}>🏆</span>
+            <span style={{ color: '#64748b' }}>Tổ xuất sắc:</span>
+            <strong style={{ color: '#854d0e' }}>{bestGroup ? `${bestGroup.name} (${bestGroup['Điểm TB']}đ)` : 'Tổ 1'}</strong>
           </div>
-
-          <div style={{ background: '#f0fdf4', padding: '0.85rem 1.15rem', borderRadius: '0.85rem', border: '1.5px solid #bbf7d0', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-            <span style={{ fontSize: '1.75rem' }}>⭐</span>
-            <div>
-              <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#15803d', textTransform: 'uppercase', letterSpacing: '0.04em' }}>NGÔI SAO TUẦN (100 ĐIỂM TUYỆT ĐỐI)</div>
-              <div style={{ fontSize: '1.05rem', fontWeight: 900, color: '#166534', marginTop: '0.1rem' }}>
-                {starStudents.length} / {students.length} Học Sinh
-              </div>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
+            <span style={{ fontSize: '1.1rem' }}>⭐</span>
+            <span style={{ color: '#64748b' }}>Ngôi sao tuần:</span>
+            <strong style={{ color: '#166534' }}>{starStudents.length} / {students.length} Học Sinh (100đ)</strong>
           </div>
         </div>
       </div>
@@ -495,16 +490,21 @@ export default function Evaluation({ students = [], onRefresh }) {
       {/* Main Grid: 100% width for students, 2-col for officers */}
       <div className="eval-main-grid" style={{ display: 'grid', gridTemplateColumns: (isTeacher || isMonitor || isGroupLeader || canApproveCompetition) ? 'minmax(0, 1.8fr) minmax(0, 1.2fr)' : '1fr', gap: '1.5rem' }}>
         
-        {/* Left Column: 47 Criteria Form */}
-        <div className="glass-panel" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        {/* Main 2-Column Evaluation Panel */}
+        <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+          {/* Top Bar inside Card: Student Info & Live Score & Actions */}
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            flexWrap: 'wrap', gap: '0.85rem', paddingBottom: '0.85rem', borderBottom: '1.5px solid #f1f5f9'
+          }}>
+            {/* Student selection or info */}
             {(isTeacher || isMonitor || isGroupLeader || canApproveCompetition) ? (
-              <div>
-                <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', color: '#374151' }}>Chọn Học Sinh:</label>
+              <div style={{ minWidth: '220px' }}>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, display: 'block', color: '#64748b' }}>Chọn Học Sinh:</label>
                 <select
                   className="form-input"
-                  style={{ width: '100%', maxWidth: '300px', marginTop: '0.2rem', fontWeight: 600 }}
+                  style={{ width: '100%', maxWidth: '280px', marginTop: '0.2rem', fontWeight: 700, fontSize: '0.85rem' }}
                   value={selectedStudentId}
                   onChange={e => setSelectedStudentId(e.target.value)}
                 >
@@ -521,103 +521,69 @@ export default function Evaluation({ students = [], onRefresh }) {
               </div>
             ) : (
               <div>
-                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#6b7280' }}>Phiếu Tự Đánh Giá Cá Nhân:</label>
-                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1B4D53', marginTop: '0.15rem' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>Phiếu Tự Đánh Giá Cá Nhân:</span>
+                <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#1B4D53' }}>
                   👨‍🎓 {currentStudent?.name || user?.name} ({currentStudent?.group || user?.group || 'Tổ 1'})
                 </div>
               </div>
             )}
 
-            {/* Live Score & History Button */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {/* Score & Action Buttons */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
               <button
                 onClick={() => setHistoryStudent({ id: selectedStudentId, name: currentStudent?.name || '' })}
-                style={{ background: '#f0f9ff', border: '1px solid #7dd3fc', color: '#0369a1', padding: '0.5rem 0.8rem', borderRadius: '0.75rem', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
+                style={{
+                  background: '#f0f9ff', border: '1px solid #7dd3fc', color: '#0369a1',
+                  padding: '0.5rem 0.85rem', borderRadius: '0.65rem', fontSize: '0.8rem',
+                  fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.25rem'
+                }}
               >
                 📊 Lịch sử điểm
               </button>
 
-              <div style={{ textAlign: 'right', background: ranking.color + '15', border: `1.5px solid ${ranking.color}`, borderRadius: '0.75rem', padding: '0.5rem 1rem' }}>
-                <div style={{ fontSize: '0.72rem', color: ranking.color, fontWeight: 800, textTransform: 'uppercase' }}>Điểm Tính Toán</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: ranking.color }}>
-                  {weekScore} điểm {ranking.emoji}
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '0.6rem',
+                background: ranking.color + '12', border: `1.5px solid ${ranking.color}`,
+                borderRadius: '0.65rem', padding: '0.4rem 0.85rem'
+              }}>
+                <span style={{ fontSize: '1.4rem' }}>{ranking.emoji}</span>
+                <div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 900, color: ranking.color, lineHeight: 1.1 }}>
+                    {weekScore} điểm
+                  </div>
+                  <div style={{ fontSize: '0.68rem', fontWeight: 700, color: ranking.color }}>
+                    {ranking.label}
+                  </div>
                 </div>
               </div>
+
+              {/* Submit button right on top for instant access */}
+              {(!user || user.role === 'student' || user.role === 'member' || String(user.id) === selectedStudentId) && currentRecord.status !== 'approved' && (
+                <button
+                  className="btn-primary"
+                  onClick={handleStudentSubmit}
+                  disabled={saving}
+                  style={{
+                    padding: '0.55rem 1.1rem', fontSize: '0.84rem', fontWeight: 800,
+                    borderRadius: '0.65rem', boxShadow: '0 2px 8px rgba(3, 105, 161, 0.25)',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {saving ? '⏳ Đang nộp...' : '📩 Nộp Phiếu'}
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Group Category Navigation (Enhanced for Mobile & Desktop - All 8 Groups) */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {/* Quick Dropdown Selector for Fast Navigation on Mobile & Desktop */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '0.5rem',
-              background: '#f8fafc', padding: '0.45rem 0.75rem', borderRadius: '0.75rem',
-              border: '1.5px solid #e2e8f0'
-            }}>
-              <span style={{ fontSize: '0.9rem', flexShrink: 0 }}>📑</span>
-              <label htmlFor="eval-group-select" style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', flexShrink: 0 }}>
-                Chọn nhóm:
-              </label>
-              <select
-                id="eval-group-select"
-                className="form-input"
-                value={activeGroup}
-                onChange={(e) => {
-                  const newGrp = e.target.value;
-                  setActiveGroup(newGrp);
-                  const el = tabsRef.current?.querySelector(`[data-group="${CSS.escape(newGrp)}"]`);
-                  if (el) el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-                }}
-                style={{
-                  flex: 1, padding: '0.4rem 0.6rem', fontSize: '0.84rem', fontWeight: 700,
-                  borderRadius: '0.5rem', border: '1.5px solid #0284c7', background: 'white', color: '#0f172a',
-                  cursor: 'pointer'
-                }}
-              >
-                {CRITERIA_GROUPS.map((grp) => {
-                  const groupCriteria = getCriteriaByGroup(grp);
-                  const count = groupCriteria.reduce((sum, item) => sum + (selectedViolations[item.id] || 0), 0);
-                  return (
-                    <option key={grp} value={grp}>
-                      {grp} {count > 0 ? `(${count} tiêu chí đã ghi)` : ''}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-
-            {/* Scrollable Tab Pills with ◀ ▶ buttons */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', position: 'relative' }}>
-              <button
-                type="button"
-                onClick={() => {
-                  if (tabsRef.current) tabsRef.current.scrollBy({ left: -240, behavior: 'smooth' });
-                }}
-                style={{
-                  background: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '0.65rem',
-                  width: '36px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', flexShrink: 0, fontSize: '0.9rem', fontWeight: 800, color: '#0369a1',
-                  boxShadow: '0 2px 5px rgba(0,0,0,0.06)'
-                }}
-                title="Cuộn sang trái (Nhóm tiêu chí trước)"
-              >
-                ◀
-              </button>
-
-              <div
-                ref={tabsRef}
-                className="category-tabs-scroll"
-                onWheel={(e) => {
-                  if (e.deltaY !== 0 && tabsRef.current) {
-                    tabsRef.current.scrollLeft += e.deltaY;
-                  }
-                }}
-                style={{
-                  display: 'flex', gap: '0.45rem', overflowX: 'auto', background: '#f1f5f9',
-                  padding: '0.45rem 0.5rem', borderRadius: '0.85rem',
-                  flex: 1, minWidth: 0, scrollBehavior: 'smooth'
-                }}
-              >
+          {/* 2-Column Split Body */}
+          <div className="eval-split-layout">
+            
+            {/* Left Column: 8 Groups Sidebar */}
+            <div className="eval-groups-sidebar">
+              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem' }}>
+                📑 8 Nhóm Tiêu Chí
+              </div>
+              <div className="eval-groups-list">
                 {CRITERIA_GROUPS.map((grp) => {
                   const isActive = activeGroup === grp;
                   const groupCriteria = getCriteriaByGroup(grp);
@@ -627,31 +593,13 @@ export default function Evaluation({ students = [], onRefresh }) {
                   return (
                     <button
                       key={grp}
-                      data-group={grp}
                       type="button"
-                      onClick={(e) => {
-                        setActiveGroup(grp);
-                        e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-                      }}
-                      style={{
-                        padding: '0.55rem 0.95rem', borderRadius: '0.65rem',
-                        border: isSevereGroup ? (isActive ? '2px solid #b91c1c' : '1.5px dashed #ef4444') : 'none',
-                        cursor: 'pointer',
-                        fontWeight: 700, fontSize: '0.82rem', whiteSpace: 'nowrap', transition: 'all 0.15s ease',
-                        flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                        background: isActive ? (isSevereGroup ? '#b91c1c' : '#0369a1') : (isSevereGroup ? '#fff1f2' : 'white'),
-                        color: isActive ? 'white' : (isSevereGroup ? '#991b1b' : '#334155'),
-                        boxShadow: isActive ? '0 2px 8px rgba(3,105,161,0.35)' : '0 1px 3px rgba(0,0,0,0.06)',
-                      }}
+                      onClick={() => setActiveGroup(grp)}
+                      className={`eval-group-btn ${isActive ? 'active' : ''} ${isSevereGroup ? 'severe' : ''}`}
                     >
-                      <span>{grp}</span>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{grp}</span>
                       {activeCountInGroup > 0 && (
-                        <span style={{
-                          background: isActive ? '#fef08a' : '#ef4444',
-                          color: isActive ? '#854d0e' : 'white',
-                          fontSize: '0.68rem', fontWeight: 800,
-                          padding: '0.1rem 0.4rem', borderRadius: '9999px'
-                        }}>
+                        <span className="eval-group-count">
                           {activeCountInGroup}
                         </span>
                       )}
@@ -659,210 +607,154 @@ export default function Evaluation({ students = [], onRefresh }) {
                   );
                 })}
               </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  if (tabsRef.current) tabsRef.current.scrollBy({ left: 240, behavior: 'smooth' });
-                }}
-                style={{
-                  background: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '0.65rem',
-                  width: '36px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', flexShrink: 0, fontSize: '0.9rem', fontWeight: 800, color: '#0369a1',
-                  boxShadow: '0 2px 5px rgba(0,0,0,0.06)'
-                }}
-                title="Cuộn sang phải (Nhóm 5, 6, 7, 8: Tác phong, Vệ sinh, KTX, Vi phạm nghiêm trọng)"
-              >
-                ▶
-              </button>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.2rem', padding: '0 0.25rem', flexWrap: 'wrap', gap: '0.35rem' }}>
-              <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
-                💡 Có <strong>8 nhóm tiêu chí</strong> — Chọn nhanh ở menu thả xuống hoặc bấm <strong>◀ ▶</strong> để duyệt từ <strong>Mục 1 đến Mục 8</strong>
-              </span>
-              <span style={{ fontSize: '0.72rem', color: activeGroup.includes('8.') ? '#dc2626' : '#0284c7', fontWeight: 700 }}>
-                Đang xem: {activeGroup}
-              </span>
-            </div>
-          </div>
+            {/* Right Column: Criteria list of selected group */}
+            <div className="eval-criteria-content">
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                marginBottom: '0.4rem', paddingBottom: '0.35rem', borderBottom: '1px solid #f1f5f9'
+              }}>
+                <div style={{ fontSize: '0.9rem', fontWeight: 800, color: activeGroup.includes('8.') ? '#b91c1c' : '#0369a1' }}>
+                  {activeGroup}
+                </div>
+                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                  {getCriteriaByGroup(activeGroup).length} tiêu chí
+                </div>
+              </div>
 
-          {/* Criteria List (Touch-optimized 44px targets) */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', maxHeight: '420px', overflowY: 'auto', paddingRight: '0.3rem' }}>
-            {getCriteriaByGroup(activeGroup).map(item => {
-              const count = selectedViolations[item.id] || 0;
-              return (
-                <div key={item.id} style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: '0.75rem 0.95rem', borderRadius: '0.75rem',
-                  background: count > 0 ? (item.isBonus ? '#f0fdf4' : '#fff5f5') : 'white',
-                  border: `1.5px solid ${count > 0 ? (item.isBonus ? '#86efac' : '#fca5a5') : '#f3f4f6'}`,
-                  boxShadow: count > 0 ? '0 2px 8px rgba(0,0,0,0.03)' : 'none'
-                }}>
-                  <div style={{ flex: 1, paddingRight: '0.75rem' }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#111827', lineHeight: 1.35 }}>
-                      #{item.id}. {item.label}
+              {/* Criteria list items */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', maxHeight: '460px', overflowY: 'auto', paddingRight: '0.25rem' }}>
+                {getCriteriaByGroup(activeGroup).map(item => {
+                  const count = selectedViolations[item.id] || 0;
+                  return (
+                    <div key={item.id} style={{
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      padding: '0.7rem 0.9rem', borderRadius: '0.75rem',
+                      background: count > 0 ? (item.isBonus ? '#f0fdf4' : '#fff5f5') : 'white',
+                      border: `1.5px solid ${count > 0 ? (item.isBonus ? '#86efac' : '#fca5a5') : '#f1f5f9'}`,
+                      boxShadow: count > 0 ? '0 2px 6px rgba(0,0,0,0.03)' : 'none',
+                      transition: 'all 0.15s ease'
+                    }}>
+                      <div style={{ flex: 1, paddingRight: '0.75rem' }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.84rem', color: '#111827', lineHeight: 1.35 }}>
+                          #{item.id}. {item.label}
+                        </div>
+                        <span style={{ fontSize: '0.74rem', color: item.isBonus ? '#15803d' : '#b91c1c', fontWeight: 800, marginTop: '0.15rem', display: 'inline-block' }}>
+                          {item.points > 0 ? `+${item.points}` : item.points} điểm / {item.unit}
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexShrink: 0 }}>
+                        <button
+                          className="criteria-btn"
+                          onClick={() => handleToggleCriterion(item.id, -1)}
+                          disabled={isTeacher || count === 0}
+                          title={isTeacher ? "Chế độ GVCN chỉ xét duyệt" : "Trừ 1"}
+                          style={{
+                            width: '42px', height: '42px', borderRadius: '50%', border: '1.5px solid #d1d5db',
+                            background: 'white', cursor: (isTeacher || count === 0) ? 'not-allowed' : 'pointer', opacity: (isTeacher || count === 0) ? 0.35 : 1,
+                            fontWeight: 800, fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                          }}
+                        >
+                          -
+                        </button>
+                        <span style={{ fontWeight: 900, fontSize: '0.95rem', minWidth: '22px', textAlign: 'center', color: '#1f2937' }}>
+                          {count}
+                        </span>
+                        <button
+                          className="criteria-btn"
+                          onClick={() => handleToggleCriterion(item.id, 1)}
+                          disabled={isTeacher}
+                          title={isTeacher ? "Chế độ GVCN chỉ xét duyệt" : "Cộng 1"}
+                          style={{
+                            width: '42px', height: '42px', borderRadius: '50%', border: 'none',
+                            background: isTeacher ? '#94a3b8' : (item.isBonus ? '#16a34a' : 'var(--color-primary-dark)'),
+                            color: 'white', cursor: isTeacher ? 'not-allowed' : 'pointer', opacity: isTeacher ? 0.45 : 1,
+                            fontWeight: 800, fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: isTeacher ? 'none' : '0 2px 6px rgba(0,0,0,0.15)'
+                          }}
+                        >
+                          +
+                        </button>
+                      </div>
                     </div>
-                    <span style={{ fontSize: '0.75rem', color: item.isBonus ? '#15803d' : '#b91c1c', fontWeight: 800, marginTop: '0.15rem', display: 'inline-block' }}>
-                      {item.points > 0 ? `+${item.points}` : item.points} điểm / {item.unit}
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
-                    <button
-                      className="criteria-btn"
-                      onClick={() => handleToggleCriterion(item.id, -1)}
-                      disabled={isTeacher || count === 0}
-                      title={isTeacher ? "Chế độ GVCN chỉ xét duyệt" : "Trừ 1"}
-                      style={{
-                        width: '44px', height: '44px', borderRadius: '50%', border: '1.5px solid #d1d5db',
-                        background: 'white', cursor: (isTeacher || count === 0) ? 'not-allowed' : 'pointer', opacity: (isTeacher || count === 0) ? 0.35 : 1,
-                        fontWeight: 800, fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                      }}
-                    >
-                      -
-                    </button>
-                    <span style={{ fontWeight: 900, fontSize: '1rem', minWidth: '24px', textAlign: 'center', color: '#1f2937' }}>
-                      {count}
-                    </span>
-                    <button
-                      className="criteria-btn"
-                      onClick={() => handleToggleCriterion(item.id, 1)}
-                      disabled={isTeacher}
-                      title={isTeacher ? "Chế độ GVCN chỉ xét duyệt" : "Cộng 1"}
-                      style={{
-                        width: '44px', height: '44px', borderRadius: '50%', border: 'none',
-                        background: isTeacher ? '#94a3b8' : (item.isBonus ? '#16a34a' : 'var(--color-primary-dark)'),
-                        color: 'white', cursor: isTeacher ? 'not-allowed' : 'pointer', opacity: isTeacher ? 0.45 : 1,
-                        fontWeight: 800, fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: isTeacher ? 'none' : '0 2px 6px rgba(0,0,0,0.15)'
-                      }}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Special GVCN Approval & Adjustment Panel */}
-          {isTeacher && (
-            <div style={{ background: '#f8fafc', borderRadius: '0.875rem', padding: '1.1rem', border: '1.5px solid #e2e8f0', marginTop: '0.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
-                <h4 style={{ margin: 0, color: 'var(--color-primary-dark)', fontSize: '0.92rem', fontWeight: 800 }}>
-                  ⚖️ GVCN Phê Duyệt & Yêu Cầu Thay Đổi (Nếu Có)
-                </h4>
-                <span style={{ fontSize: '0.72rem', background: '#dbeafe', color: '#1e40af', padding: '0.15rem 0.5rem', borderRadius: '9999px', fontWeight: 800 }}>
-                  👁️ Chế độ Xét Duyệt
-                </span>
+                  );
+                })}
               </div>
-              <textarea
-                className="form-input"
-                style={{ width: '100%', minHeight: '65px', fontSize: '0.82rem', marginBottom: '0.75rem', resize: 'vertical' }}
-                placeholder={`Nhập nhận xét hoặc yêu cầu điều chỉnh đặc biệt cho ${currentStudent?.name || 'học sinh'} (ví dụ: Khen thưởng đột xuất, Nhắc nhở quy định...)...`}
-                value={teacherNotes[selectedStudentId] || currentRecord.teacherNote || ''}
-                onChange={e => setTeacherNotes({ ...teacherNotes, [selectedStudentId]: e.target.value })}
-              />
-            </div>
-          )}
 
-          {/* Action Row — Depending on Role & Status */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid #f3f4f6', flexWrap: 'wrap', gap: '0.75rem' }}>
-            <div style={{ fontSize: '0.78rem', color: '#6b7280' }}>
-              {currentRecord.reviewedBy && <div>👤 Tổ trưởng đã duyệt Vòng 1: <strong>{currentRecord.reviewedBy}</strong></div>}
-              {currentRecord.monitorApprovedBy && <div>👑 Lớp trưởng đã duyệt Vòng 2: <strong>{currentRecord.monitorApprovedBy}</strong></div>}
-              {currentRecord.approvedBy && <div>🚀 GVCN đã chốt điểm: <strong>{currentRecord.approvedBy}</strong></div>}
-            </div>
-
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              {/* HS Nộp */}
-              {(!user || user.role === 'student' || String(user.id) === selectedStudentId) && currentRecord.status !== 'approved' && (
-                <button className="btn-primary" onClick={handleStudentSubmit} disabled={saving}>
-                  {saving ? 'Đang nộp...' : '📩 Nộp Phiếu Tự Đánh Giá'}
-                </button>
-              )}
-
-              {/* Vòng 1: Tổ trưởng Duyệt */}
-              {isGroupLeader && !isMonitor && (
-                <button className="btn-primary" style={{ background: '#0284c7' }} onClick={handleGroupLeaderReview} disabled={saving}>
-                  {saving ? 'Đang duyệt...' : `⭐ Tổ Trưởng Duyệt Vòng 1 (${user?.groupLeaderOf || user?.group || 'Tổ'})`}
-                </button>
-              )}
-
-              {/* Vòng 2: Lớp trưởng Duyệt */}
-              {isMonitor && (
-                <button className="btn-primary" style={{ background: '#d97706' }} onClick={handleMonitorReview} disabled={saving}>
-                  {saving ? 'Đang duyệt...' : '👑 Lớp Trưởng Duyệt Vòng 2 (Toàn Lớp)'}
-                </button>
-              )}
-
-              {/* Vòng 3: GVCN Chốt */}
+              {/* Special GVCN Approval & Adjustment Panel */}
               {isTeacher && (
-                <>
-                  <button className="btn-primary" style={{ background: '#dc2626' }} onClick={() => handleTeacherAction('reject')} disabled={saving}>
-                    💬 Yêu cầu thay đổi / làm lại
-                  </button>
-                  <button className="btn-primary" style={{ background: '#059669' }} onClick={() => handleTeacherAction('approve')} disabled={saving}>
-                    🚀 Phê duyệt & Chốt điểm
-                  </button>
-                </>
+                <div style={{ background: '#f8fafc', borderRadius: '0.875rem', padding: '1.1rem', border: '1.5px solid #e2e8f0', marginTop: '0.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                    <h4 style={{ margin: 0, color: 'var(--color-primary-dark)', fontSize: '0.92rem', fontWeight: 800 }}>
+                      ⚖️ GVCN Phê Duyệt & Yêu Cầu Thay Đổi (Nếu Có)
+                    </h4>
+                    <span style={{ fontSize: '0.72rem', background: '#dbeafe', color: '#1e40af', padding: '0.15rem 0.5rem', borderRadius: '9999px', fontWeight: 800 }}>
+                      👁️ Chế độ Xét Duyệt
+                    </span>
+                  </div>
+                  <textarea
+                    className="form-input"
+                    style={{ width: '100%', minHeight: '65px', fontSize: '0.82rem', marginBottom: '0.75rem', resize: 'vertical' }}
+                    placeholder={`Nhập nhận xét hoặc yêu cầu điều chỉnh đặc biệt cho ${currentStudent?.name || 'học sinh'} (ví dụ: Khen thưởng đột xuất, Nhắc nhở quy định...)...`}
+                    value={teacherNotes[selectedStudentId] || currentRecord.teacherNote || ''}
+                    onChange={e => setTeacherNotes({ ...teacherNotes, [selectedStudentId]: e.target.value })}
+                  />
+                </div>
               )}
-            </div>
-          </div>
 
-          {/* Sticky Floating Bar for Student Self-Evaluation on Mobile & Desktop */}
-          {(!isTeacher && !isGroupLeader && !isMonitor) && (
-            <div className="eval-student-sticky-bar" style={{
-              position: 'sticky',
-              bottom: 0,
-              zIndex: 30,
-              background: 'rgba(255, 255, 255, 0.96)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              borderTop: '2px solid #e2e8f0',
-              padding: '0.75rem 1.25rem',
-              margin: '0.75rem -1.75rem -1.75rem -1.75rem',
-              borderRadius: '0 0 1rem 1rem',
-              boxShadow: '0 -4px 16px rgba(0,0,0,0.06)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: '0.75rem'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>{ranking.emoji}</span>
-                <div>
-                  <div style={{ fontSize: '1.15rem', fontWeight: 900, color: ranking.color, lineHeight: 1.2 }}>
-                    {weekScore} điểm
-                  </div>
-                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
-                    Xếp loại: <strong style={{ color: ranking.color }}>{ranking.label}</strong>
-                    {currentRecord.status === 'approved' ? ' (Đã chốt điểm ✅)' : currentRecord.status === 'reviewed' ? ' (Tổ đã duyệt ⏳)' : currentRecord.status === 'submitted' ? ' (Đã nộp 📩)' : ''}
-                  </div>
+              {/* Bottom Footer inside Criteria Content: Status & Actions */}
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                paddingTop: '0.75rem', marginTop: '0.5rem', borderTop: '1px solid #f1f5f9',
+                flexWrap: 'wrap', gap: '0.6rem'
+              }}>
+                <div style={{ fontSize: '0.76rem', color: '#6b7280' }}>
+                  {currentRecord.reviewedBy && <div>👤 Tổ trưởng đã duyệt: <strong>{currentRecord.reviewedBy}</strong></div>}
+                  {currentRecord.monitorApprovedBy && <div>👑 Lớp trưởng đã duyệt: <strong>{currentRecord.monitorApprovedBy}</strong></div>}
+                  {currentRecord.approvedBy && <div>🚀 GVCN đã chốt điểm: <strong>{currentRecord.approvedBy}</strong></div>}
+                  {currentRecord.status === 'submitted' && !currentRecord.reviewedBy && <div>📩 Đã nộp phiếu, đang chờ tổ trưởng duyệt.</div>}
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {/* HS Nộp */}
+                  {(!user || user.role === 'student' || user.role === 'member' || String(user.id) === selectedStudentId) && currentRecord.status !== 'approved' && (
+                    <button className="btn-primary" onClick={handleStudentSubmit} disabled={saving} style={{ padding: '0.55rem 1.1rem', fontSize: '0.84rem' }}>
+                      {saving ? 'Đang nộp...' : '📩 Nộp Phiếu Tự Đánh Giá'}
+                    </button>
+                  )}
+
+                  {/* Vòng 1: Tổ trưởng Duyệt */}
+                  {isGroupLeader && !isMonitor && (
+                    <button className="btn-primary" style={{ background: '#0284c7', padding: '0.55rem 1.1rem', fontSize: '0.84rem' }} onClick={handleGroupLeaderReview} disabled={saving}>
+                      {saving ? 'Đang duyệt...' : `⭐ Duyệt Vòng 1 (${user?.groupLeaderOf || user?.group || 'Tổ'})`}
+                    </button>
+                  )}
+
+                  {/* Vòng 2: Lớp trưởng Duyệt */}
+                  {isMonitor && (
+                    <button className="btn-primary" style={{ background: '#d97706', padding: '0.55rem 1.1rem', fontSize: '0.84rem' }} onClick={handleMonitorReview} disabled={saving}>
+                      {saving ? 'Đang duyệt...' : '👑 Duyệt Vòng 2'}
+                    </button>
+                  )}
+
+                  {/* Vòng 3: GVCN Chốt */}
+                  {isTeacher && (
+                    <>
+                      <button className="btn-primary" style={{ background: '#dc2626', padding: '0.55rem 1rem', fontSize: '0.84rem' }} onClick={() => handleTeacherAction('reject')} disabled={saving}>
+                        💬 Yêu cầu sửa
+                      </button>
+                      <button className="btn-primary" style={{ background: '#059669', padding: '0.55rem 1rem', fontSize: '0.84rem' }} onClick={() => handleTeacherAction('approve')} disabled={saving}>
+                        🚀 Phê duyệt & Chốt điểm
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
-              {currentRecord.status !== 'approved' && (
-                <button
-                  className="btn-primary"
-                  onClick={handleStudentSubmit}
-                  disabled={saving}
-                  style={{
-                    padding: '0.65rem 1.25rem',
-                    fontSize: '0.85rem',
-                    fontWeight: 800,
-                    borderRadius: '0.65rem',
-                    boxShadow: '0 3px 10px rgba(3, 105, 161, 0.3)',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  {saving ? '⏳ Đang nộp...' : '📩 Nộp Phiếu Tự Đánh Giá'}
-                </button>
-              )}
             </div>
-          )}
-
+          </div>
         </div>
 
         {/* Right Column: Analytics & Ranking */}

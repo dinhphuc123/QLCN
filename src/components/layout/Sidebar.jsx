@@ -27,9 +27,24 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
   const { settings } = useClassSettings();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Normalize student role ('member' from initialStudents is equivalent to 'student')
+  const isPlainStudent = !isTeacher && (!user || user.role === 'student' || user.role === 'member');
+  const userRole = user?.role === 'member' ? 'student' : (user?.role || 'student');
+
   const visibleItems = NAV_ITEMS.filter(item =>
-    !user || item.roles.includes(user?.role || 'student')
+    !user || item.roles.includes(userRole)
   );
+
+  const STUDENT_NAV = [
+    { id: 'dashboard',  icon: '🏠', label: 'Trang chủ' },
+    { id: 'attendance', icon: '📝', label: 'Điểm danh' },
+    { id: 'evaluation', icon: '📈', label: 'Thi đua' },
+    { id: 'explore',    icon: '✨', label: 'Khám phá' },
+  ];
+
+  // For students, use clean 4-tab unified nav; for officers/teachers use visibleItems
+  const sidebarItems = isPlainStudent ? STUDENT_NAV : visibleItems;
+  const bottomItems = isPlainStudent ? STUDENT_NAV : [...visibleItems];
 
   const getRoleLabel = () => {
     if (!user) return null;
@@ -85,7 +100,7 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
 
       {/* Nav */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', flex: 1 }}>
-        {visibleItems.map(({ id, icon, label }) => (
+        {sidebarItems.map(({ id, icon, label }) => (
           <button
             key={id}
             className={`nav-link ${activeTab === id ? 'active' : ''}`}
@@ -119,17 +134,6 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
       </div>
     </aside>
   );
-
-  // 4 Bottom nav items siêu tối giản dành cho Học sinh trên điện thoại
-  const isPlainStudent = !isTeacher && (!user || user.role === 'student');
-  const STUDENT_BOTTOM_NAV = [
-    { id: 'dashboard',  icon: '🏠', label: 'Trang chủ' },
-    { id: 'attendance', icon: '📝', label: 'Điểm danh' },
-    { id: 'evaluation', icon: '📈', label: 'Thi đua' },
-    { id: 'explore',    icon: '✨', label: 'Khám phá' },
-  ];
-
-  const bottomItems = isPlainStudent ? STUDENT_BOTTOM_NAV : [...visibleItems];
 
   return (
     <>

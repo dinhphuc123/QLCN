@@ -336,16 +336,107 @@ h1, h2, h3, .font-serif { font-family: var(--font-serif); color: var(--color-pri
   background: #0369a1;
 }
 
-/* ── Thi Đua Student Floating Sticky Bar on Mobile ── */
+/* ── Thi Đua 2-Column Split Layout ── */
+.eval-split-layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.eval-groups-sidebar {
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+  padding: 0.75rem;
+  border-radius: 0.85rem;
+  border: 1px solid #e2e8f0;
+}
+
+.eval-groups-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.eval-group-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border-radius: 0.6rem;
+  border: 1px solid transparent;
+  background: white;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.eval-group-btn:hover {
+  background: #f1f5f9;
+  color: #0369a1;
+}
+
+.eval-group-btn.active {
+  background: #0369a1;
+  color: white;
+  box-shadow: 0 3px 8px rgba(3,105,161,0.3);
+}
+
+.eval-group-btn.severe {
+  border: 1px dashed #fca5a5;
+  color: #991b1b;
+}
+
+.eval-group-btn.severe.active {
+  background: #b91c1c;
+  color: white;
+  border-color: #991b1b;
+  box-shadow: 0 3px 8px rgba(185,28,28,0.3);
+}
+
+.eval-group-count {
+  background: #ef4444;
+  color: white;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 0.1rem 0.45rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.eval-group-btn.active .eval-group-count {
+  background: #fef08a;
+  color: #854d0e;
+}
+
+.eval-criteria-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 @media (max-width: 768px) {
-  .eval-student-sticky-bar {
-    position: sticky !important;
-    bottom: calc(56px + env(safe-area-inset-bottom, 0px)) !important;
-    z-index: 100 !important;
-    margin: 0.5rem -1rem -1rem -1rem !important;
-    padding: 0.65rem 0.85rem !important;
-    border-radius: 0 0 0.75rem 0.75rem !important;
-    box-shadow: 0 -4px 16px rgba(0,0,0,0.1) !important;
+  .eval-split-layout {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+  .eval-groups-list {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 0.35rem;
+    scrollbar-width: thin;
+  }
+  .eval-group-btn {
+    flex-shrink: 0;
+    width: auto;
+    white-space: nowrap;
   }
 }
 
