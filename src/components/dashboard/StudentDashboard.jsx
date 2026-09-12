@@ -352,7 +352,7 @@ export default function StudentDashboard({ timetableImage = '', timetableData = 
         </button>
 
         <button
-          onClick={() => setActiveTab && setActiveTab('confessions')}
+          onClick={() => setActiveTab && setActiveTab('explore')}
           className="glass-panel"
           style={{
             padding: '0.85rem 1rem', border: '1.5px solid #bbf7d0', background: '#f0fdf4',
@@ -361,11 +361,11 @@ export default function StudentDashboard({ timetableImage = '', timetableData = 
           }}
         >
           <div style={{ fontSize: '1.6rem', background: '#dcfce7', width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            🤫
+            ✨
           </div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#15803d' }}>Tâm Sự Lớp</div>
-            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Hộp thư ẩn danh chia sẻ</div>
+            <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#15803d' }}>Khám Phá</div>
+            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Tiện ích & hoạt động</div>
           </div>
         </button>
       </div>
@@ -502,25 +502,33 @@ export default function StudentDashboard({ timetableImage = '', timetableData = 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {/* Day Selector Pills */}
                 <div style={{ display: 'flex', gap: '0.35rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
-                  {['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'].map(day => (
-                    <button
-                      key={day}
-                      onClick={() => setStudentTimetableDay(day)}
-                      style={{
-                        padding: '0.35rem 0.65rem',
-                        borderRadius: '8px',
-                        border: 'none',
-                        fontSize: '0.75rem',
-                        fontWeight: 800,
-                        cursor: 'pointer',
-                        background: studentTimetableDay === day ? '#1B4D53' : '#f1f5f9',
-                        color: studentTimetableDay === day ? 'white' : '#475569',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      {day}
-                    </button>
-                  ))}
+                  {['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'].map(day => {
+                    const dayNames = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+                    const isToday = dayNames[new Date().getDay()] === day;
+                    const isSelected = studentTimetableDay === day;
+
+                    return (
+                      <button
+                        key={day}
+                        onClick={() => setStudentTimetableDay(day)}
+                        style={{
+                          padding: '0.35rem 0.65rem',
+                          borderRadius: '8px',
+                          border: isToday ? '1.5px solid #0284c7' : '1px solid transparent',
+                          fontSize: '0.75rem',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          background: isSelected ? '#1B4D53' : (isToday ? '#e0f2fe' : '#f1f5f9'),
+                          color: isSelected ? 'white' : (isToday ? '#0369a1' : '#475569'),
+                          whiteSpace: 'nowrap',
+                          display: 'inline-flex', alignItems: 'center', gap: '0.2rem'
+                        }}
+                      >
+                        <span>{day}</span>
+                        {isToday && <span style={{ fontSize: '0.62rem', background: '#0284c7', color: 'white', padding: '0.05rem 0.3rem', borderRadius: '4px' }}>Nay</span>}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 {/* Day's Morning & Afternoon Periods */}

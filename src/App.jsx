@@ -22,6 +22,7 @@ import Reports from './components/reports/Reports';
 import AiAssistant from './components/ai/AiAssistant';
 import ParentPortal from './components/parent/ParentPortal';
 import CmsAdminPanel from './components/admin/CmsAdminPanel';
+import ExploreHub from './components/explore/ExploreHub';
 
 import LoginGate from './components/auth/LoginGate';
 import AuthModal from './components/auth/AuthModal';
@@ -620,6 +621,7 @@ export default function App() {
       case 'confessions':   return <Confessions confessions={data.confessions} isTeacher={isTeacher} onRefresh={fetchData} />;
       case 'reports':       return isTeacher ? <Reports {...props} /> : <AccessDeniedCard onLogin={() => setShowAuth(true)} title="Biểu Mẫu & Excel" />;
       case 'cms_admin':     return isTeacher ? <CmsAdminPanel students={data.students} onRefresh={fetchData} /> : <AccessDeniedCard onLogin={() => setShowAuth(true)} title="Quản Trị CMS Admin" />;
+      case 'explore':       return <ExploreHub setActiveTab={setActiveTab} />;
       default:              return <Dashboard {...props} setActiveTab={setActiveTab} handleTimetableChange={handleTimetableChange} handleClassMapChange={handleClassMapChange} handleDeleteClassMap={handleDeleteClassMap} />;
     }
   };

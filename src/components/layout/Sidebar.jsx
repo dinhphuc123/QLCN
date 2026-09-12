@@ -120,8 +120,16 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
     </aside>
   );
 
-  // Bottom nav items: nav tabs + logout/login at end
-  const bottomItems = [...visibleItems];
+  // 4 Bottom nav items siêu tối giản dành cho Học sinh trên điện thoại
+  const isPlainStudent = !isTeacher && (!user || user.role === 'student');
+  const STUDENT_BOTTOM_NAV = [
+    { id: 'dashboard',  icon: '🏠', label: 'Trang chủ' },
+    { id: 'attendance', icon: '📝', label: 'Điểm danh' },
+    { id: 'evaluation', icon: '📈', label: 'Thi đua' },
+    { id: 'explore',    icon: '✨', label: 'Khám phá' },
+  ];
+
+  const bottomItems = isPlainStudent ? STUDENT_BOTTOM_NAV : [...visibleItems];
 
   return (
     <>
@@ -141,42 +149,52 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
       )}
 
       {/* ─── Mobile Bottom Nav Bar ─────────────────────────────────────── */}
-      <nav className="mobile-bottom-nav" role="navigation" aria-label="Điều hướng chính">
+      <nav className={`mobile-bottom-nav ${isPlainStudent ? 'student-nav' : ''}`} role="navigation" aria-label="Điều hướng chính">
         <div className="mobile-bottom-scroll">
           {/* Nav tabs */}
-          {bottomItems.map(({ id, icon, label }) => (
-            <button
-              key={id}
-              className={`mbn-item${activeTab === id ? ' mbn-active' : ''}`}
-              onClick={() => setActiveTab(id)}
-              aria-label={label}
-              aria-current={activeTab === id ? 'page' : undefined}
-            >
-              <span className="mbn-icon">{icon}</span>
-              <span className="mbn-label">{label}</span>
-            </button>
-          ))}
+          {bottomItems.map(({ id, icon, label }) => {
+            // Khi ở các tab mở rộng (requests, notifications, exam...) thì tab explore được sáng
+            const isExploreActive = id === 'explore' && ['explore', 'requests', 'notifications', 'exam', 'confessions', 'students', 'activities', 'parent_portal'].includes(activeTab);
+            const isTabActive = activeTab === id || isExploreActive;
 
-          {/* Separator + Logout / Login button at the end */}
-          <div className="mbn-separator" aria-hidden="true" />
-          {user ? (
-            <button
-              className="mbn-item mbn-logout"
-              onClick={logout}
-              aria-label="Đăng xuất"
-            >
-              <span className="mbn-icon">🚪</span>
-              <span className="mbn-label">Đăng xuất</span>
-            </button>
-          ) : (
-            <button
-              className="mbn-item mbn-login"
-              onClick={onLoginClick}
-              aria-label="Đăng nhập"
-            >
-              <span className="mbn-icon">🔑</span>
-              <span className="mbn-label">Đăng nhập</span>
-            </button>
+            return (
+              <button
+                key={id}
+                className={`mbn-item${isTabActive ? ' mbn-active' : ''}`}
+                onClick={() => setActiveTab(id)}
+                aria-label={label}
+                aria-current={isTabActive ? 'page' : undefined}
+              >
+                <span className="mbn-icon">{icon}</span>
+                <span className="mbn-label">{label}</span>
+              </button>
+            );
+          })}
+
+          {/* Separator + Logout / Login button at the end (cho GV & cán bộ lớp) */}
+          {!isPlainStudent && (
+            <>
+              <div className="mbn-separator" aria-hidden="true" />
+              {user ? (
+                <button
+                  className="mbn-item mbn-logout"
+                  onClick={logout}
+                  aria-label="Đăng xuất"
+                >
+                  <span className="mbn-icon">🚪</span>
+                  <span className="mbn-label">Đăng xuất</span>
+                </button>
+              ) : (
+                <button
+                  className="mbn-item mbn-login"
+                  onClick={onLoginClick}
+                  aria-label="Đăng nhập"
+                >
+                  <span className="mbn-icon">🔑</span>
+                  <span className="mbn-label">Đăng nhập</span>
+                </button>
+              )}
+            </>
           )}
         </div>
       </nav>
@@ -213,6 +231,23 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
             padding: 0 0.125rem;
           }
           .mobile-bottom-scroll::-webkit-scrollbar { display: none; }
+
+          /* 4 Tab học sinh chia đều 100% màn hình, không cần cuộn ngang */
+          .mobile-bottom-nav.student-nav .mobile-bottom-scroll {
+            display: flex;
+            width: 100%;
+            justify-content: space-around;
+            padding: 0;
+            overflow-x: hidden;
+          }
+          .mobile-bottom-nav.student-nav .mbn-item {
+            flex: 1;
+            min-width: 0;
+            padding: 0.65rem 0.2rem 0.5rem;
+          }
+          .mobile-bottom-nav.student-nav .mbn-label {
+            font-size: 0.68rem;
+          }
 
           .mbn-item {
             display: flex;

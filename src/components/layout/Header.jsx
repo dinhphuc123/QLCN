@@ -19,6 +19,7 @@ const TAB_LABELS = {
   confessions:   'Hòm tâm sự',
   reports:       'Biểu mẫu & Excel',
   cms_admin:     'Quản trị CMS',
+  explore:       'Khám Phá & Tiện Ích',
 };
 
 function ChangeTeacherPasswordModal({ onClose }) {

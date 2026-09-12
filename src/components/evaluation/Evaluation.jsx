@@ -546,8 +546,47 @@ export default function Evaluation({ students = [], onRefresh }) {
             </div>
           </div>
 
-          {/* Group Category Tabs with Scroll Controls & Visible Scrollbar for All 7 Groups */}
-          <div>
+          {/* Group Category Navigation (Enhanced for Mobile & Desktop - All 8 Groups) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {/* Quick Dropdown Selector for Fast Navigation on Mobile & Desktop */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              background: '#f8fafc', padding: '0.45rem 0.75rem', borderRadius: '0.75rem',
+              border: '1.5px solid #e2e8f0'
+            }}>
+              <span style={{ fontSize: '0.9rem', flexShrink: 0 }}>📑</span>
+              <label htmlFor="eval-group-select" style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', flexShrink: 0 }}>
+                Chọn nhóm:
+              </label>
+              <select
+                id="eval-group-select"
+                className="form-input"
+                value={activeGroup}
+                onChange={(e) => {
+                  const newGrp = e.target.value;
+                  setActiveGroup(newGrp);
+                  const el = tabsRef.current?.querySelector(`[data-group="${CSS.escape(newGrp)}"]`);
+                  if (el) el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                }}
+                style={{
+                  flex: 1, padding: '0.4rem 0.6rem', fontSize: '0.84rem', fontWeight: 700,
+                  borderRadius: '0.5rem', border: '1.5px solid #0284c7', background: 'white', color: '#0f172a',
+                  cursor: 'pointer'
+                }}
+              >
+                {CRITERIA_GROUPS.map((grp) => {
+                  const groupCriteria = getCriteriaByGroup(grp);
+                  const count = groupCriteria.reduce((sum, item) => sum + (selectedViolations[item.id] || 0), 0);
+                  return (
+                    <option key={grp} value={grp}>
+                      {grp} {count > 0 ? `(${count} tiêu chí đã ghi)` : ''}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            {/* Scrollable Tab Pills with ◀ ▶ buttons */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', position: 'relative' }}>
               <button
                 type="button"
@@ -583,18 +622,25 @@ export default function Evaluation({ students = [], onRefresh }) {
                   const isActive = activeGroup === grp;
                   const groupCriteria = getCriteriaByGroup(grp);
                   const activeCountInGroup = groupCriteria.reduce((sum, item) => sum + (selectedViolations[item.id] || 0), 0);
+                  const isSevereGroup = grp.includes('8.') || grp.toLowerCase().includes('nghiêm trọng');
 
                   return (
                     <button
                       key={grp}
+                      data-group={grp}
                       type="button"
-                      onClick={() => setActiveGroup(grp)}
+                      onClick={(e) => {
+                        setActiveGroup(grp);
+                        e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                      }}
                       style={{
-                        padding: '0.55rem 0.95rem', borderRadius: '0.65rem', border: 'none', cursor: 'pointer',
+                        padding: '0.55rem 0.95rem', borderRadius: '0.65rem',
+                        border: isSevereGroup ? (isActive ? '2px solid #b91c1c' : '1.5px dashed #ef4444') : 'none',
+                        cursor: 'pointer',
                         fontWeight: 700, fontSize: '0.82rem', whiteSpace: 'nowrap', transition: 'all 0.15s ease',
                         flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                        background: isActive ? '#0369a1' : 'white',
-                        color: isActive ? 'white' : '#334155',
+                        background: isActive ? (isSevereGroup ? '#b91c1c' : '#0369a1') : (isSevereGroup ? '#fff1f2' : 'white'),
+                        color: isActive ? 'white' : (isSevereGroup ? '#991b1b' : '#334155'),
                         boxShadow: isActive ? '0 2px 8px rgba(3,105,161,0.35)' : '0 1px 3px rgba(0,0,0,0.06)',
                       }}
                     >
@@ -625,17 +671,17 @@ export default function Evaluation({ students = [], onRefresh }) {
                   cursor: 'pointer', flexShrink: 0, fontSize: '0.9rem', fontWeight: 800, color: '#0369a1',
                   boxShadow: '0 2px 5px rgba(0,0,0,0.06)'
                 }}
-                title="Cuộn sang phải (Nhóm 5, 6, 7: Tác phong, Vệ sinh, KTX)"
+                title="Cuộn sang phải (Nhóm 5, 6, 7, 8: Tác phong, Vệ sinh, KTX, Vi phạm nghiêm trọng)"
               >
                 ▶
               </button>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.35rem', padding: '0 0.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.2rem', padding: '0 0.25rem', flexWrap: 'wrap', gap: '0.35rem' }}>
               <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
-                💡 Có <strong>7 nhóm tiêu chí</strong> — Bấm nút <strong>◀ ▶</strong> hoặc kéo thanh cuộn để chuyển sang <strong>Mục 5, 6, 7</strong>
+                💡 Có <strong>8 nhóm tiêu chí</strong> — Chọn nhanh ở menu thả xuống hoặc bấm <strong>◀ ▶</strong> để duyệt từ <strong>Mục 1 đến Mục 8</strong>
               </span>
-              <span style={{ fontSize: '0.72rem', color: '#0284c7', fontWeight: 700 }}>
+              <span style={{ fontSize: '0.72rem', color: activeGroup.includes('8.') ? '#dc2626' : '#0284c7', fontWeight: 700 }}>
                 Đang xem: {activeGroup}
               </span>
             </div>
@@ -764,6 +810,58 @@ export default function Evaluation({ students = [], onRefresh }) {
               )}
             </div>
           </div>
+
+          {/* Sticky Floating Bar for Student Self-Evaluation on Mobile & Desktop */}
+          {(!isTeacher && !isGroupLeader && !isMonitor) && (
+            <div className="eval-student-sticky-bar" style={{
+              position: 'sticky',
+              bottom: 0,
+              zIndex: 30,
+              background: 'rgba(255, 255, 255, 0.96)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              borderTop: '2px solid #e2e8f0',
+              padding: '0.75rem 1.25rem',
+              margin: '0.75rem -1.75rem -1.75rem -1.75rem',
+              borderRadius: '0 0 1rem 1rem',
+              boxShadow: '0 -4px 16px rgba(0,0,0,0.06)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '0.75rem'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>{ranking.emoji}</span>
+                <div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 900, color: ranking.color, lineHeight: 1.2 }}>
+                    {weekScore} điểm
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                    Xếp loại: <strong style={{ color: ranking.color }}>{ranking.label}</strong>
+                    {currentRecord.status === 'approved' ? ' (Đã chốt điểm ✅)' : currentRecord.status === 'reviewed' ? ' (Tổ đã duyệt ⏳)' : currentRecord.status === 'submitted' ? ' (Đã nộp 📩)' : ''}
+                  </div>
+                </div>
+              </div>
+
+              {currentRecord.status !== 'approved' && (
+                <button
+                  className="btn-primary"
+                  onClick={handleStudentSubmit}
+                  disabled={saving}
+                  style={{
+                    padding: '0.65rem 1.25rem',
+                    fontSize: '0.85rem',
+                    fontWeight: 800,
+                    borderRadius: '0.65rem',
+                    boxShadow: '0 3px 10px rgba(3, 105, 161, 0.3)',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {saving ? '⏳ Đang nộp...' : '📩 Nộp Phiếu Tự Đánh Giá'}
+                </button>
+              )}
+            </div>
+          )}
 
         </div>
 

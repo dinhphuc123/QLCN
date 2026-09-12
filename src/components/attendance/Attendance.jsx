@@ -387,6 +387,37 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
   // Current student's own status for Check-in card
   const myCheckInObj = user?.id ? getStudentStatus(user.id) : null;
 
+  // Trạng thái từng buổi của học sinh trong ngày được chọn
+  const getMySessionStatus = (sessId) => {
+    const sessData = (dateRecord.sessions && dateRecord.sessions[sessId]) 
+      ? dateRecord.sessions[sessId] 
+      : (sessId === 'morning' && !dateRecord.sessions ? dateRecord : {});
+    const raw = sessData[user?.id];
+    if (typeof raw === 'object' && raw !== null) {
+      return { status: raw.status || 'present', checkedInAt: raw.checkedInAt || null, confirmedBy: raw.confirmedBy || null };
+    }
+    return { status: raw || 'not_yet', checkedInAt: null, confirmedBy: null };
+  };
+
+  // Thống kê chuyên cần cá nhân trong tháng của học sinh
+  const myMonthlyStats = React.useMemo(() => {
+    let present = 0, permit = 0, absent = 0, late = 0;
+    Object.values(activeAtt || {}).forEach(d => {
+      const sObj = d.sessions || {};
+      Object.values(sObj).forEach(sRec => {
+        if (typeof sRec === 'object' && sRec && user?.id && sRec[user.id]) {
+          const val = sRec[user.id];
+          const st = typeof val === 'object' ? val.status : val;
+          if (st === 'present') present++;
+          else if (st === 'permit') permit++;
+          else if (st === 'absent') absent++;
+          else if (st === 'late') late++;
+        }
+      });
+    });
+    return { present, permit, absent, late };
+  }, [activeAtt, user?.id]);
+
   const StatusBtn = ({ active, color, label, onClick, disabled }) => {
     const [pressed, setPressed] = useState(false);
 
@@ -643,8 +674,8 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
             </div>
           )}
 
-          {/* Section 2: Main Panel (Only visible to Officers: GVCN, Lớp trưởng, Tổ trưởng, Trưởng phòng KTX) */}
-          {(isTeacher || isMonitor || isGroupLeader || isDormLeader) && (
+          {/* Section 2: Render based on Role */}
+          {(isTeacher || isMonitor || isGroupLeader || isDormLeader) ? (
             <div className="glass-panel" style={{ padding: '2rem' }}>
             
             {/* Header Controls */}
@@ -722,20 +753,24 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
                 const stObj = getStudentStatus(student.id);
                 const status = stObj.status;
                 const checkedInAt = stObj.checkedInAt;
+
+                const isOfficerTarget = 
+                  (isGroupLeader && student.group === (user?.groupLeaderOf || user?.group)) ||
+                  (isDormLeader && student.dormRoom === (user?.dormLeaderOf || user?.dormRoom)) ||
+                  isMonitor;
                 
-                // Enable attendance editing for Officers (Lớp trưởng, Tổ trưởng, Trưởng phòng KTX) when not locked
-                const canOfficerEdit = !isLocked && (isMonitor || isGroupLeader || isDormLeader);
+                const canOfficerEdit = isOfficerTarget && !isLocked;
 
                 return (
-                  <div key={student.id} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '0.75rem 1rem',
-                    background: status === 'absent' ? '#fff5f5' : status === 'permit' ? '#eff6ff' : status === 'late' ? '#fffbeb' : 'white',
-                    borderRadius: '0.75rem',
-                    border: `1px solid ${status === 'absent' ? '#fca5a5' : status === 'permit' ? '#93c5fd' : status === 'late' ? '#fde68a' : '#e5e7eb'}`,
+                  <div key={student.id} className="txn-card" style={{
+                    display: 'flex', flexDirection: 'column', gap: '0.6rem',
+                    padding: '0.85rem 1rem', borderRadius: '0.75rem',
+                    background: status === 'absent' ? '#fef2f2' : status === 'permit' ? '#eff6ff' : status === 'late' ? '#fffbeb' : '#f0fdf4',
+                    border: `1.5px solid ${status === 'absent' ? '#fecaca' : status === 'permit' ? '#bfdbfe' : status === 'late' ? '#fde68a' : '#bbf7d0'}`,
+                    transition: 'all 0.15s ease'
                   }}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                         <strong style={{ fontSize: '0.88rem', color: '#111827' }}>
                           {String(student.id).padStart(2, '0')}. {student.name}
                         </strong>
@@ -776,6 +811,141 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
               })}
             </div>
 
+          </div>
+        ) : (
+          /* STUDENT PERSONAL ATTENDANCE DASHBOARD */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {/* Card 1: Today's 5 Sessions Detailed Status */}
+            <div className="glass-panel" style={{ padding: '1.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-primary-dark)' }}>
+                    📅 Chi Tiết Điểm Danh 5 Buổi Hôm Nay
+                  </h3>
+                  <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '0.15rem' }}>
+                    Ngày: {selectedDate} • Học sinh: <strong>{user?.name}</strong> ({user?.group || 'Tổ 1'})
+                  </div>
+                </div>
+                <input
+                  type="date"
+                  className="form-input"
+                  style={{ padding: '0.35rem 0.75rem', fontSize: '0.82rem' }}
+                  value={selectedDate}
+                  onChange={e => setSelectedDate(e.target.value)}
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {sessions.map(s => {
+                  const stObj = getMySessionStatus(s.id);
+                  const isCurrent = session === s.id;
+                  const st = stObj.status;
+                  const stBadge = st === 'present'
+                    ? { label: 'Có mặt', bg: '#dcfce7', text: '#166534', border: '#86efac', icon: '✅' }
+                    : st === 'late'
+                    ? { label: 'Đi trễ', bg: '#fef3c7', text: '#b45309', border: '#fde68a', icon: '⏰' }
+                    : st === 'permit'
+                    ? { label: 'Có phép', bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe', icon: '✉️' }
+                    : st === 'absent'
+                    ? { label: 'Vắng không phép', bg: '#fee2e2', text: '#dc2626', border: '#fca5a5', icon: '❌' }
+                    : { label: 'Chưa check-in', bg: '#f1f5f9', text: '#64748b', border: '#e2e8f0', icon: '⏳' };
+
+                  return (
+                    <div
+                      key={s.id}
+                      onClick={() => setSession(s.id)}
+                      style={{
+                        padding: '0.95rem 1.15rem',
+                        borderRadius: '0.85rem',
+                        background: isCurrent ? '#f0f9ff' : 'white',
+                        border: `1.5px solid ${isCurrent ? '#0284c7' : stBadge.border}`,
+                        boxShadow: isCurrent ? '0 4px 12px rgba(2, 132, 199, 0.15)' : '0 1px 3px rgba(0,0,0,0.03)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: '0.5rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span style={{ fontWeight: 800, fontSize: '0.92rem', color: isCurrent ? '#0369a1' : '#1e293b' }}>
+                            {s.label}
+                          </span>
+                          {isCurrent && (
+                            <span style={{ fontSize: '0.65rem', background: '#0284c7', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '9999px', fontWeight: 800 }}>
+                              Đang chọn
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '0.15rem' }}>
+                          ⏰ {s.time}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                        <span style={{
+                          fontSize: '0.78rem', fontWeight: 800,
+                          background: stBadge.bg, color: stBadge.text,
+                          padding: '0.25rem 0.7rem', borderRadius: '9999px',
+                          border: `1px solid ${stBadge.border}`,
+                          display: 'inline-flex', alignItems: 'center', gap: '0.25rem'
+                        }}>
+                          <span>{stBadge.icon}</span>
+                          <span>{stBadge.label}</span>
+                        </span>
+
+                        {stObj.checkedInAt && (
+                          <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700 }}>
+                            ({stObj.checkedInAt})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Card 2: Personal Monthly Attendance Stats */}
+            <div className="glass-panel" style={{ padding: '1.5rem' }}>
+              <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.05rem', fontWeight: 800, color: 'var(--color-primary-dark)' }}>
+                📊 Thống Kê Chuyên Cần Tháng Này Của Bạn
+              </h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem' }}>
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '0.75rem', padding: '0.75rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#16a34a' }}>{myMonthlyStats.present}</div>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#166534', marginTop: '0.15rem' }}>Có mặt</div>
+                </div>
+                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '0.75rem', padding: '0.75rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#2563eb' }}>{myMonthlyStats.permit}</div>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1e40af', marginTop: '0.15rem' }}>Có phép</div>
+                </div>
+                <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: '0.75rem', padding: '0.75rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#d97706' }}>{myMonthlyStats.late}</div>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b45309', marginTop: '0.15rem' }}>Đi trễ</div>
+                </div>
+                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '0.75rem', padding: '0.75rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#dc2626' }}>{myMonthlyStats.absent}</div>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#991b1b', marginTop: '0.15rem' }}>Vắng KP</div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                  💡 Nếu cần xin phép vắng học hoặc về quê cuối tuần, vui lòng gửi đơn trực tuyến tới Cô GVCN.
+                </div>
+                <button
+                  onClick={() => setShowHomeModal(true)}
+                  className="btn-primary"
+                  style={{ padding: '0.55rem 1.25rem', fontSize: '0.82rem', background: '#0284c7' }}
+                >
+                  ✉️ Gửi Đơn Xin Phép Về Nhà / Vắng
+                </button>
+              </div>
+            </div>
           </div>
         )}
         </div>

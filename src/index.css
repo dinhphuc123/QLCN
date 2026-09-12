@@ -299,6 +299,19 @@ h1, h2, h3, .font-serif { font-family: var(--font-serif); color: var(--color-pri
   background: #0369a1;
 }
 
+/* ── Thi Đua Student Floating Sticky Bar on Mobile ── */
+@media (max-width: 768px) {
+  .eval-student-sticky-bar {
+    position: sticky !important;
+    bottom: calc(56px + env(safe-area-inset-bottom, 0px)) !important;
+    z-index: 100 !important;
+    margin: 0.5rem -1rem -1rem -1rem !important;
+    padding: 0.65rem 0.85rem !important;
+    border-radius: 0 0 0.75rem 0.75rem !important;
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.1) !important;
+  }
+}
+
 /* ── CAREER GUIDANCE PORTAL RESPONSIVE GRID ──────────────────────────── */
 .career-main-grid {
   display: grid;
