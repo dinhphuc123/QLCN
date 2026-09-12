@@ -314,6 +314,21 @@ h1, h2, h3, .font-serif { font-family: var(--font-serif); color: var(--color-pri
   .header-lang-btn { display: none !important; }
   .header-pin-btn { display: none !important; }
   .header-home-btn { flex-shrink: 0 !important; }
+  .student-desktop-top-nav { display: none !important; }
+  .student-header-brand { display: none !important; }
+}
+
+/* ── Student Desktop Top Navigation ──────────────────────────────────────── */
+.student-desktop-top-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+@media (min-width: 769px) {
+  .student-header-title {
+    display: none !important;
+  }
 }
 
 /* ── Custom Scrollbar for Criteria Category Tabs (Thi Đua) ── */

@@ -137,10 +137,12 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
 
   return (
     <>
-      {/* Desktop sidebar */}
-      <div className="sidebar-desktop">
-        <SidebarContent />
-      </div>
+      {/* Desktop sidebar — Only for Teacher, Monitor, and Group Leader; hidden for students to give 100% width */}
+      {!isPlainStudent && (
+        <div className="sidebar-desktop">
+          <SidebarContent />
+        </div>
+      )}
 
       {/* Mobile drawer overlay (opened from hamburger in Header) */}
       {mobileOpen && (

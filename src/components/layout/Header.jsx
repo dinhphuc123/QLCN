@@ -286,12 +286,21 @@ function ChangePinModal({ onClose }) {
   );
 }
 
+const STUDENT_TOP_NAV = [
+  { id: 'dashboard',  icon: '🏠', label: 'Trang chủ' },
+  { id: 'attendance', icon: '📝', label: 'Điểm danh' },
+  { id: 'evaluation', icon: '📈', label: 'Thi đua' },
+  { id: 'explore',    icon: '✨', label: 'Khám phá' },
+];
+
 export default function Header({ activeTab, setActiveTab, onMenuClick, onLoginClick }) {
   const { user, isTeacher, logout } = useAuth();
   const { settings } = useClassSettings();
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [showTeacherPassModal, setShowTeacherPassModal] = useState(false);
+
+  const isPlainStudent = !isTeacher && (!user || user.role === 'student' || user.role === 'member');
 
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('qlcn_theme') === 'dark');
 
@@ -317,9 +326,8 @@ export default function Header({ activeTab, setActiveTab, onMenuClick, onLoginCl
       gap: '0.75rem',
       minHeight: '56px',
     }}>
-      {/* Left: current tab title & Home button for students */}
-      {/* Left: current tab title & Home button for students / teacher */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0, flex: 1 }}>
+      {/* Left: Brand / Title / Home button */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 0, flexShrink: 0 }}>
         {activeTab !== 'dashboard' && setActiveTab && (
           <button
             onClick={() => setActiveTab('dashboard')}
@@ -338,9 +346,25 @@ export default function Header({ activeTab, setActiveTab, onMenuClick, onLoginCl
             <span className="header-home-label">Trang chủ</span>
           </button>
         )}
-        <h2 style={{
+
+        {/* Brand logo for desktop students */}
+        {isPlainStudent && (
+          <div
+            onClick={() => setActiveTab && setActiveTab('dashboard')}
+            className="student-header-brand"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', cursor: 'pointer' }}
+          >
+            <span style={{ fontSize: '1.25rem' }}>🏫</span>
+            <span style={{ fontWeight: 800, fontSize: '0.92rem', color: 'var(--color-primary-dark)', whiteSpace: 'nowrap' }}>
+              Sổ Chủ Nhiệm Số
+            </span>
+          </div>
+        )}
+
+        {/* Tab Title */}
+        <h2 className={isPlainStudent ? 'student-header-title' : ''} style={{
           fontFamily: 'var(--font-serif)',
-          fontSize: 'clamp(0.92rem, 2.5vw, 1.2rem)',
+          fontSize: 'clamp(0.92rem, 2.5vw, 1.15rem)',
           color: 'var(--color-primary-dark)',
           margin: 0,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -352,6 +376,41 @@ export default function Header({ activeTab, setActiveTab, onMenuClick, onLoginCl
           Lớp {settings.className} • {settings.currentWeek}
         </span>
       </div>
+
+      {/* Center: 4 Top Navigation Tabs for Students on Desktop */}
+      {isPlainStudent && (
+        <nav className="student-desktop-top-nav" aria-label="Thanh điều hướng chính học sinh">
+          {STUDENT_TOP_NAV.map(({ id, icon, label }) => {
+            const isActive = activeTab === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setActiveTab && setActiveTab(id)}
+                className={`student-top-nav-btn ${isActive ? 'active' : ''}`}
+                style={{
+                  padding: '0.4rem 0.95rem',
+                  borderRadius: '9999px',
+                  border: isActive ? '1px solid var(--color-primary-dark)' : '1px solid #e2e8f0',
+                  cursor: 'pointer',
+                  fontWeight: 800,
+                  fontSize: '0.82rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  background: isActive ? 'var(--color-primary-dark)' : 'white',
+                  color: isActive ? 'white' : '#475569',
+                  boxShadow: isActive ? '0 2px 8px rgba(27,77,83,0.25)' : '0 1px 2px rgba(0,0,0,0.04)',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span>{icon}</span>
+                <span>{label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      )}
 
       {/* Right: controls */}
       <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexShrink: 0 }}>
