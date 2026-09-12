@@ -3,18 +3,18 @@ import { useAuth } from '../../context/AuthContext';
 import { useClassSettings } from '../../context/ClassSettingsContext';
 
 const NAV_ITEMS = [
-  { id: 'dashboard',     icon: '📊', label: 'Trang chủ',       roles: ['teacher', 'group_leader', 'monitor', 'student'] },
-  { id: 'students',      icon: '👥', label: 'Hồ sơ lớp',       roles: ['teacher', 'group_leader', 'monitor', 'student'] },
-  { id: 'attendance',    icon: '📝', label: 'Điểm danh',        roles: ['teacher', 'group_leader', 'monitor', 'student'] },
-  { id: 'requests',      icon: '✉️',  label: 'Đơn nghỉ',        roles: ['teacher', 'group_leader', 'monitor', 'student'] },
-  { id: 'notifications', icon: '📢', label: 'Thông báo',        roles: ['teacher', 'group_leader', 'monitor', 'student'] },
-  { id: 'activities',    icon: '📸', label: 'Hoạt động',        roles: ['teacher', 'group_leader', 'monitor', 'student'] },
+  { id: 'dashboard',     icon: '📊', label: 'Trang chủ',       roles: ['teacher', 'group_leader', 'monitor', 'room_leader', 'student', 'member'] },
+  { id: 'students',      icon: '👥', label: 'Hồ sơ lớp',       roles: ['teacher', 'group_leader', 'monitor', 'room_leader', 'student', 'member'] },
+  { id: 'attendance',    icon: '📝', label: 'Điểm danh',        roles: ['teacher', 'group_leader', 'monitor', 'room_leader', 'student', 'member'] },
+  { id: 'requests',      icon: '✉️',  label: 'Đơn nghỉ',        roles: ['teacher', 'group_leader', 'monitor', 'room_leader', 'student', 'member'] },
+  { id: 'notifications', icon: '📢', label: 'Thông báo',        roles: ['teacher', 'group_leader', 'monitor', 'room_leader', 'student', 'member'] },
+  { id: 'activities',    icon: '📸', label: 'Hoạt động',        roles: ['teacher', 'group_leader', 'monitor', 'room_leader', 'student', 'member'] },
   { id: 'finance',       icon: '💰', label: 'Quỹ lớp',          roles: ['teacher', 'group_leader', 'monitor'] },
-  { id: 'evaluation',    icon: '📈', label: 'Thi đua',          roles: ['teacher', 'group_leader', 'monitor', 'student'] },
-  { id: 'exam',          icon: '🧭', label: 'Hướng nghiệp',     roles: ['teacher', 'group_leader', 'monitor', 'student'] },
+  { id: 'evaluation',    icon: '📈', label: 'Thi đua',          roles: ['teacher', 'group_leader', 'monitor', 'room_leader', 'student', 'member'] },
+  { id: 'exam',          icon: '🧭', label: 'Hướng nghiệp',     roles: ['teacher', 'group_leader', 'monitor', 'room_leader', 'student', 'member'] },
   { id: 'ai_assistant',  icon: '🤖', label: 'Trợ lý AI',        roles: ['teacher'] },
-  { id: 'parent_portal', icon: '📱', label: 'Sổ Liên Lạc',   roles: ['teacher', 'group_leader', 'monitor', 'student'] },
-  { id: 'confessions',   icon: '🤫', label: 'Tâm sự',           roles: ['teacher', 'student'] },
+  { id: 'parent_portal', icon: '📱', label: 'Sổ Liên Lạc',   roles: ['teacher', 'group_leader', 'monitor', 'room_leader', 'student', 'member'] },
+  { id: 'confessions',   icon: '🤫', label: 'Tâm sự',           roles: ['teacher', 'room_leader', 'student', 'member'] },
   { id: 'reports',       icon: '📋', label: 'Biểu mẫu',         roles: ['teacher'] },
   { id: 'cms_admin',     icon: '⚙️', label: 'Quản trị',         roles: ['teacher'] },
 ];
@@ -27,12 +27,14 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
   const { settings } = useClassSettings();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Normalize student role ('member' from initialStudents is equivalent to 'student')
-  const isPlainStudent = !isTeacher && (!user || user.role === 'student' || user.role === 'member');
+  // Normalize student role ('member' and 'room_leader' are students)
+  const isPlainStudent = !isTeacher && (!user || user.role === 'student' || user.role === 'member' || user.role === 'room_leader');
+  // On mobile, ALL students (including group_leader, monitor, room_leader) use the clean 4-tab mobile nav
+  const isStudentUser = !isTeacher;
   const userRole = user?.role === 'member' ? 'student' : (user?.role || 'student');
 
   const visibleItems = NAV_ITEMS.filter(item =>
-    !user || item.roles.includes(userRole)
+    !user || item.roles.includes(userRole) || item.roles.includes(user?.role)
   );
 
   const STUDENT_NAV = [
@@ -42,15 +44,17 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
     { id: 'explore',    icon: '✨', label: 'Khám phá' },
   ];
 
-  // For students, use clean 4-tab unified nav; for officers/teachers use visibleItems
+  // For desktop sidebar: plain students use top nav; officers/teachers use visibleItems
   const sidebarItems = isPlainStudent ? STUDENT_NAV : visibleItems;
-  const bottomItems = isPlainStudent ? STUDENT_NAV : [...visibleItems];
+  // For mobile bottom nav: ALL students use unified 4-tab nav; teachers use visibleItems
+  const bottomItems = isStudentUser ? STUDENT_NAV : [...visibleItems];
 
   const getRoleLabel = () => {
     if (!user) return null;
     if (isTeacher) return { text: `GVCN ${settings.teacherName}`, icon: '👩‍🏫', bg: 'linear-gradient(135deg,#1B4D53,#2d6a70)' };
     if (user.role === 'group_leader') return { text: `Tổ trưởng ${user.groupLeaderOf || user.group}`, icon: '⭐', bg: 'linear-gradient(135deg,#0284c7,#0369a1)' };
     if (user.role === 'monitor') return { text: 'Lớp trưởng', icon: '👑', bg: 'linear-gradient(135deg,#d97706,#b45309)' };
+    if (user.role === 'room_leader') return { text: `Trưởng phòng ${user.dormRoom || ''}`, icon: '🏠', bg: 'linear-gradient(135deg,#059669,#047857)' };
     return { text: user.name, icon: '👨‍🎓', bg: 'linear-gradient(135deg,#4b5563,#374151)' };
   };
   const roleInfo = getRoleLabel();
@@ -155,7 +159,7 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
       )}
 
       {/* ─── Mobile Bottom Nav Bar ─────────────────────────────────────── */}
-      <nav className={`mobile-bottom-nav ${isPlainStudent ? 'student-nav' : ''}`} role="navigation" aria-label="Điều hướng chính">
+      <nav className={`mobile-bottom-nav ${isStudentUser ? 'student-nav' : ''}`} role="navigation" aria-label="Điều hướng chính">
         <div className="mobile-bottom-scroll">
           {/* Nav tabs */}
           {bottomItems.map(({ id, icon, label }) => {
@@ -177,8 +181,8 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
             );
           })}
 
-          {/* Separator + Logout / Login button at the end (cho GV & cán bộ lớp) */}
-          {!isPlainStudent && (
+          {/* Separator + Logout / Login button at the end (chỉ hiển thị cho GVCN trên điện thoại, học sinh dùng tab Khám phá & Avatar) */}
+          {!isStudentUser && (
             <>
               <div className="mbn-separator" aria-hidden="true" />
               {user ? (

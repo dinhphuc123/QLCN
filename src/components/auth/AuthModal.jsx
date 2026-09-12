@@ -72,7 +72,15 @@ export default function AuthModal({ onClose }) {
                 ĐANG ĐĂNG NHẬP VỚI VAI TRÒ:
               </span>
               <strong style={{ fontSize: '0.9rem', color: '#14532d' }}>
-                {user.role === 'teacher' ? '👩‍🏫 GVCN Đỗ Kim Tuyền' : user.role === 'group_leader' ? `⭐ Tổ Trưởng ${user.group} (${user.name})` : `👨‍🎓 Học Sinh ${user.name}`}
+                {user.role === 'teacher'
+                  ? '👩‍🏫 GVCN Đỗ Kim Tuyền'
+                  : user.role === 'monitor'
+                  ? `👑 Lớp Trưởng (${user.name})`
+                  : user.role === 'group_leader'
+                  ? `⭐ Tổ Trưởng ${user.group} (${user.name})`
+                  : user.role === 'room_leader'
+                  ? `🏠 Trưởng Phòng KTX (${user.name})`
+                  : `👨‍🎓 Học Sinh ${user.name}`}
               </strong>
             </div>
             <button

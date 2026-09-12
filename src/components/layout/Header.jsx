@@ -300,7 +300,7 @@ export default function Header({ activeTab, setActiveTab, onMenuClick, onLoginCl
   const [showPinModal, setShowPinModal] = useState(false);
   const [showTeacherPassModal, setShowTeacherPassModal] = useState(false);
 
-  const isPlainStudent = !isTeacher && (!user || user.role === 'student' || user.role === 'member');
+  const isPlainStudent = !isTeacher && (!user || user.role === 'student' || user.role === 'member' || user.role === 'room_leader');
 
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('qlcn_theme') === 'dark');
 
@@ -536,6 +536,8 @@ export default function Header({ activeTab, setActiveTab, onMenuClick, onLoginCl
                 ? `⭐ Tổ Trưởng ${user.groupLeaderOf || user.group}`
                 : user?.role === 'monitor'
                 ? `👑 Lớp Trưởng (${user.name})`
+                : user?.role === 'room_leader'
+                ? `🏠 Trưởng Phòng (${user.name})`
                 : `👨‍🎓 ${user.name}`}
             </span>
 
