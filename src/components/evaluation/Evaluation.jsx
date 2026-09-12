@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import toast from 'react-hot-toast';
 import { api } from '../../lib/api';
@@ -10,11 +10,19 @@ const COLORS = ['#16a34a', '#2563eb', '#d97706', '#dc2626'];
 
 export default function Evaluation({ students = [], onRefresh }) {
   const { user, isTeacher, isGroupLeader, isMonitor, canApproveCompetition } = useAuth();
+  const tabsRef = useRef(null);
   
   const [selectedWeek, setSelectedWeek] = useState('tuan_01');
   const [selectedStudentId, setSelectedStudentId] = useState(
     user?.id ? String(user.id) : (students[0] ? String(students[0].id) : '1')
   );
+
+  // Tự động chọn đúng học sinh cá nhân khi là tài khoản học sinh
+  useEffect(() => {
+    if (user?.id && (!isTeacher && !isGroupLeader && !isMonitor)) {
+      setSelectedStudentId(String(user.id));
+    }
+  }, [user, isTeacher, isGroupLeader, isMonitor]);
   
   const [selectedViolations, setSelectedViolations] = useState({});
   const [competitionData, setCompetitionData] = useState({}); // studentId -> record
@@ -538,27 +546,99 @@ export default function Evaluation({ students = [], onRefresh }) {
             </div>
           </div>
 
-          {/* Group Category Tabs (Mobile Touch Scroll Pills) */}
-          <div className="mobile-scroll-x" style={{
-            display: 'flex', gap: '0.45rem', overflowX: 'auto', background: '#f3f4f6',
-            padding: '0.35rem', borderRadius: '0.85rem', scrollbarWidth: 'none', msOverflowStyle: 'none'
-          }}>
-            {CRITERIA_GROUPS.map(grp => (
+          {/* Group Category Tabs with Scroll Controls & Visible Scrollbar for All 7 Groups */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', position: 'relative' }}>
               <button
-                key={grp}
-                onClick={() => setActiveGroup(grp)}
+                type="button"
+                onClick={() => {
+                  if (tabsRef.current) tabsRef.current.scrollBy({ left: -240, behavior: 'smooth' });
+                }}
                 style={{
-                  padding: '0.55rem 0.9rem', borderRadius: '0.65rem', border: 'none', cursor: 'pointer',
-                  fontWeight: 700, fontSize: '0.8rem', whiteSpace: 'nowrap', transition: 'all 0.15s ease',
-                  flexShrink: 0,
-                  background: activeGroup === grp ? 'white' : 'transparent',
-                  color: activeGroup === grp ? 'var(--color-primary-dark)' : '#4b5563',
-                  boxShadow: activeGroup === grp ? '0 2px 8px rgba(0,0,0,0.12)' : 'none',
+                  background: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '0.65rem',
+                  width: '36px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', flexShrink: 0, fontSize: '0.9rem', fontWeight: 800, color: '#0369a1',
+                  boxShadow: '0 2px 5px rgba(0,0,0,0.06)'
+                }}
+                title="Cuộn sang trái (Nhóm tiêu chí trước)"
+              >
+                ◀
+              </button>
+
+              <div
+                ref={tabsRef}
+                className="category-tabs-scroll"
+                onWheel={(e) => {
+                  if (e.deltaY !== 0 && tabsRef.current) {
+                    tabsRef.current.scrollLeft += e.deltaY;
+                  }
+                }}
+                style={{
+                  display: 'flex', gap: '0.45rem', overflowX: 'auto', background: '#f1f5f9',
+                  padding: '0.45rem 0.5rem', borderRadius: '0.85rem',
+                  flex: 1, minWidth: 0, scrollBehavior: 'smooth'
                 }}
               >
-                {grp}
+                {CRITERIA_GROUPS.map((grp) => {
+                  const isActive = activeGroup === grp;
+                  const groupCriteria = getCriteriaByGroup(grp);
+                  const activeCountInGroup = groupCriteria.reduce((sum, item) => sum + (selectedViolations[item.id] || 0), 0);
+
+                  return (
+                    <button
+                      key={grp}
+                      type="button"
+                      onClick={() => setActiveGroup(grp)}
+                      style={{
+                        padding: '0.55rem 0.95rem', borderRadius: '0.65rem', border: 'none', cursor: 'pointer',
+                        fontWeight: 700, fontSize: '0.82rem', whiteSpace: 'nowrap', transition: 'all 0.15s ease',
+                        flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                        background: isActive ? '#0369a1' : 'white',
+                        color: isActive ? 'white' : '#334155',
+                        boxShadow: isActive ? '0 2px 8px rgba(3,105,161,0.35)' : '0 1px 3px rgba(0,0,0,0.06)',
+                      }}
+                    >
+                      <span>{grp}</span>
+                      {activeCountInGroup > 0 && (
+                        <span style={{
+                          background: isActive ? '#fef08a' : '#ef4444',
+                          color: isActive ? '#854d0e' : 'white',
+                          fontSize: '0.68rem', fontWeight: 800,
+                          padding: '0.1rem 0.4rem', borderRadius: '9999px'
+                        }}>
+                          {activeCountInGroup}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (tabsRef.current) tabsRef.current.scrollBy({ left: 240, behavior: 'smooth' });
+                }}
+                style={{
+                  background: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '0.65rem',
+                  width: '36px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', flexShrink: 0, fontSize: '0.9rem', fontWeight: 800, color: '#0369a1',
+                  boxShadow: '0 2px 5px rgba(0,0,0,0.06)'
+                }}
+                title="Cuộn sang phải (Nhóm 5, 6, 7: Tác phong, Vệ sinh, KTX)"
+              >
+                ▶
               </button>
-            ))}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.35rem', padding: '0 0.25rem' }}>
+              <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                💡 Có <strong>7 nhóm tiêu chí</strong> — Bấm nút <strong>◀ ▶</strong> hoặc kéo thanh cuộn để chuyển sang <strong>Mục 5, 6, 7</strong>
+              </span>
+              <span style={{ fontSize: '0.72rem', color: '#0284c7', fontWeight: 700 }}>
+                Đang xem: {activeGroup}
+              </span>
+            </div>
           </div>
 
           {/* Criteria List (Touch-optimized 44px targets) */}

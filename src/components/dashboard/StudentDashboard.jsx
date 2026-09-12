@@ -248,15 +248,35 @@ export default function StudentDashboard({ timetableImage = '', timetableData = 
               {user?.name || 'Học sinh 12.7'}
             </h2>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.35rem' }}>
-              <span style={{ fontSize: '0.72rem', background: 'rgba(255,255,255,0.2)', padding: '0.18rem 0.6rem', borderRadius: '9999px', fontWeight: 700, color: '#ffffff' }}>
+              <span style={{ fontSize: '0.72rem', background: 'rgba(255,255,255,0.2)', padding: '0.2rem 0.65rem', borderRadius: '9999px', fontWeight: 700, color: '#ffffff' }}>
                 📍 {user?.group || 'Tổ 1'} • Phòng KTX {user?.dormRoom || 'A1-07'}
               </span>
-              <span style={{ fontSize: '0.72rem', background: '#e0f2fe', color: '#0369a1', padding: '0.18rem 0.6rem', borderRadius: '9999px', fontWeight: 800 }}>
-                🏆 {studentScore}/100 Điểm Tuần
-              </span>
-              <span style={{ fontSize: '0.72rem', background: isCheckedInToday ? '#dcfce7' : '#fef3c7', color: isCheckedInToday ? '#166534' : '#b45309', padding: '0.18rem 0.6rem', borderRadius: '9999px', fontWeight: 800 }}>
-                {isCheckedInToday ? '✅ Đã Check-in Hôm Nay' : '⏳ Chưa Check-in'}
-              </span>
+              <button
+                onClick={() => setActiveTab && setActiveTab('evaluation')}
+                style={{
+                  fontSize: '0.72rem', background: '#e0f2fe', color: '#0369a1',
+                  padding: '0.2rem 0.65rem', borderRadius: '9999px', fontWeight: 800,
+                  border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                  boxShadow: '0 2px 6px rgba(3,105,161,0.2)'
+                }}
+                title="Bấm để vào trang Tự Đánh Giá Thi Đua Tuần"
+              >
+                🏆 {studentScore}/100 Điểm Tuần ↗
+              </button>
+              <button
+                onClick={() => setActiveTab && setActiveTab('attendance')}
+                style={{
+                  fontSize: '0.72rem',
+                  background: isCheckedInToday ? '#dcfce7' : '#fef3c7',
+                  color: isCheckedInToday ? '#166534' : '#b45309',
+                  padding: '0.2rem 0.65rem', borderRadius: '9999px', fontWeight: 800,
+                  border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                }}
+                title="Bấm để vào trang Điểm Danh / Check-in"
+              >
+                {isCheckedInToday ? '✅ Đã Check-in Hôm Nay ↗' : '⏳ Chưa Check-in ↗'}
+              </button>
             </div>
           </div>
         </div>
@@ -273,6 +293,81 @@ export default function StudentDashboard({ timetableImage = '', timetableData = 
           </div>
           <div style={{ fontSize: '0.72rem', color: '#ffffff', opacity: 0.95 }}>Học sinh KTX Xuất Sắc</div>
         </div>
+      </div>
+
+      {/* Quick Action Navigation Grid for Students */}
+      <div className="quick-actions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.85rem' }}>
+        <button
+          onClick={() => setActiveTab && setActiveTab('attendance')}
+          className="glass-panel"
+          style={{
+            padding: '0.85rem 1rem', border: '1.5px solid #bae6fd', background: '#f0f9ff',
+            borderRadius: '1rem', cursor: 'pointer', textAlign: 'left',
+            display: 'flex', alignItems: 'center', gap: '0.75rem', transition: 'all 0.2s ease'
+          }}
+        >
+          <div style={{ fontSize: '1.6rem', background: '#e0f2fe', width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            📝
+          </div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#0369a1' }}>Điểm Danh</div>
+            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Check-in & chuyên cần</div>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setActiveTab && setActiveTab('evaluation')}
+          className="glass-panel"
+          style={{
+            padding: '0.85rem 1rem', border: '1.5px solid #fde68a', background: '#fffbeb',
+            borderRadius: '1rem', cursor: 'pointer', textAlign: 'left',
+            display: 'flex', alignItems: 'center', gap: '0.75rem', transition: 'all 0.2s ease'
+          }}
+        >
+          <div style={{ fontSize: '1.6rem', background: '#fef3c7', width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            📈
+          </div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#b45309' }}>Tự Đánh Giá</div>
+            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Nộp phiếu thi đua tuần</div>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setActiveTab && setActiveTab('requests')}
+          className="glass-panel"
+          style={{
+            padding: '0.85rem 1rem', border: '1.5px solid #ddd6fe', background: '#faf5ff',
+            borderRadius: '1rem', cursor: 'pointer', textAlign: 'left',
+            display: 'flex', alignItems: 'center', gap: '0.75rem', transition: 'all 0.2s ease'
+          }}
+        >
+          <div style={{ fontSize: '1.6rem', background: '#ede9fe', width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            ✉️
+          </div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#6d28d9' }}>Đơn Nghỉ Phép</div>
+            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Gửi đơn xin phép GVCN</div>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setActiveTab && setActiveTab('confessions')}
+          className="glass-panel"
+          style={{
+            padding: '0.85rem 1rem', border: '1.5px solid #bbf7d0', background: '#f0fdf4',
+            borderRadius: '1rem', cursor: 'pointer', textAlign: 'left',
+            display: 'flex', alignItems: 'center', gap: '0.75rem', transition: 'all 0.2s ease'
+          }}
+        >
+          <div style={{ fontSize: '1.6rem', background: '#dcfce7', width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            🤫
+          </div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#15803d' }}>Tâm Sự Lớp</div>
+            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Hộp thư ẩn danh chia sẻ</div>
+          </div>
+        </button>
       </div>
 
       {/* Balanced 2-Column Section: Class Announcements (Left) & Smart Timetable (Right) */}

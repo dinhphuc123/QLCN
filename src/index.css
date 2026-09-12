@@ -271,9 +271,32 @@ h1, h2, h3, .font-serif { font-family: var(--font-serif); color: var(--color-pri
     gap: 0.75rem !important;
   }
 
-  /* Header compact */
+  /* Header compact for mobile */
   .header-week-badge { display: none !important; }
-  .header-user-full { display: inline-block !important; font-size: 0.68rem !important; padding: 0.2rem 0.5rem !important; }
+  .header-user-full { display: none !important; }
+  .header-logout-btn { display: none !important; }
+  .header-btn-text { display: none !important; }
+  .header-home-btn { flex-shrink: 0 !important; }
+}
+
+/* ── Custom Scrollbar for Criteria Category Tabs (Thi Đua) ── */
+.category-tabs-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #0284c7 #e2e8f0;
+}
+.category-tabs-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.category-tabs-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+.category-tabs-scroll::-webkit-scrollbar-thumb {
+  background: #0284c7;
+  border-radius: 4px;
+}
+.category-tabs-scroll::-webkit-scrollbar-thumb:hover {
+  background: #0369a1;
 }
 
 /* ── CAREER GUIDANCE PORTAL RESPONSIVE GRID ──────────────────────────── */
