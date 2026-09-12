@@ -398,25 +398,26 @@ export default function Evaluation({ students = [], onRefresh }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       
       {/* Top Banner & Control Row (Minimal & Refined Design) */}
-      <div className="glass-panel" style={{ padding: '1.25rem 1.75rem', borderRadius: '1.25rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
-              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'var(--color-primary-dark)' }}>
-                📈 Đánh Giá Thi Đua Nề Nếp & Vinh Danh
+      <div className="glass-panel eval-top-banner" style={{ padding: '1rem 1.25rem', borderRadius: '1.25rem', width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+          <div style={{ minWidth: 0, flex: '1 1 auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: 'var(--color-primary-dark)', whiteSpace: 'nowrap' }}>
+                📈 Đánh Giá Thi Đua
               </h3>
               {getStatusBadge(currentRecord.status)}
             </div>
-            <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '0.35rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <span style={{ background: '#f1f5f9', color: '#475569', padding: '0.12rem 0.5rem', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 700 }}>
-                ⏱️ Hạn chốt:
+            <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+              <span style={{ background: '#f1f5f9', color: '#475569', padding: '0.1rem 0.45rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700 }}>
+                ⏱️ Hạn:
               </span>
-              <span>HS nộp T6 23:59 • Tổ trưởng duyệt T7 12:00 • GVCN chốt CN 20:00</span>
+              <span className="desktop-deadline-text">HS nộp T6 23:59 • Tổ trưởng duyệt T7 12:00 • GVCN chốt CN 20:00</span>
+              <span className="mobile-deadline-text">T6 23:59 (HS) • T7 (Tổ) • CN (GVCN)</span>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ background: '#f8fafc', padding: '0.2rem', borderRadius: '9999px', border: '1px solid #e2e8f0', display: 'flex', gap: '0.2rem' }}>
+          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div className="eval-viewmode-toggle" style={{ background: '#f8fafc', padding: '0.2rem', borderRadius: '9999px', border: '1px solid #e2e8f0', display: 'flex', gap: '0.2rem' }}>
               <button
                 onClick={() => setViewMode('weekly')}
                 style={{
@@ -443,7 +444,7 @@ export default function Evaluation({ students = [], onRefresh }) {
 
             <select
               className="form-input"
-              style={{ width: '110px', fontWeight: 800, padding: '0.35rem 0.6rem', fontSize: '0.78rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              style={{ width: '105px', fontWeight: 800, padding: '0.35rem 0.5rem', fontSize: '0.78rem', borderRadius: '8px', border: '1.5px solid #0284c7', background: '#f0f9ff' }}
               value={selectedWeek}
               onChange={e => setSelectedWeek(e.target.value)}
             >
@@ -457,50 +458,52 @@ export default function Evaluation({ students = [], onRefresh }) {
               <button
                 onClick={handleExportCompetitionPDF}
                 style={{
-                  padding: '0.4rem 0.9rem', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800,
+                  padding: '0.4rem 0.85rem', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800,
                   background: '#16a34a', color: 'white', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
                   boxShadow: '0 2px 6px rgba(22,163,74,0.15)'
                 }}
               >
-                📄 Xuất Báo Cáo PDF
+                📄 Xuất PDF
               </button>
             )}
           </div>
         </div>
 
         {/* Slim Weekly Summary Strip */}
-        <div style={{
+        <div className="eval-summary-strip" style={{
           display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between',
-          gap: '0.75rem', marginTop: '0.85rem', paddingTop: '0.85rem', borderTop: '1px solid #f1f5f9',
-          background: '#f8fafc', padding: '0.65rem 1rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0'
+          gap: '0.5rem', marginTop: '0.65rem', paddingTop: '0.65rem', borderTop: '1px solid #f1f5f9',
+          background: '#f8fafc', padding: '0.5rem 0.85rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0',
+          width: '100%', minWidth: 0, boxSizing: 'border-box'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
-            <span style={{ fontSize: '1.1rem' }}>🏆</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem' }}>
+            <span style={{ fontSize: '1rem' }}>🏆</span>
             <span style={{ color: '#64748b' }}>Tổ xuất sắc:</span>
             <strong style={{ color: '#854d0e' }}>{bestGroup ? `${bestGroup.name} (${bestGroup['Điểm TB']}đ)` : 'Tổ 1'}</strong>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
-            <span style={{ fontSize: '1.1rem' }}>⭐</span>
-            <span style={{ color: '#64748b' }}>Ngôi sao tuần:</span>
-            <strong style={{ color: '#166534' }}>{starStudents.length} / {students.length} Học Sinh (100đ)</strong>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem' }}>
+            <span style={{ fontSize: '1rem' }}>⭐</span>
+            <span style={{ color: '#64748b' }}>Ngôi sao:</span>
+            <strong style={{ color: '#166534' }}>{starStudents.length}/{students.length} HS (100đ)</strong>
           </div>
         </div>
       </div>
 
       {/* Main Grid: 100% width for students, 2-col for officers */}
-      <div className="eval-main-grid" style={{ display: 'grid', gridTemplateColumns: (isTeacher || isMonitor || isGroupLeader || canApproveCompetition) ? 'minmax(0, 1.8fr) minmax(0, 1.2fr)' : '1fr', gap: '1.5rem' }}>
+      <div className="eval-main-grid" style={{ display: 'grid', gridTemplateColumns: (isTeacher || isMonitor || isGroupLeader || canApproveCompetition) ? 'minmax(0, 1.8fr) minmax(0, 1.2fr)' : 'minmax(0, 1fr)', gap: '1.25rem', width: '100%', minWidth: 0 }}>
         
         {/* Main 2-Column Evaluation Panel */}
-        <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="glass-panel eval-panel-card" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
           
           {/* Top Bar inside Card: Student Info & Live Score & Actions */}
-          <div style={{
+          <div className="eval-card-header" style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            flexWrap: 'wrap', gap: '0.85rem', paddingBottom: '0.85rem', borderBottom: '1.5px solid #f1f5f9'
+            flexWrap: 'wrap', gap: '0.75rem', paddingBottom: '0.75rem', borderBottom: '1.5px solid #f1f5f9',
+            width: '100%', minWidth: 0
           }}>
             {/* Student selection or info */}
             {(isTeacher || isMonitor || isGroupLeader || canApproveCompetition) ? (
-              <div style={{ minWidth: '220px' }}>
+              <div style={{ minWidth: 0, flex: '1 1 200px' }}>
                 <label style={{ fontSize: '0.78rem', fontWeight: 700, display: 'block', color: '#64748b' }}>Chọn Học Sinh:</label>
                 <select
                   className="form-input"
@@ -520,40 +523,40 @@ export default function Evaluation({ students = [], onRefresh }) {
                 </select>
               </div>
             ) : (
-              <div>
+              <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                 <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>Phiếu Tự Đánh Giá Cá Nhân:</span>
-                <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#1B4D53' }}>
+                <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#1B4D53', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   👨‍🎓 {currentStudent?.name || user?.name} ({currentStudent?.group || user?.group || 'Tổ 1'})
                 </div>
               </div>
             )}
 
             {/* Score & Action Buttons */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <button
                 onClick={() => setHistoryStudent({ id: selectedStudentId, name: currentStudent?.name || '' })}
                 className="touch-scale"
                 style={{
                   background: '#f0f9ff', border: '1px solid #7dd3fc', color: '#0369a1',
-                  padding: '0.55rem 0.95rem', borderRadius: '9999px', fontSize: '0.8rem',
-                  fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-                  minHeight: '42px'
+                  padding: '0.5rem 0.85rem', borderRadius: '9999px', fontSize: '0.78rem',
+                  fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                  minHeight: '40px'
                 }}
               >
                 📊 Lịch sử điểm
               </button>
 
               <div style={{
-                display: 'flex', alignItems: 'center', gap: '0.6rem',
+                display: 'flex', alignItems: 'center', gap: '0.5rem',
                 background: ranking.color + '12', border: `1.5px solid ${ranking.color}`,
-                borderRadius: '1rem', padding: '0.4rem 0.85rem'
+                borderRadius: '0.85rem', padding: '0.35rem 0.75rem'
               }}>
-                <span style={{ fontSize: '1.4rem' }}>{ranking.emoji}</span>
+                <span style={{ fontSize: '1.3rem' }}>{ranking.emoji}</span>
                 <div>
-                  <div style={{ fontSize: '1.15rem', fontWeight: 900, color: ranking.color, lineHeight: 1.1 }}>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: ranking.color, lineHeight: 1.1 }}>
                     {weekScore} điểm
                   </div>
-                  <div style={{ fontSize: '0.68rem', fontWeight: 700, color: ranking.color }}>
+                  <div style={{ fontSize: '0.66rem', fontWeight: 700, color: ranking.color }}>
                     {ranking.label}
                   </div>
                 </div>
@@ -566,9 +569,9 @@ export default function Evaluation({ students = [], onRefresh }) {
                   onClick={handleStudentSubmit}
                   disabled={saving}
                   style={{
-                    padding: '0.6rem 1.35rem', fontSize: '0.88rem', fontWeight: 800,
+                    padding: '0.55rem 1.15rem', fontSize: '0.84rem', fontWeight: 800,
                     borderRadius: '9999px', boxShadow: '0 4px 12px rgba(3, 105, 161, 0.25)',
-                    whiteSpace: 'nowrap', minHeight: '44px',
+                    whiteSpace: 'nowrap', minHeight: '40px',
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center'
                   }}
                 >
@@ -579,15 +582,15 @@ export default function Evaluation({ students = [], onRefresh }) {
           </div>
 
           {/* 2-Column Split Body */}
-          <div className="eval-split-layout">
+          <div className="eval-split-layout" style={{ width: '100%', minWidth: 0 }}>
             
             {/* Left Column: 8 Groups Sidebar */}
-            <div className="eval-groups-sidebar">
-              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="eval-groups-sidebar" style={{ width: '100%', minWidth: 0, overflow: 'hidden' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>📑 8 Nhóm Tiêu Chí</span>
                 <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 600 }}>Vuốt ngang ➔</span>
               </div>
-              <div className="eval-groups-list mobile-pill-scroll">
+              <div className="eval-groups-list mobile-pill-scroll" style={{ width: '100%', minWidth: 0 }}>
                 {CRITERIA_GROUPS.map((grp) => {
                   const isActive = activeGroup === grp;
                   const groupCriteria = getCriteriaByGroup(grp);
@@ -614,10 +617,11 @@ export default function Evaluation({ students = [], onRefresh }) {
             </div>
 
             {/* Right Column: Criteria list of selected group */}
-            <div className="eval-criteria-content">
+            <div className="eval-criteria-content" style={{ width: '100%', minWidth: 0 }}>
               <div style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                marginBottom: '0.4rem', paddingBottom: '0.35rem', borderBottom: '1px solid #f1f5f9'
+                marginBottom: '0.4rem', paddingBottom: '0.35rem', borderBottom: '1px solid #f1f5f9',
+                width: '100%', minWidth: 0
               }}>
                 <div style={{ fontSize: '0.9rem', fontWeight: 800, color: activeGroup.includes('8.') ? '#b91c1c' : '#0369a1' }}>
                   {activeGroup}
@@ -628,23 +632,24 @@ export default function Evaluation({ students = [], onRefresh }) {
               </div>
 
               {/* Criteria list items */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', maxHeight: '480px', overflowY: 'auto', paddingRight: '0.25rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', maxHeight: '480px', overflowY: 'auto', paddingRight: '0.2rem', width: '100%', minWidth: 0 }}>
                 {getCriteriaByGroup(activeGroup).map(item => {
                   const count = selectedViolations[item.id] || 0;
                   return (
                     <div key={item.id} style={{
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                      padding: '0.85rem 1rem', borderRadius: '1rem',
+                      padding: '0.8rem 0.95rem', borderRadius: '1rem',
                       background: count > 0 ? (item.isBonus ? '#f0fdf4' : '#fff5f5') : 'white',
                       border: `1.5px solid ${count > 0 ? (item.isBonus ? '#86efac' : '#fca5a5') : '#f1f5f9'}`,
                       boxShadow: count > 0 ? '0 2px 8px rgba(0,0,0,0.04)' : '0 1px 3px rgba(0,0,0,0.02)',
-                      transition: 'all 0.15s ease'
+                      transition: 'all 0.15s ease',
+                      width: '100%', minWidth: 0, boxSizing: 'border-box'
                     }}>
-                      <div style={{ flex: 1, paddingRight: '0.75rem' }}>
-                        <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#111827', lineHeight: 1.38 }}>
+                      <div style={{ flex: '1 1 auto', minWidth: 0, paddingRight: '0.5rem' }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#111827', lineHeight: 1.38, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                           #{item.id}. {item.label}
                         </div>
-                        <span style={{ fontSize: '0.75rem', color: item.isBonus ? '#15803d' : '#b91c1c', fontWeight: 800, marginTop: '0.2rem', display: 'inline-block' }}>
+                        <span style={{ fontSize: '0.74rem', color: item.isBonus ? '#15803d' : '#b91c1c', fontWeight: 800, marginTop: '0.15rem', display: 'inline-block' }}>
                           {item.points > 0 ? `+${item.points}` : item.points} điểm / {item.unit}
                         </span>
                       </div>
@@ -724,8 +729,25 @@ export default function Evaluation({ students = [], onRefresh }) {
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   {/* HS Nộp */}
                   {(!user || user.role === 'student' || user.role === 'member' || String(user.id) === selectedStudentId) && currentRecord.status !== 'approved' && (
-                    <button className="btn-primary" onClick={handleStudentSubmit} disabled={saving} style={{ padding: '0.55rem 1.1rem', fontSize: '0.84rem' }}>
-                      {saving ? 'Đang nộp...' : '📩 Nộp Phiếu Tự Đánh Giá'}
+                    <button
+                      className="btn-primary touch-scale"
+                      onClick={handleStudentSubmit}
+                      disabled={saving}
+                      style={{
+                        padding: '0.75rem 1.5rem',
+                        fontSize: '0.92rem',
+                        fontWeight: 800,
+                        minHeight: '48px',
+                        width: '100%',
+                        borderRadius: '9999px',
+                        boxShadow: '0 4px 14px rgba(3,105,161,0.28)',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: 'linear-gradient(135deg, #0284c7, #0369a1)',
+                      }}
+                    >
+                      {saving ? '⏳ Đang nộp phiếu...' : '📩 Nộp Phiếu Tự Đánh Giá Tuần'}
                     </button>
                   )}
 
