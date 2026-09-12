@@ -363,6 +363,7 @@ export default function Header({ activeTab, setActiveTab, onMenuClick, onLoginCl
             localStorage.setItem('qlcn_lang', nextLang);
             window.location.reload();
           }}
+          className="header-lang-btn"
           title="Chuyển đổi Ngôn Ngữ / Switch Language"
           style={{
             padding: '0.32rem 0.55rem', borderRadius: '9999px',
@@ -378,6 +379,7 @@ export default function Header({ activeTab, setActiveTab, onMenuClick, onLoginCl
         {/* Dark Mode Toggle */}
         <button
           onClick={toggleDarkMode}
+          className="header-dark-btn"
           title={darkMode ? "Chuyển sang Chế độ Sáng" : "Chuyển sang Chế độ Ban Đêm"}
           style={{
             padding: '0.32rem 0.55rem', borderRadius: '9999px',
@@ -394,6 +396,7 @@ export default function Header({ activeTab, setActiveTab, onMenuClick, onLoginCl
         {!isTeacher && user && (
           <button
             onClick={() => setShowPinModal(true)}
+            className="header-pin-btn"
             style={{
               padding: '0.32rem 0.55rem', borderRadius: '9999px',
               background: '#fef3c7', border: '1px solid #fde68a',

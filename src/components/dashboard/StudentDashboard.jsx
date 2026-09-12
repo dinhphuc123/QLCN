@@ -218,80 +218,84 @@ export default function StudentDashboard({ timetableImage = '', timetableData = 
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       
       {/* Personalized Welcome Banner */}
-      <div className="glass-panel" style={{
-        padding: '1.5rem 1.75rem',
+      <div className="glass-panel student-hero-banner" style={{
+        padding: '1.25rem 1.5rem',
         background: 'linear-gradient(135deg, #1B4D53, #2D6A70)',
         color: 'white',
         borderRadius: '1.25rem',
-        boxShadow: '0 10px 25px rgba(27,77,83,0.25)',
+        boxShadow: '0 8px 20px rgba(27,77,83,0.2)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
-        gap: '1rem',
+        gap: '0.75rem',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-          <div style={{
-            width: '60px', height: '60px', borderRadius: '50%',
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flex: 1, minWidth: 0 }}>
+          <div className="student-hero-avatar" style={{
+            width: '54px', height: '54px', borderRadius: '50%',
             background: 'white', color: '#1B4D53',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '1.75rem', fontWeight: 900, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            border: '2.5px solid rgba(255,255,255,0.8)'
+            fontSize: '1.5rem', fontWeight: 900, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            border: '2px solid rgba(255,255,255,0.8)', flexShrink: 0
           }}>
             {user?.name ? user.name.split(' ').pop()[0] : '🎓'}
           </div>
-          <div>
-            <div style={{ fontSize: '0.82rem', color: '#e0f2fe', fontWeight: 600 }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: '0.78rem', color: '#e0f2fe', fontWeight: 600 }}>
               👋 Chào mừng trở lại, {user?.position || 'Học sinh Nội Trú'}!
             </div>
-            <h2 style={{ margin: '0.2rem 0', fontSize: '1.5rem', fontWeight: 900, color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+            <h2 className="student-hero-name" style={{
+              margin: '0.15rem 0', fontSize: '1.35rem', fontWeight: 900,
+              color: '#ffffff', textShadow: '0 1px 3px rgba(0,0,0,0.25)',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+            }}>
               {user?.name || 'Học sinh 12.7'}
             </h2>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.35rem' }}>
-              <span style={{ fontSize: '0.72rem', background: 'rgba(255,255,255,0.2)', padding: '0.2rem 0.65rem', borderRadius: '9999px', fontWeight: 700, color: '#ffffff' }}>
-                📍 {user?.group || 'Tổ 1'} • Phòng KTX {user?.dormRoom || 'A1-07'}
+            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+              <span style={{ fontSize: '0.7rem', background: 'rgba(255,255,255,0.2)', padding: '0.15rem 0.55rem', borderRadius: '9999px', fontWeight: 700, color: '#ffffff' }}>
+                📍 {user?.group || 'Tổ 1'} • KTX {user?.dormRoom || 'A1-07'}
               </span>
               <button
                 onClick={() => setActiveTab && setActiveTab('evaluation')}
                 style={{
-                  fontSize: '0.72rem', background: '#e0f2fe', color: '#0369a1',
-                  padding: '0.2rem 0.65rem', borderRadius: '9999px', fontWeight: 800,
-                  border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                  fontSize: '0.7rem', background: '#e0f2fe', color: '#0369a1',
+                  padding: '0.15rem 0.55rem', borderRadius: '9999px', fontWeight: 800,
+                  border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.2rem',
                   boxShadow: '0 2px 6px rgba(3,105,161,0.2)'
                 }}
                 title="Bấm để vào trang Tự Đánh Giá Thi Đua Tuần"
               >
-                🏆 {studentScore}/100 Điểm Tuần ↗
+                🏆 {studentScore}/100đ Tuần ↗
               </button>
               <button
                 onClick={() => setActiveTab && setActiveTab('attendance')}
                 style={{
-                  fontSize: '0.72rem',
+                  fontSize: '0.7rem',
                   background: isCheckedInToday ? '#dcfce7' : '#fef3c7',
                   color: isCheckedInToday ? '#166534' : '#b45309',
-                  padding: '0.2rem 0.65rem', borderRadius: '9999px', fontWeight: 800,
-                  border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                  padding: '0.15rem 0.55rem', borderRadius: '9999px', fontWeight: 800,
+                  border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.2rem',
                   boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
                 }}
                 title="Bấm để vào trang Điểm Danh / Check-in"
               >
-                {isCheckedInToday ? '✅ Đã Check-in Hôm Nay ↗' : '⏳ Chưa Check-in ↗'}
+                {isCheckedInToday ? '✅ Đã Check-in ↗' : '⏳ Chưa Check-in ↗'}
               </button>
             </div>
           </div>
         </div>
 
         {/* Current Monthly Honor Title */}
-        <div style={{
+        <div className="student-hero-honor" style={{
           background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)',
-          border: '1.5px solid rgba(255,255,255,0.25)', padding: '0.75rem 1.25rem',
-          borderRadius: '1rem', textAlign: 'center', minWidth: '170px'
+          border: '1.5px solid rgba(255,255,255,0.25)', padding: '0.65rem 1.15rem',
+          borderRadius: '1rem', textAlign: 'center', minWidth: '160px'
         }}>
-          <div style={{ fontSize: '0.72rem', color: '#e0f2fe', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Danh Hiệu Tháng 09</div>
-          <div style={{ fontSize: '1rem', fontWeight: 900, margin: '0.2rem 0', color: '#fef08a', textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>
+          <div style={{ fontSize: '0.7rem', color: '#e0f2fe', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Danh Hiệu Tháng 09</div>
+          <div style={{ fontSize: '0.95rem', fontWeight: 900, margin: '0.15rem 0', color: '#fef08a', textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>
             🌟 Gương Tự Lập
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#ffffff', opacity: 0.95 }}>Học sinh KTX Xuất Sắc</div>
+          <div style={{ fontSize: '0.7rem', color: '#ffffff', opacity: 0.95 }}>Học sinh KTX Xuất Sắc</div>
         </div>
       </div>
 
@@ -299,73 +303,73 @@ export default function StudentDashboard({ timetableImage = '', timetableData = 
       <div className="quick-actions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.85rem' }}>
         <button
           onClick={() => setActiveTab && setActiveTab('attendance')}
-          className="glass-panel"
+          className="glass-panel quick-action-card"
           style={{
             padding: '0.85rem 1rem', border: '1.5px solid #bae6fd', background: '#f0f9ff',
             borderRadius: '1rem', cursor: 'pointer', textAlign: 'left',
             display: 'flex', alignItems: 'center', gap: '0.75rem', transition: 'all 0.2s ease'
           }}
         >
-          <div style={{ fontSize: '1.6rem', background: '#e0f2fe', width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div className="quick-action-icon" style={{ fontSize: '1.5rem', background: '#e0f2fe', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             📝
           </div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#0369a1' }}>Điểm Danh</div>
-            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Check-in & chuyên cần</div>
+          <div style={{ minWidth: 0 }}>
+            <div className="quick-action-title" style={{ fontWeight: 800, fontSize: '0.88rem', color: '#0369a1' }}>Điểm Danh</div>
+            <div className="quick-action-desc" style={{ fontSize: '0.72rem', color: '#64748b' }}>Check-in & chuyên cần</div>
           </div>
         </button>
 
         <button
           onClick={() => setActiveTab && setActiveTab('evaluation')}
-          className="glass-panel"
+          className="glass-panel quick-action-card"
           style={{
             padding: '0.85rem 1rem', border: '1.5px solid #fde68a', background: '#fffbeb',
             borderRadius: '1rem', cursor: 'pointer', textAlign: 'left',
             display: 'flex', alignItems: 'center', gap: '0.75rem', transition: 'all 0.2s ease'
           }}
         >
-          <div style={{ fontSize: '1.6rem', background: '#fef3c7', width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div className="quick-action-icon" style={{ fontSize: '1.5rem', background: '#fef3c7', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             📈
           </div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#b45309' }}>Tự Đánh Giá</div>
-            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Nộp phiếu thi đua tuần</div>
+          <div style={{ minWidth: 0 }}>
+            <div className="quick-action-title" style={{ fontWeight: 800, fontSize: '0.88rem', color: '#b45309' }}>Tự Đánh Giá</div>
+            <div className="quick-action-desc" style={{ fontSize: '0.72rem', color: '#64748b' }}>Nộp phiếu thi đua tuần</div>
           </div>
         </button>
 
         <button
           onClick={() => setActiveTab && setActiveTab('requests')}
-          className="glass-panel"
+          className="glass-panel quick-action-card"
           style={{
             padding: '0.85rem 1rem', border: '1.5px solid #ddd6fe', background: '#faf5ff',
             borderRadius: '1rem', cursor: 'pointer', textAlign: 'left',
             display: 'flex', alignItems: 'center', gap: '0.75rem', transition: 'all 0.2s ease'
           }}
         >
-          <div style={{ fontSize: '1.6rem', background: '#ede9fe', width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div className="quick-action-icon" style={{ fontSize: '1.5rem', background: '#ede9fe', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             ✉️
           </div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#6d28d9' }}>Đơn Nghỉ Phép</div>
-            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Gửi đơn xin phép GVCN</div>
+          <div style={{ minWidth: 0 }}>
+            <div className="quick-action-title" style={{ fontWeight: 800, fontSize: '0.88rem', color: '#6d28d9' }}>Đơn Nghỉ Phép</div>
+            <div className="quick-action-desc" style={{ fontSize: '0.72rem', color: '#64748b' }}>Gửi đơn xin phép GVCN</div>
           </div>
         </button>
 
         <button
           onClick={() => setActiveTab && setActiveTab('explore')}
-          className="glass-panel"
+          className="glass-panel quick-action-card"
           style={{
             padding: '0.85rem 1rem', border: '1.5px solid #bbf7d0', background: '#f0fdf4',
             borderRadius: '1rem', cursor: 'pointer', textAlign: 'left',
             display: 'flex', alignItems: 'center', gap: '0.75rem', transition: 'all 0.2s ease'
           }}
         >
-          <div style={{ fontSize: '1.6rem', background: '#dcfce7', width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div className="quick-action-icon" style={{ fontSize: '1.5rem', background: '#dcfce7', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             ✨
           </div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#15803d' }}>Khám Phá</div>
-            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Tiện ích & hoạt động</div>
+          <div style={{ minWidth: 0 }}>
+            <div className="quick-action-title" style={{ fontWeight: 800, fontSize: '0.88rem', color: '#166534' }}>Khám Phá</div>
+            <div className="quick-action-desc" style={{ fontSize: '0.72rem', color: '#64748b' }}>Tiện ích & hoạt động</div>
           </div>
         </button>
       </div>
