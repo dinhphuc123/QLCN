@@ -265,29 +265,6 @@ h1, h2, h3, .font-serif { font-family: var(--font-serif); color: var(--color-pri
     gap: 0.5rem !important;
   }
 
-  /* Quick Actions Hero Bar on Mobile (2×2 compact grid) */
-  .quick-actions-grid {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 0.5rem !important;
-  }
-  .quick-action-card {
-    padding: 0.55rem 0.75rem !important;
-    border-radius: 0.75rem !important;
-    gap: 0.5rem !important;
-  }
-  .quick-action-icon {
-    width: 32px !important;
-    height: 32px !important;
-    font-size: 1.15rem !important;
-    border-radius: 8px !important;
-  }
-  .quick-action-title {
-    font-size: 0.8rem !important;
-  }
-  .quick-action-desc {
-    display: none !important;
-  }
-
   /* Student Hero Banner on Mobile */
   .student-hero-banner {
     padding: 0.85rem 1rem !important;
@@ -516,7 +493,6 @@ h1, h2, h3, .font-serif { font-family: var(--font-serif); color: var(--color-pri
 @media (max-width: 480px) {
   h3 { font-size: 1.05rem !important; }
   .mobile-card-grid, .branches-grid, .titles-grid { grid-template-columns: 1fr !important; }
-  .quick-actions-grid { grid-template-columns: 1fr 1fr !important; gap: 0.6rem !important; }
   main {
     padding: 0.65rem !important;
     padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
