@@ -316,6 +316,7 @@ h1, h2, h3, .font-serif { font-family: var(--font-serif); color: var(--color-pri
   .header-home-btn { flex-shrink: 0 !important; }
   .student-desktop-top-nav { display: none !important; }
   .student-header-brand { display: none !important; }
+  .mobile-avatar-badge { display: flex !important; }
 }
 
 /* ── Student Desktop Top Navigation ──────────────────────────────────────── */
@@ -442,16 +443,30 @@ h1, h2, h3, .font-serif { font-family: var(--font-serif); color: var(--color-pri
     grid-template-columns: 1fr;
     gap: 0.85rem;
   }
+  .eval-groups-sidebar {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+  }
   .eval-groups-list {
     flex-direction: row;
     overflow-x: auto;
-    padding-bottom: 0.35rem;
-    scrollbar-width: thin;
+    padding: 0.2rem 0.1rem 0.5rem 0.1rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    gap: 0.5rem;
+  }
+  .eval-groups-list::-webkit-scrollbar {
+    display: none;
   }
   .eval-group-btn {
     flex-shrink: 0;
     width: auto;
     white-space: nowrap;
+    border-radius: 9999px;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.78rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
   }
 }
 
@@ -477,11 +492,37 @@ h1, h2, h3, .font-serif { font-family: var(--font-serif); color: var(--color-pri
   }
 }
 
+/* ── NATIVE MOBILE APP UTILITIES & TOUCH INTERACTIONS ─────────────────── */
+.touch-scale {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease;
+}
+.touch-scale:active {
+  transform: scale(0.97) !important;
+}
+
+.mobile-pill-scroll {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+.mobile-pill-scroll::-webkit-scrollbar {
+  display: none;
+}
+
 /* ── SMALL PHONE (<= 480px) ─────────────────────────────────────────────── */
 @media (max-width: 480px) {
-  h3 { font-size: 1rem !important; }
+  h3 { font-size: 1.05rem !important; }
   .mobile-card-grid, .branches-grid, .titles-grid { grid-template-columns: 1fr !important; }
-  .quick-actions-grid { grid-template-columns: 1fr 1fr !important; gap: 0.5rem !important; }
-  main { padding: 0.6rem !important; padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important; }
-  .glass-panel { border-radius: 0.75rem !important; }
+  .quick-actions-grid { grid-template-columns: 1fr 1fr !important; gap: 0.6rem !important; }
+  main {
+    padding: 0.65rem !important;
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .glass-panel {
+    border-radius: 1rem !important;
+  }
 }
+

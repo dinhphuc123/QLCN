@@ -451,7 +451,7 @@ export default function Header({ activeTab, setActiveTab, onMenuClick, onLoginCl
           <span className="header-btn-text">{darkMode ? ' Đêm' : ' Sáng'}</span>
         </button>
 
-        {/* Change PIN button for Students */}
+        {/* Change PIN button for Students (Desktop) */}
         {!isTeacher && user && (
           <button
             onClick={() => setShowPinModal(true)}
@@ -467,6 +467,24 @@ export default function Header({ activeTab, setActiveTab, onMenuClick, onLoginCl
             <span>🔑</span>
             <span className="header-btn-text"> Đổi PIN</span>
           </button>
+        )}
+
+        {/* Student compact avatar on mobile (Native App Header Icon) */}
+        {!isTeacher && user && (
+          <div
+            className="mobile-avatar-badge touch-scale"
+            onClick={() => setActiveTab && setActiveTab('explore')}
+            title={`${user.name} - Bấm để vào Trang cá nhân & Tiện ích`}
+            style={{
+              width: '32px', height: '32px', borderRadius: '50%',
+              background: 'linear-gradient(135deg, #0284c7, #0369a1)', color: 'white',
+              display: 'none', alignItems: 'center', justifyContent: 'center',
+              fontWeight: 900, fontSize: '0.85rem', cursor: 'pointer', flexShrink: 0,
+              boxShadow: '0 2px 6px rgba(3,105,161,0.25)', border: '1.5px solid white'
+            }}
+          >
+            {user.name ? user.name.split(' ').pop()[0] : '🎓'}
+          </div>
         )}
 
         {/* Settings & Password Change buttons for Teacher */}

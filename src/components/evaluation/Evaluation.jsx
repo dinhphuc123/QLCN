@@ -532,10 +532,12 @@ export default function Evaluation({ students = [], onRefresh }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
               <button
                 onClick={() => setHistoryStudent({ id: selectedStudentId, name: currentStudent?.name || '' })}
+                className="touch-scale"
                 style={{
                   background: '#f0f9ff', border: '1px solid #7dd3fc', color: '#0369a1',
-                  padding: '0.5rem 0.85rem', borderRadius: '0.65rem', fontSize: '0.8rem',
-                  fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.25rem'
+                  padding: '0.55rem 0.95rem', borderRadius: '9999px', fontSize: '0.8rem',
+                  fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                  minHeight: '42px'
                 }}
               >
                 📊 Lịch sử điểm
@@ -544,7 +546,7 @@ export default function Evaluation({ students = [], onRefresh }) {
               <div style={{
                 display: 'flex', alignItems: 'center', gap: '0.6rem',
                 background: ranking.color + '12', border: `1.5px solid ${ranking.color}`,
-                borderRadius: '0.65rem', padding: '0.4rem 0.85rem'
+                borderRadius: '1rem', padding: '0.4rem 0.85rem'
               }}>
                 <span style={{ fontSize: '1.4rem' }}>{ranking.emoji}</span>
                 <div>
@@ -560,13 +562,14 @@ export default function Evaluation({ students = [], onRefresh }) {
               {/* Submit button right on top for instant access */}
               {(!user || user.role === 'student' || user.role === 'member' || String(user.id) === selectedStudentId) && currentRecord.status !== 'approved' && (
                 <button
-                  className="btn-primary"
+                  className="btn-primary touch-scale"
                   onClick={handleStudentSubmit}
                   disabled={saving}
                   style={{
-                    padding: '0.55rem 1.1rem', fontSize: '0.84rem', fontWeight: 800,
-                    borderRadius: '0.65rem', boxShadow: '0 2px 8px rgba(3, 105, 161, 0.25)',
-                    whiteSpace: 'nowrap'
+                    padding: '0.6rem 1.35rem', fontSize: '0.88rem', fontWeight: 800,
+                    borderRadius: '9999px', boxShadow: '0 4px 12px rgba(3, 105, 161, 0.25)',
+                    whiteSpace: 'nowrap', minHeight: '44px',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center'
                   }}
                 >
                   {saving ? '⏳ Đang nộp...' : '📩 Nộp Phiếu'}
@@ -580,10 +583,11 @@ export default function Evaluation({ students = [], onRefresh }) {
             
             {/* Left Column: 8 Groups Sidebar */}
             <div className="eval-groups-sidebar">
-              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem' }}>
-                📑 8 Nhóm Tiêu Chí
+              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>📑 8 Nhóm Tiêu Chí</span>
+                <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 600 }}>Vuốt ngang ➔</span>
               </div>
-              <div className="eval-groups-list">
+              <div className="eval-groups-list mobile-pill-scroll">
                 {CRITERIA_GROUPS.map((grp) => {
                   const isActive = activeGroup === grp;
                   const groupCriteria = getCriteriaByGroup(grp);
@@ -595,7 +599,7 @@ export default function Evaluation({ students = [], onRefresh }) {
                       key={grp}
                       type="button"
                       onClick={() => setActiveGroup(grp)}
-                      className={`eval-group-btn ${isActive ? 'active' : ''} ${isSevereGroup ? 'severe' : ''}`}
+                      className={`eval-group-btn touch-scale ${isActive ? 'active' : ''} ${isSevereGroup ? 'severe' : ''}`}
                     >
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{grp}</span>
                       {activeCountInGroup > 0 && (
@@ -624,55 +628,55 @@ export default function Evaluation({ students = [], onRefresh }) {
               </div>
 
               {/* Criteria list items */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', maxHeight: '460px', overflowY: 'auto', paddingRight: '0.25rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', maxHeight: '480px', overflowY: 'auto', paddingRight: '0.25rem' }}>
                 {getCriteriaByGroup(activeGroup).map(item => {
                   const count = selectedViolations[item.id] || 0;
                   return (
                     <div key={item.id} style={{
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                      padding: '0.7rem 0.9rem', borderRadius: '0.75rem',
+                      padding: '0.85rem 1rem', borderRadius: '1rem',
                       background: count > 0 ? (item.isBonus ? '#f0fdf4' : '#fff5f5') : 'white',
                       border: `1.5px solid ${count > 0 ? (item.isBonus ? '#86efac' : '#fca5a5') : '#f1f5f9'}`,
-                      boxShadow: count > 0 ? '0 2px 6px rgba(0,0,0,0.03)' : 'none',
+                      boxShadow: count > 0 ? '0 2px 8px rgba(0,0,0,0.04)' : '0 1px 3px rgba(0,0,0,0.02)',
                       transition: 'all 0.15s ease'
                     }}>
                       <div style={{ flex: 1, paddingRight: '0.75rem' }}>
-                        <div style={{ fontWeight: 700, fontSize: '0.84rem', color: '#111827', lineHeight: 1.35 }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#111827', lineHeight: 1.38 }}>
                           #{item.id}. {item.label}
                         </div>
-                        <span style={{ fontSize: '0.74rem', color: item.isBonus ? '#15803d' : '#b91c1c', fontWeight: 800, marginTop: '0.15rem', display: 'inline-block' }}>
+                        <span style={{ fontSize: '0.75rem', color: item.isBonus ? '#15803d' : '#b91c1c', fontWeight: 800, marginTop: '0.2rem', display: 'inline-block' }}>
                           {item.points > 0 ? `+${item.points}` : item.points} điểm / {item.unit}
                         </span>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexShrink: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
                         <button
-                          className="criteria-btn"
+                          className="criteria-btn touch-scale"
                           onClick={() => handleToggleCriterion(item.id, -1)}
                           disabled={isTeacher || count === 0}
                           title={isTeacher ? "Chế độ GVCN chỉ xét duyệt" : "Trừ 1"}
                           style={{
-                            width: '42px', height: '42px', borderRadius: '50%', border: '1.5px solid #d1d5db',
+                            width: '44px', height: '44px', borderRadius: '50%', border: '1.5px solid #d1d5db',
                             background: 'white', cursor: (isTeacher || count === 0) ? 'not-allowed' : 'pointer', opacity: (isTeacher || count === 0) ? 0.35 : 1,
-                            fontWeight: 800, fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            fontWeight: 800, fontSize: '1.15rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
                           }}
                         >
                           -
                         </button>
-                        <span style={{ fontWeight: 900, fontSize: '0.95rem', minWidth: '22px', textAlign: 'center', color: '#1f2937' }}>
+                        <span style={{ fontWeight: 900, fontSize: '1rem', minWidth: '24px', textAlign: 'center', color: '#1f2937' }}>
                           {count}
                         </span>
                         <button
-                          className="criteria-btn"
+                          className="criteria-btn touch-scale"
                           onClick={() => handleToggleCriterion(item.id, 1)}
                           disabled={isTeacher}
                           title={isTeacher ? "Chế độ GVCN chỉ xét duyệt" : "Cộng 1"}
                           style={{
-                            width: '42px', height: '42px', borderRadius: '50%', border: 'none',
+                            width: '44px', height: '44px', borderRadius: '50%', border: 'none',
                             background: isTeacher ? '#94a3b8' : (item.isBonus ? '#16a34a' : 'var(--color-primary-dark)'),
                             color: 'white', cursor: isTeacher ? 'not-allowed' : 'pointer', opacity: isTeacher ? 0.45 : 1,
-                            fontWeight: 800, fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: isTeacher ? 'none' : '0 2px 6px rgba(0,0,0,0.15)'
+                            fontWeight: 800, fontSize: '1.15rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: isTeacher ? 'none' : '0 2px 8px rgba(0,0,0,0.18)'
                           }}
                         >
                           +

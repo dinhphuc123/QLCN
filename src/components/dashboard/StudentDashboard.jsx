@@ -303,7 +303,7 @@ export default function StudentDashboard({ timetableImage = '', timetableData = 
       <div className="quick-actions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.85rem' }}>
         <button
           onClick={() => setActiveTab && setActiveTab('attendance')}
-          className="glass-panel quick-action-card"
+          className="glass-panel quick-action-card touch-scale"
           style={{
             padding: '0.85rem 1rem', border: '1.5px solid #bae6fd', background: '#f0f9ff',
             borderRadius: '1rem', cursor: 'pointer', textAlign: 'left',
@@ -321,7 +321,7 @@ export default function StudentDashboard({ timetableImage = '', timetableData = 
 
         <button
           onClick={() => setActiveTab && setActiveTab('evaluation')}
-          className="glass-panel quick-action-card"
+          className="glass-panel quick-action-card touch-scale"
           style={{
             padding: '0.85rem 1rem', border: '1.5px solid #fde68a', background: '#fffbeb',
             borderRadius: '1rem', cursor: 'pointer', textAlign: 'left',
@@ -339,7 +339,7 @@ export default function StudentDashboard({ timetableImage = '', timetableData = 
 
         <button
           onClick={() => setActiveTab && setActiveTab('requests')}
-          className="glass-panel quick-action-card"
+          className="glass-panel quick-action-card touch-scale"
           style={{
             padding: '0.85rem 1rem', border: '1.5px solid #ddd6fe', background: '#faf5ff',
             borderRadius: '1rem', cursor: 'pointer', textAlign: 'left',
@@ -357,7 +357,7 @@ export default function StudentDashboard({ timetableImage = '', timetableData = 
 
         <button
           onClick={() => setActiveTab && setActiveTab('explore')}
-          className="glass-panel quick-action-card"
+          className="glass-panel quick-action-card touch-scale"
           style={{
             padding: '0.85rem 1rem', border: '1.5px solid #bbf7d0', background: '#f0fdf4',
             borderRadius: '1rem', cursor: 'pointer', textAlign: 'left',
@@ -505,7 +505,7 @@ export default function StudentDashboard({ timetableImage = '', timetableData = 
             {(timetableMode === 'table' || (!activeTimetableImg && hasStructuredSchedule)) ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {/* Day Selector Pills */}
-                <div style={{ display: 'flex', gap: '0.35rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
+                <div className="mobile-pill-scroll" style={{ gap: '0.4rem', paddingBottom: '0.35rem' }}>
                   {['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'].map(day => {
                     const dayNames = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
                     const isToday = dayNames[new Date().getDay()] === day;
@@ -515,21 +515,24 @@ export default function StudentDashboard({ timetableImage = '', timetableData = 
                       <button
                         key={day}
                         onClick={() => setStudentTimetableDay(day)}
+                        className="touch-scale"
                         style={{
-                          padding: '0.35rem 0.65rem',
-                          borderRadius: '8px',
-                          border: isToday ? '1.5px solid #0284c7' : '1px solid transparent',
+                          padding: '0.42rem 0.75rem',
+                          borderRadius: '9999px',
+                          border: isToday ? '1.5px solid #0284c7' : '1px solid #e2e8f0',
                           fontSize: '0.75rem',
                           fontWeight: 800,
                           cursor: 'pointer',
-                          background: isSelected ? '#1B4D53' : (isToday ? '#e0f2fe' : '#f1f5f9'),
+                          background: isSelected ? '#1B4D53' : (isToday ? '#e0f2fe' : '#ffffff'),
                           color: isSelected ? 'white' : (isToday ? '#0369a1' : '#475569'),
                           whiteSpace: 'nowrap',
-                          display: 'inline-flex', alignItems: 'center', gap: '0.2rem'
+                          boxShadow: isSelected ? '0 2px 6px rgba(27,77,83,0.25)' : 'none',
+                          display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                          flexShrink: 0
                         }}
                       >
                         <span>{day}</span>
-                        {isToday && <span style={{ fontSize: '0.62rem', background: '#0284c7', color: 'white', padding: '0.05rem 0.3rem', borderRadius: '4px' }}>Nay</span>}
+                        {isToday && <span style={{ fontSize: '0.62rem', background: '#0284c7', color: 'white', padding: '0.05rem 0.35rem', borderRadius: '9999px' }}>Nay</span>}
                       </button>
                     );
                   })}

@@ -121,11 +121,13 @@ export default function ExploreHub({ setActiveTab, onOpenPinModal }) {
           {onOpenPinModal && (
             <button
               onClick={onOpenPinModal}
+              className="touch-scale"
               style={{
-                padding: '0.45rem 0.9rem', borderRadius: '9999px',
+                padding: '0.5rem 1rem', borderRadius: '9999px',
                 background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)',
-                color: 'white', fontSize: '0.78rem', fontWeight: 800,
-                cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem'
+                color: 'white', fontSize: '0.8rem', fontWeight: 800,
+                cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                minHeight: '40px'
               }}
             >
               🔑 Đổi PIN
@@ -133,11 +135,13 @@ export default function ExploreHub({ setActiveTab, onOpenPinModal }) {
           )}
           <button
             onClick={logout}
+            className="touch-scale"
             style={{
-              padding: '0.45rem 0.9rem', borderRadius: '9999px',
+              padding: '0.5rem 1rem', borderRadius: '9999px',
               background: '#ef4444', border: 'none',
-              color: 'white', fontSize: '0.78rem', fontWeight: 800,
-              cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem'
+              color: 'white', fontSize: '0.8rem', fontWeight: 800,
+              cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+              minHeight: '40px'
             }}
           >
             🚪 Đăng xuất
@@ -151,9 +155,9 @@ export default function ExploreHub({ setActiveTab, onOpenPinModal }) {
           <div
             key={item.id}
             onClick={() => setActiveTab(item.id)}
-            className="glass-panel"
+            className="glass-panel touch-scale"
             style={{
-              padding: '1.1rem 1.25rem',
+              padding: '1.15rem 1.25rem',
               background: item.bg,
               border: `1.5px solid ${item.border}`,
               borderRadius: '1rem',
@@ -161,13 +165,14 @@ export default function ExploreHub({ setActiveTab, onOpenPinModal }) {
               display: 'flex',
               alignItems: 'center',
               gap: '1rem',
-              transition: 'all 0.2s ease',
+              transition: 'all 0.18s ease',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
             }}
           >
             <div style={{
-              width: '48px', height: '48px', borderRadius: '12px',
+              width: '50px', height: '50px', borderRadius: '14px',
               background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '1.6rem', flexShrink: 0,
+              fontSize: '1.65rem', flexShrink: 0,
               boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
               border: `1px solid ${item.border}`
             }}>
@@ -175,24 +180,24 @@ export default function ExploreHub({ setActiveTab, onOpenPinModal }) {
             </div>
 
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
-                <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: item.color }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                <h4 style={{ margin: 0, fontSize: '0.94rem', fontWeight: 800, color: item.color }}>
                   {item.title}
                 </h4>
                 <span style={{
-                  fontSize: '0.65rem', fontWeight: 800, background: 'white',
-                  color: item.color, padding: '0.1rem 0.45rem', borderRadius: '9999px',
+                  fontSize: '0.66rem', fontWeight: 800, background: 'white',
+                  color: item.color, padding: '0.12rem 0.5rem', borderRadius: '9999px',
                   border: `1px solid ${item.border}`
                 }}>
                   {item.badge}
                 </span>
               </div>
-              <p style={{ margin: 0, fontSize: '0.76rem', color: '#475569', lineHeight: 1.4 }}>
+              <p style={{ margin: 0, fontSize: '0.78rem', color: '#475569', lineHeight: 1.42 }}>
                 {item.desc}
               </p>
             </div>
             
-            <div style={{ fontSize: '1rem', color: item.color, fontWeight: 900 }}>
+            <div style={{ fontSize: '1.2rem', color: item.color, fontWeight: 900, paddingLeft: '0.2rem' }}>
               ›
             </div>
           </div>

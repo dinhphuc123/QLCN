@@ -238,21 +238,35 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
           }
           .mobile-bottom-scroll::-webkit-scrollbar { display: none; }
 
-          /* 4 Tab học sinh chia đều 100% màn hình, không cần cuộn ngang */
+          /* 4 Tab học sinh chia đều 100% màn hình, phong cách Native App iOS/Material 3 */
           .mobile-bottom-nav.student-nav .mobile-bottom-scroll {
             display: flex;
             width: 100%;
             justify-content: space-around;
-            padding: 0;
+            padding: 0.25rem 0.5rem 0.25rem;
             overflow-x: hidden;
           }
           .mobile-bottom-nav.student-nav .mbn-item {
             flex: 1;
             min-width: 0;
-            padding: 0.65rem 0.2rem 0.5rem;
+            padding: 0.35rem 0.2rem 0.25rem;
+            border-radius: 0.85rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+          .mobile-bottom-nav.student-nav .mbn-item.mbn-active {
+            background: rgba(3, 105, 161, 0.08);
+          }
+          .mobile-bottom-nav.student-nav .mbn-item.mbn-active::before {
+            display: none; /* Dùng pill background thay vì vạch ngang cũ */
           }
           .mobile-bottom-nav.student-nav .mbn-label {
-            font-size: 0.68rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-top: 0.15rem;
+          }
+          .mobile-bottom-nav.student-nav .mbn-item.mbn-active .mbn-label {
+            color: #0284c7;
+            font-weight: 900;
           }
 
           .mbn-item {
@@ -268,12 +282,15 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
             border: none;
             cursor: pointer;
             border-radius: 0;
-            transition: background 0.18s;
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), background 0.18s;
             position: relative;
           }
-          .mbn-item:active { background: rgba(3,105,161,0.06); }
+          .mbn-item:active {
+            transform: scale(0.92);
+            background: rgba(3,105,161,0.08);
+          }
 
-          /* Active indicator — top bar */
+          /* Active indicator — top bar (cho view GV) */
           .mbn-item.mbn-active::before {
             content: '';
             position: absolute;
@@ -284,17 +301,19 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
           }
 
           .mbn-icon {
-            font-size: 1.3rem;
+            font-size: 1.35rem;
             line-height: 1;
-            transition: transform 0.18s;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
           }
-          .mbn-item.mbn-active .mbn-icon { transform: translateY(-1px); }
+          .mbn-item.mbn-active .mbn-icon {
+            transform: translateY(-2px) scale(1.12);
+          }
           .mbn-label {
-            font-size: 0.56rem;
+            font-size: 0.58rem;
             font-weight: 600;
             color: #94a3b8;
             white-space: nowrap;
-            line-height: 1;
+            line-height: 1.2;
           }
           .mbn-item.mbn-active .mbn-label { color: #0369a1; font-weight: 800; }
 

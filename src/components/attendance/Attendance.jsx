@@ -582,7 +582,7 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
             </div>
 
             {/* 5 Session Horizontal Pill Tabs */}
-            <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
+            <div className="mobile-pill-scroll" style={{ gap: '0.5rem', paddingBottom: '0.35rem' }}>
               {sessions.map(s => {
                 const isSelected = session === s.id;
                 // Check if current user checked in for this session
@@ -594,8 +594,9 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
                   <button
                     key={s.id}
                     onClick={() => setSession(s.id)}
+                    className="touch-scale"
                     style={{
-                      flex: 1, minWidth: '140px', padding: '0.65rem 0.75rem', borderRadius: '0.75rem',
+                      flex: '0 0 auto', minWidth: '135px', padding: '0.65rem 0.85rem', borderRadius: '0.9rem',
                       border: isSelected ? '2px solid #1B4D53' : '1.5px solid #e2e8f0',
                       cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s ease',
                       background: isSelected ? '#1B4D53' : 'white',
@@ -628,7 +629,7 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
           {!isTeacher && user && (
             <div className="glass-panel" style={{
               margin: '0.5rem 0 1rem 0',
-              padding: '1.1rem 1.35rem',
+              padding: '1.15rem 1.35rem',
               background: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)',
               border: '1.5px solid #7dd3fc',
               display: 'flex',
@@ -639,6 +640,7 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
               position: 'relative',
               zIndex: 10,
               borderRadius: '1rem',
+              boxShadow: '0 4px 14px rgba(2, 132, 199, 0.08)'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
                 <h4 style={{ margin: 0, color: '#0369a1', fontSize: '0.95rem', fontWeight: 800 }}>
@@ -652,18 +654,18 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
               </div>
 
               <button
-                className="btn-primary"
+                className="btn-primary touch-scale"
                 onClick={handleStudentCheckIn}
                 disabled={isLocked && !isTeacher}
                 style={{
                   background: myCheckInObj?.checkedInAt ? '#0284c7' : '#0369a1',
-                  padding: '0.6rem 1.5rem',
-                  fontSize: '0.88rem',
+                  padding: '0.65rem 1.6rem',
+                  fontSize: '0.9rem',
                   fontWeight: 800,
                   cursor: (isLocked && !isTeacher) ? 'not-allowed' : 'pointer',
                   boxShadow: '0 4px 12px rgba(3, 105, 161, 0.25)',
                   borderRadius: '9999px',
-                  minHeight: '44px',
+                  minHeight: '48px',
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -854,28 +856,29 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
                     <div
                       key={s.id}
                       onClick={() => setSession(s.id)}
+                      className="touch-scale"
                       style={{
-                        padding: '0.95rem 1.15rem',
-                        borderRadius: '0.85rem',
+                        padding: '1rem 1.2rem',
+                        borderRadius: '1rem',
                         background: isCurrent ? '#f0f9ff' : 'white',
                         border: `1.5px solid ${isCurrent ? '#0284c7' : stBadge.border}`,
-                        boxShadow: isCurrent ? '0 4px 12px rgba(2, 132, 199, 0.15)' : '0 1px 3px rgba(0,0,0,0.03)',
+                        boxShadow: isCurrent ? '0 4px 14px rgba(2, 132, 199, 0.15)' : '0 2px 6px rgba(0,0,0,0.02)',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         flexWrap: 'wrap',
-                        gap: '0.5rem',
+                        gap: '0.6rem',
                         cursor: 'pointer',
-                        transition: 'all 0.15s ease'
+                        transition: 'all 0.18s ease'
                       }}
                     >
                       <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <span style={{ fontWeight: 800, fontSize: '0.92rem', color: isCurrent ? '#0369a1' : '#1e293b' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                          <span style={{ fontWeight: 800, fontSize: '0.95rem', color: isCurrent ? '#0369a1' : '#1e293b' }}>
                             {s.label}
                           </span>
                           {isCurrent && (
-                            <span style={{ fontSize: '0.65rem', background: '#0284c7', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '9999px', fontWeight: 800 }}>
+                            <span style={{ fontSize: '0.65rem', background: '#0284c7', color: 'white', padding: '0.12rem 0.45rem', borderRadius: '9999px', fontWeight: 800 }}>
                               Đang chọn
                             </span>
                           )}
@@ -889,7 +892,7 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
                         <span style={{
                           fontSize: '0.78rem', fontWeight: 800,
                           background: stBadge.bg, color: stBadge.text,
-                          padding: '0.25rem 0.7rem', borderRadius: '9999px',
+                          padding: '0.3rem 0.75rem', borderRadius: '9999px',
                           border: `1px solid ${stBadge.border}`,
                           display: 'inline-flex', alignItems: 'center', gap: '0.25rem'
                         }}>
@@ -910,26 +913,26 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
             </div>
 
             {/* Card 2: Personal Monthly Attendance Stats */}
-            <div className="glass-panel" style={{ padding: '1.5rem' }}>
+            <div className="glass-panel" style={{ padding: '1.25rem 1.35rem', borderRadius: '1rem' }}>
               <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.05rem', fontWeight: 800, color: 'var(--color-primary-dark)' }}>
                 📊 Thống Kê Chuyên Cần Tháng Này Của Bạn
               </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem' }}>
-                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '0.75rem', padding: '0.75rem', textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#16a34a' }}>{myMonthlyStats.present}</div>
-                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#166534', marginTop: '0.15rem' }}>Có mặt</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.6rem' }}>
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '0.85rem', padding: '0.65rem 0.35rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: 'clamp(1.1rem, 3.5vw, 1.35rem)', fontWeight: 900, color: '#16a34a' }}>{myMonthlyStats.present}</div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#166534', marginTop: '0.15rem' }}>Có mặt</div>
                 </div>
-                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '0.75rem', padding: '0.75rem', textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#2563eb' }}>{myMonthlyStats.permit}</div>
-                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1e40af', marginTop: '0.15rem' }}>Có phép</div>
+                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '0.85rem', padding: '0.65rem 0.35rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: 'clamp(1.1rem, 3.5vw, 1.35rem)', fontWeight: 900, color: '#2563eb' }}>{myMonthlyStats.permit}</div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#1e40af', marginTop: '0.15rem' }}>Có phép</div>
                 </div>
-                <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: '0.75rem', padding: '0.75rem', textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#d97706' }}>{myMonthlyStats.late}</div>
-                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b45309', marginTop: '0.15rem' }}>Đi trễ</div>
+                <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: '0.85rem', padding: '0.65rem 0.35rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: 'clamp(1.1rem, 3.5vw, 1.35rem)', fontWeight: 900, color: '#d97706' }}>{myMonthlyStats.late}</div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#b45309', marginTop: '0.15rem' }}>Đi trễ</div>
                 </div>
-                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '0.75rem', padding: '0.75rem', textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#dc2626' }}>{myMonthlyStats.absent}</div>
-                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#991b1b', marginTop: '0.15rem' }}>Vắng KP</div>
+                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '0.85rem', padding: '0.65rem 0.35rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: 'clamp(1.1rem, 3.5vw, 1.35rem)', fontWeight: 900, color: '#dc2626' }}>{myMonthlyStats.absent}</div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#991b1b', marginTop: '0.15rem' }}>Vắng KP</div>
                 </div>
               </div>
 
@@ -939,8 +942,8 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
                 </div>
                 <button
                   onClick={() => setShowHomeModal(true)}
-                  className="btn-primary"
-                  style={{ padding: '0.55rem 1.25rem', fontSize: '0.82rem', background: '#0284c7' }}
+                  className="btn-primary touch-scale"
+                  style={{ padding: '0.6rem 1.25rem', fontSize: '0.82rem', background: '#0284c7', borderRadius: '9999px', minHeight: '42px' }}
                 >
                   ✉️ Gửi Đơn Xin Phép Về Nhà / Vắng
                 </button>
