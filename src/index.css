@@ -499,6 +499,91 @@ h1, h2, h3, .font-serif { font-family: var(--font-serif); color: var(--color-pri
   display: none;
 }
 
+/* ── CMS ADMIN RESPONSIVE & SLEEK STYLES ──────────────────────────────── */
+.cms-banner {
+  padding: 1.5rem 1.75rem !important;
+  border-radius: 1.25rem !important;
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%) !important;
+}
+
+.cms-tab-bar {
+  display: flex;
+  gap: 0.35rem;
+  background: #ffffff;
+  padding: 0.35rem;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.cms-tab-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.cms-tab-btn {
+  flex: 1;
+  min-width: 140px;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.75rem;
+  border: none;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.cms-student-desktop-table {
+  display: block;
+}
+.cms-student-mobile-cards {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .cms-banner {
+    padding: 1rem 1.15rem !important;
+    border-radius: 1rem !important;
+  }
+  .cms-banner h2 {
+    font-size: 1.15rem !important;
+  }
+  .cms-banner p {
+    font-size: 0.78rem !important;
+  }
+  .cms-banner-actions {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.5rem !important;
+  }
+  .cms-banner-actions button {
+    width: 100% !important;
+    padding: 0.55rem 0.75rem !important;
+    font-size: 0.76rem !important;
+    justify-content: center !important;
+  }
+  .cms-tab-btn {
+    min-width: fit-content !important;
+    padding: 0.5rem 0.85rem !important;
+    font-size: 0.78rem !important;
+  }
+  .cms-student-desktop-table {
+    display: none !important;
+  }
+  .cms-student-mobile-cards {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.65rem !important;
+  }
+}
+
 /* ── SMALL PHONE (<= 480px) ─────────────────────────────────────────────── */
 @media (max-width: 480px) {
   h3 { font-size: 1.05rem !important; }

@@ -291,54 +291,59 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       
-      {/* Header Banner */}
-      <div className="glass-panel" style={{ padding: '2rem', background: 'linear-gradient(135deg, #1e1b4b, #312e81)', color: 'white' }}>
+      {/* Header Banner — Tinh chỉnh padding gọn gàng & đồng bộ phong cách */}
+      <div className="glass-panel cms-banner" style={{ color: 'white' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <div style={{ fontSize: '0.75rem', background: '#4c1d95', color: '#c4b5fd', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontWeight: 700, width: 'fit-content', marginBottom: '0.5rem' }}>
-              ⚙️ CMS ADMIN DATA SUITE
+            <div style={{ fontSize: '0.72rem', background: 'rgba(255,255,255,0.18)', color: '#e0e7ff', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontWeight: 800, width: 'fit-content', marginBottom: '0.35rem', letterSpacing: '0.04em' }}>
+              ⚙️ QUẢN TRỊ DỮ LIỆU ĐẦU VÀO
             </div>
-            <h2 style={{ fontFamily: 'var(--font-serif)', margin: 0, color: 'white', fontSize: '1.5rem' }}>
-              Quản Trị CMS — Thêm / Sửa / Xóa Dữ Liệu Đầu Vào
+            <h2 style={{ fontFamily: 'var(--font-serif)', margin: 0, color: 'white', fontSize: '1.35rem', fontWeight: 800 }}>
+              Quản Trị CMS — Lớp {settings.className}
             </h2>
-            <p style={{ fontSize: '0.85rem', color: '#a5b4fc', marginTop: '0.3rem', margin: 0 }}>
-              Toàn quyền Thêm mới, Chỉnh sửa, Xóa sĩ số học sinh, tiêu chí thi đua 47, thông báo và quỹ lớp.
+            <p style={{ fontSize: '0.8rem', color: '#c7d2fe', marginTop: '0.25rem', margin: 0 }}>
+              Quản lý sĩ số học sinh, 47 tiêu chí thi đua 8 nhóm, cấu hình lớp và sao lưu an toàn.
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <button className="btn-primary" onClick={handleResetDemoData} style={{ background: '#dc2626', padding: '0.65rem 1.25rem', boxShadow: '0 4px 14px rgba(220,38,38,0.3)' }}>
-              🧹 Xóa Demo & Nạp Excel/Supabase
+          <div className="cms-banner-actions" style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
+            <button className="btn-primary" onClick={handleResetDemoData} style={{ background: '#ef4444', padding: '0.5rem 1rem', fontSize: '0.8rem', boxShadow: '0 2px 10px rgba(239,68,68,0.3)' }}>
+              🧹 Xóa Demo & Làm Mới
             </button>
-            <button className="btn-primary" onClick={handleExportBackup} style={{ background: '#16a34a', padding: '0.65rem 1.25rem' }}>
+            <button className="btn-primary" onClick={handleExportBackup} style={{ background: '#10b981', padding: '0.5rem 1rem', fontSize: '0.8rem', boxShadow: '0 2px 10px rgba(16,185,129,0.3)' }}>
               💾 Sao lưu Dữ liệu
             </button>
           </div>
         </div>
       </div>
 
-      {/* Sub Tabs */}
-      <div style={{ display: 'flex', gap: '0.5rem', background: 'white', padding: '0.4rem', borderRadius: '1rem', border: '1px solid #e2e8f0', overflowX: 'auto' }}>
+      {/* Sub Tabs — Segmented Control bo tròn hiện đại */}
+      <div className="cms-tab-bar" role="tablist">
         {[
-          { id: 'students_crud', label: '👨‍🎓 Quản Lý Học Sinh (CRUD)', icon: '👥' },
-          { id: 'criteria_crud', label: '📊 47 Tiêu Chí Thi Đua (CRUD)', icon: '📝' },
-          { id: 'class_info', label: '🏫 Cấu Hình Lớp & GVCN', icon: '⚙️' },
-          { id: 'backup', label: '🛡️ Sao Lưu & An Toàn Dữ Liệu', icon: '💾' },
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            style={{
-              flex: 1, minWidth: '180px', padding: '0.75rem 1rem', borderRadius: '0.75rem', border: 'none',
-              fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s',
-              background: activeTab === tab.id ? 'var(--color-primary-brand)' : 'transparent',
-              color: activeTab === tab.id ? 'white' : '#475569',
-              boxShadow: activeTab === tab.id ? '0 4px 12px rgba(114, 155, 18, 0.3)' : 'none',
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
+          { id: 'students_crud', label: 'Quản Lý Học Sinh', icon: '👨‍🎓' },
+          { id: 'criteria_crud', label: '47 Tiêu Chí Thi Đua', icon: '📊' },
+          { id: 'class_info', label: 'Cấu Hình Lớp & GVCN', icon: '🏫' },
+          { id: 'backup', label: 'Sao Lưu & An Toàn', icon: '🛡️' },
+        ].map(tab => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => setActiveTab(tab.id)}
+              className="cms-tab-btn"
+              style={{
+                background: isActive ? 'var(--color-primary-dark)' : 'transparent',
+                color: isActive ? '#ffffff' : '#64748b',
+                boxShadow: isActive ? '0 2px 8px rgba(27, 77, 83, 0.25)' : 'none',
+              }}
+            >
+              <span>{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* ── TAB 1: Student CRUD ────────────────────────────────────────────── */}
@@ -356,8 +361,9 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
             </button>
           </div>
 
-          <div style={{ overflowX: 'auto', borderRadius: '0.75rem', border: '1px solid #e2e8f0' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
+          {/* Desktop Table View */}
+          <div className="cms-student-desktop-table" style={{ overflowX: 'auto', borderRadius: '0.75rem', border: '1px solid #e2e8f0' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '760px' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
                   <th style={{ padding: '0.75rem 1rem', fontSize: '0.8rem', fontWeight: 700, color: '#334155' }}>STT</th>
@@ -438,6 +444,104 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card-based List View */}
+          <div className="cms-student-mobile-cards">
+            {students.map((s, idx) => {
+              const pos = s.position || 'Thành viên';
+              const isMonitor = pos.includes('Lớp trưởng') || s.role === 'monitor';
+              const isGroupLeader = pos.includes('Tổ trưởng') || s.role === 'group_leader';
+              const isRoomLeader = pos.includes('Trưởng phòng') || s.role === 'room_leader';
+              const isVice = pos.includes('Lớp phó');
+              const isTreasurer = pos.includes('Thủ quỹ');
+
+              let bg = '#f1f5f9';
+              let color = '#475569';
+              let border = '#cbd5e1';
+
+              if (isMonitor) {
+                bg = '#fef3c7'; color = '#92400e'; border = '#fde68a';
+              } else if (isGroupLeader) {
+                bg = '#e0f2fe'; color = '#0369a1'; border = '#bae6fd';
+              } else if (isRoomLeader) {
+                bg = '#ecfdf5'; color = '#047857'; border = '#a7f3d0';
+              } else if (isVice) {
+                bg = '#ede9fe'; color = '#5b21b6'; border = '#ddd6fe';
+              } else if (isTreasurer) {
+                bg = '#fef9c3'; color = '#854d0e'; border = '#fef08a';
+              }
+
+              return (
+                <div
+                  key={s.id}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '0.85rem',
+                    padding: '0.85rem 1rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.5rem',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.03)'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                      <span style={{ fontSize: '0.72rem', background: '#f1f5f9', color: '#64748b', fontWeight: 800, padding: '0.15rem 0.4rem', borderRadius: '4px' }}>
+                        #{String(idx + 1).padStart(2, '0')}
+                      </span>
+                      <strong style={{ fontSize: '0.92rem', color: '#0f172a' }}>{s.name}</strong>
+                      {s.isPoor && <span style={{ fontSize: '0.65rem', background: '#fef3c7', color: '#92400e', padding: '0.1rem 0.35rem', borderRadius: '4px' }}>Cận nghèo</span>}
+                    </div>
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.2rem',
+                      padding: '0.18rem 0.55rem', borderRadius: '9999px',
+                      background: bg, color: color, border: `1px solid ${border}`,
+                      fontWeight: 700, fontSize: '0.72rem'
+                    }}>
+                      {isMonitor && '👑 '}
+                      {isGroupLeader && '⭐ '}
+                      {isRoomLeader && '🏠 '}
+                      {isVice && '📚 '}
+                      {isTreasurer && '💰 '}
+                      {pos}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', fontSize: '0.78rem', color: '#64748b' }}>
+                    <span>👥 {s.group}</span>
+                    <span>🏡 KTX: {s.dormRoom}</span>
+                    <span>⚧️ {s.gender || 'Nữ'}</span>
+                    {s.phone && <span>📞 {s.phone}</span>}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.45rem', marginTop: '0.2rem', paddingTop: '0.45rem', borderTop: '1px solid #f1f5f9' }}>
+                    <button
+                      onClick={() => handleOpenStudentModal(s)}
+                      style={{
+                        flex: 1, padding: '0.45rem', borderRadius: '0.5rem',
+                        background: '#e0f2fe', color: '#0369a1', border: 'none',
+                        cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem'
+                      }}
+                    >
+                      ✏️ Sửa thông tin
+                    </button>
+                    <button
+                      onClick={() => setDeleteStudentTarget(s)}
+                      style={{
+                        padding: '0.45rem 0.85rem', borderRadius: '0.5rem',
+                        background: '#fee2e2', color: '#991b1b', border: 'none',
+                        cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem'
+                      }}
+                    >
+                      🗑️ Xóa
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
