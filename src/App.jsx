@@ -613,7 +613,7 @@ export default function App() {
       case 'activities':    return <Activities activities={data.activities} onRefresh={fetchData} />;
       case 'finance':       return <Finance finance={data.finance} onRefresh={fetchData} />;
       case 'evaluation':    return <Evaluation {...props} />;
-      case 'parent_portal': return <ParentPortal />;
+      case 'parent_portal': return <ParentPortal students={data.students} attendance={data.attendance} />;
       case 'confessions':   return <Confessions confessions={data.confessions} isTeacher={isTeacher} onRefresh={fetchData} />;
       case 'reports':       return isTeacher ? <Reports {...props} /> : <AccessDeniedCard onLogin={() => setShowAuth(true)} title="Biểu Mẫu & Excel" />;
       case 'cms_admin':     return isTeacher ? <CmsAdminPanel students={data.students} onRefresh={fetchData} /> : <AccessDeniedCard onLogin={() => setShowAuth(true)} title="Quản Trị CMS Admin" />;

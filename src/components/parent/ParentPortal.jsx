@@ -9,9 +9,16 @@ export default function ParentPortal({ students = INITIAL_STUDENTS, attendance =
   const { settings } = useClassSettings();
 
   const [selectedStudentId, setSelectedStudentId] = useState(() => {
-    if (user && user.role === 'student') return String(user.id);
+    if (user?.id && !isTeacher) return String(user.id);
     return '1';
   });
+
+  // Tự động chuyển đúng học sinh khi đăng nhập tài khoản học sinh/cán sự
+  useEffect(() => {
+    if (user?.id && !isTeacher) {
+      setSelectedStudentId(String(user.id));
+    }
+  }, [user, isTeacher]);
 
   const student = students.find(s => s.id === parseInt(selectedStudentId, 10)) || students[0] || INITIAL_STUDENTS[0];
 
@@ -47,13 +54,13 @@ export default function ParentPortal({ students = INITIAL_STUDENTS, attendance =
     toast.success(`Đã lưu nhận xét Sổ Liên Lạc cho em ${student.name}!`);
   };
 
-  // 5 Attendance Sessions Summary
+  // 5 Attendance Sessions Summary (Đồng bộ chuẩn xác với Attendance.jsx)
   const sessionsList = [
     { key: 'morning', label: '1. Buổi Sáng (7h00)', icon: '☀️' },
     { key: 'afternoon', label: '2. Buổi Chiều (13h30)', icon: '🌤️' },
-    { key: 'night_study', label: '3. Tự Học Tối (19h30)', icon: '📖' },
-    { key: 'dorm_night', label: '4. Đi Ngủ KTX (22h30)', icon: '🛏️' },
-    { key: 'activity', label: '5. HĐ Tập Thể & Thể Thao', icon: '⚽' },
+    { key: 'evening_study', label: '3. Tự Học Tối (19h30)', icon: '📖' },
+    { key: 'sleeping', label: '4. Đi Ngủ KTX (22h30)', icon: '🛏️' },
+    { key: 'group_activity', label: '5. HĐ Tập Thể & Thể Thao', icon: '⚽' },
   ];
 
   // Helper status badge getter
@@ -61,7 +68,8 @@ export default function ParentPortal({ students = INITIAL_STUDENTS, attendance =
     const today = new Date().toISOString().split('T')[0];
     const todayAtt = attendance[today] || {};
     const sessMap = todayAtt.sessions && todayAtt.sessions[sessionKey];
-    const st = sessMap ? sessMap[student.id] : 'present';
+    const val = sessMap ? sessMap[student.id] : 'present';
+    const st = typeof val === 'object' && val !== null ? (val.status || 'present') : (val || 'present');
 
     if (st === 'absent') return { text: '🔴 KP (Vắng không phép)', bg: '#fee2e2', color: '#dc2626' };
     if (st === 'permit') return { text: '📝 Có phép', bg: '#dbeafe', color: '#1e40af' };
