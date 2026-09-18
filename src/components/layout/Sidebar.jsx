@@ -11,7 +11,6 @@ const NAV_ITEMS = [
   { id: 'activities',    icon: '📸', label: 'Hoạt động',        roles: ['teacher', 'group_leader', 'monitor', 'room_leader', 'student', 'member'] },
   { id: 'finance',       icon: '💰', label: 'Quỹ lớp',          roles: ['teacher', 'group_leader', 'monitor'] },
   { id: 'evaluation',    icon: '📈', label: 'Thi đua',          roles: ['teacher', 'group_leader', 'monitor', 'room_leader', 'student', 'member'] },
-  { id: 'exam',          icon: '🧭', label: 'Hướng nghiệp',     roles: ['teacher', 'group_leader', 'monitor', 'room_leader', 'student', 'member'] },
   { id: 'ai_assistant',  icon: '🤖', label: 'Trợ lý AI',        roles: ['teacher'] },
   { id: 'parent_portal', icon: '📱', label: 'Sổ Liên Lạc',   roles: ['teacher', 'group_leader', 'monitor', 'room_leader', 'student', 'member'] },
   { id: 'confessions',   icon: '🤫', label: 'Tâm sự',           roles: ['teacher', 'room_leader', 'student', 'member'] },
@@ -163,8 +162,8 @@ export default function Sidebar({ activeTab, setActiveTab, onLoginClick }) {
         <div className="mobile-bottom-scroll">
           {/* Nav tabs */}
           {bottomItems.map(({ id, icon, label }) => {
-            // Khi ở các tab mở rộng (requests, notifications, exam...) thì tab explore được sáng
-            const isExploreActive = id === 'explore' && ['explore', 'requests', 'notifications', 'exam', 'confessions', 'students', 'activities', 'parent_portal'].includes(activeTab);
+            // Khi ở các tab mở rộng (requests, notifications...) thì tab explore được sáng
+            const isExploreActive = id === 'explore' && ['explore', 'requests', 'notifications', 'confessions', 'students', 'activities', 'parent_portal'].includes(activeTab);
             const isTabActive = activeTab === id || isExploreActive;
 
             return (

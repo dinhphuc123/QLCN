@@ -478,27 +478,6 @@ h1, h2, h3, .font-serif { font-family: var(--font-serif); color: var(--color-pri
   }
 }
 
-/* ── CAREER GUIDANCE PORTAL RESPONSIVE GRID ──────────────────────────── */
-.career-main-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1.55fr);
-  gap: 1.5rem;
-}
-
-.nv-input-grid {
-  display: grid;
-  grid-template-columns: 1.1fr 1fr 1fr 90px;
-  gap: 0.5rem;
-}
-
-@media (max-width: 768px) {
-  .career-main-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .nv-input-grid {
-    grid-template-columns: 1fr !important;
-  }
-}
 
 /* ── NATIVE MOBILE APP UTILITIES & TOUCH INTERACTIONS ─────────────────── */
 .touch-scale {

@@ -27,16 +27,7 @@ export default function ExploreHub({ setActiveTab, onOpenPinModal }) {
       border: '#bae6fd',
       badge: 'Cập nhật'
     },
-    {
-      id: 'exam',
-      icon: '🧭',
-      title: 'Hướng Nghiệp & Nguyện Vọng',
-      desc: 'Khảo sát nhóm ngành, trắc nghiệm tính cách & chọn trường ĐH',
-      color: '#d97706',
-      bg: '#fffbeb',
-      border: '#fde68a',
-      badge: 'Lớp 12'
-    },
+
     {
       id: 'confessions',
       icon: '🤫',
