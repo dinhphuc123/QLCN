@@ -103,7 +103,16 @@ export function AuthProvider({ children }) {
       pinMap = JSON.parse(localStorage.getItem('qlcn_student_pins') || '{}');
     } catch {}
 
-    const st = INITIAL_STUDENTS.find(s => String(s.id) === String(studentId));
+    let studentList = INITIAL_STUDENTS;
+    try {
+      const customRaw = localStorage.getItem('qlcn_custom_students');
+      if (customRaw) {
+        const parsed = JSON.parse(customRaw);
+        if (Array.isArray(parsed) && parsed.length > 0) studentList = parsed;
+      }
+    } catch {}
+
+    const st = studentList.find(s => String(s.id) === String(studentId)) || INITIAL_STUDENTS.find(s => String(s.id) === String(studentId));
     if (!st) {
       setLoginError('Không tìm thấy thông tin học sinh trong danh sách lớp.');
       return false;

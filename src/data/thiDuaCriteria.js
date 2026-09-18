@@ -78,14 +78,60 @@ export function calcRanking(score) {
   return RANKING_THRESHOLDS.find(r => score >= r.min && score <= r.max) || RANKING_THRESHOLDS[3];
 }
 
+// Lấy danh sách tiêu chí động (ưu tiên localStorage, fallback về THI_DUA_CRITERIA)
+export function getStoredCriteria() {
+  if (typeof window === 'undefined') return THI_DUA_CRITERIA;
+  try {
+    const raw = localStorage.getItem('qlcn_thi_dua_criteria');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {}
+  return THI_DUA_CRITERIA;
+}
+
+// Lưu danh sách tiêu chí vào localStorage và phát event đồng bộ
+export function saveStoredCriteria(list) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem('qlcn_thi_dua_criteria', JSON.stringify(list));
+    window.dispatchEvent(new CustomEvent('qlcn_criteria_updated', { detail: list }));
+  } catch {}
+}
+
+// Khôi phục 47 tiêu chí gốc
+export function resetStoredCriteria() {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem('qlcn_thi_dua_criteria');
+    window.dispatchEvent(new CustomEvent('qlcn_criteria_updated', { detail: THI_DUA_CRITERIA }));
+  } catch {}
+}
+
+// Lấy các nhóm tiêu chí duy nhất
+export function getCriteriaGroups(criteriaList = null) {
+  const list = criteriaList || getStoredCriteria();
+  return [...new Set(list.map(c => c.group || c.category))];
+}
+
+// Nhóm các tiêu chí theo group (mặc định ban đầu)
+export const CRITERIA_GROUPS = [...new Set(THI_DUA_CRITERIA.map(c => c.group))];
+
+export function getCriteriaByGroup(group, criteriaList = null) {
+  const list = criteriaList || getStoredCriteria();
+  return list.filter(c => (c.group || c.category) === group);
+}
+
 // Tính điểm tuần từ danh sách vi phạm đã chọn
 // violations: [{ criteriaId, count }]
-export function calcWeekScore(violations = []) {
+export function calcWeekScore(violations = [], criteriaList = null) {
+  const list = criteriaList || getStoredCriteria();
   let total = 100;
   for (const v of violations) {
-    const criterion = THI_DUA_CRITERIA.find(c => c.id === v.criteriaId);
+    const criterion = list.find(c => String(c.id) === String(v.criteriaId));
     if (criterion) {
-      total += criterion.points * (v.count || 1);
+      total += Number(criterion.points || 0) * (v.count || 1);
     }
   }
   return Math.max(0, Math.min(150, total)); // cap 0–150 (có bonus)
@@ -100,11 +146,4 @@ export function calcMonthScore(weekScores = []) {
 // Tính điểm học kỳ = TB cộng các tuần trong học kỳ
 export function calcSemesterScore(weekScores = []) {
   return calcMonthScore(weekScores); // same formula
-}
-
-// Nhóm các tiêu chí theo group
-export const CRITERIA_GROUPS = [...new Set(THI_DUA_CRITERIA.map(c => c.group))];
-
-export function getCriteriaByGroup(group) {
-  return THI_DUA_CRITERIA.filter(c => c.group === group);
 }

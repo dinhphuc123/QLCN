@@ -3,7 +3,16 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import toast from 'react-hot-toast';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
-import { THI_DUA_CRITERIA, CRITERIA_GROUPS, getCriteriaByGroup, calcWeekScore, calcRanking } from '../../data/thiDuaCriteria';
+import { 
+  THI_DUA_CRITERIA, 
+  CRITERIA_GROUPS, 
+  getCriteriaByGroup, 
+  calcWeekScore, 
+  calcRanking,
+  getStoredCriteria,
+  saveStoredCriteria,
+  getCriteriaGroups
+} from '../../data/thiDuaCriteria';
 import EvaluationHistoryModal from './EvaluationHistoryModal';
 
 const COLORS = ['#16a34a', '#2563eb', '#d97706', '#dc2626'];
@@ -26,7 +35,39 @@ export default function Evaluation({ students = [], onRefresh }) {
   
   const [selectedViolations, setSelectedViolations] = useState({});
   const [competitionData, setCompetitionData] = useState({}); // studentId -> record
-  const [activeGroup, setActiveGroup] = useState(CRITERIA_GROUPS[0]);
+
+  // Danh mục tiêu chí thi đua động (đồng bộ 2 chiều với Trang Quản trị CMS)
+  const [criteriaList, setCriteriaList] = useState(() => getStoredCriteria());
+  const criteriaGroups = useMemo(() => getCriteriaGroups(criteriaList), [criteriaList]);
+  const [activeGroup, setActiveGroup] = useState(() => criteriaGroups[0] || '1. Chuyên cần');
+
+  // Lắng nghe sự kiện cập nhật tiêu chí từ Trang Quản trị
+  useEffect(() => {
+    const handleCriteriaUpdate = (e) => {
+      if (e.detail && Array.isArray(e.detail)) {
+        setCriteriaList(e.detail);
+      } else {
+        setCriteriaList(getStoredCriteria());
+      }
+    };
+    window.addEventListener('qlcn_criteria_updated', handleCriteriaUpdate);
+    return () => window.removeEventListener('qlcn_criteria_updated', handleCriteriaUpdate);
+  }, []);
+
+  // Tự động kéo tiêu chí mới nhất từ máy chủ API
+  useEffect(() => {
+    const fetchRemoteCriteria = async () => {
+      try {
+        const res = await api.getCriteria();
+        if (res && res.success && Array.isArray(res.criteria) && res.criteria.length > 0) {
+          setCriteriaList(res.criteria);
+          saveStoredCriteria(res.criteria);
+        }
+      } catch {}
+    };
+    fetchRemoteCriteria();
+  }, []);
+
   const [saving, setSaving] = useState(false);
   const [historyStudent, setHistoryStudent] = useState(null); // { id, name } for modal
   const [reviewNotes, setReviewNotes] = useState({}); // studentId -> note
@@ -313,8 +354,8 @@ export default function Evaluation({ students = [], onRefresh }) {
       const score = calcWeekScore(vList);
       const rk = calcRanking(score);
       const vText = vList.map(v => {
-        const c = THI_DUA_CRITERIA.find(item => item.id === v.criteriaId);
-        return c ? `${c.label} (x${v.count})` : '';
+        const c = criteriaList.find(item => String(item.id) === String(v.criteriaId)) || THI_DUA_CRITERIA.find(item => item.id === v.criteriaId);
+        return c ? `${c.label || c.name} (x${v.count})` : '';
       }).filter(Boolean).join(', ');
 
       return `<tr>
@@ -587,13 +628,13 @@ export default function Evaluation({ students = [], onRefresh }) {
             {/* Left Column: 8 Groups Sidebar */}
             <div className="eval-groups-sidebar" style={{ width: '100%', minWidth: 0, overflow: 'hidden' }}>
               <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>📑 8 Nhóm Tiêu Chí</span>
+                <span>📑 {criteriaGroups.length} Nhóm Tiêu Chí</span>
                 <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 600 }}>Vuốt ngang ➔</span>
               </div>
               <div className="eval-groups-list mobile-pill-scroll" style={{ width: '100%', minWidth: 0 }}>
-                {CRITERIA_GROUPS.map((grp) => {
+                {criteriaGroups.map((grp) => {
                   const isActive = activeGroup === grp;
-                  const groupCriteria = getCriteriaByGroup(grp);
+                  const groupCriteria = getCriteriaByGroup(grp, criteriaList);
                   const activeCountInGroup = groupCriteria.reduce((sum, item) => sum + (selectedViolations[item.id] || 0), 0);
                   const isSevereGroup = grp.includes('8.') || grp.toLowerCase().includes('nghiêm trọng');
 
@@ -623,18 +664,20 @@ export default function Evaluation({ students = [], onRefresh }) {
                 marginBottom: '0.4rem', paddingBottom: '0.35rem', borderBottom: '1px solid #f1f5f9',
                 width: '100%', minWidth: 0
               }}>
-                <div style={{ fontSize: '0.9rem', fontWeight: 800, color: activeGroup.includes('8.') ? '#b91c1c' : '#0369a1' }}>
+                <div style={{ fontSize: '0.9rem', fontWeight: 800, color: activeGroup.toLowerCase().includes('nghiêm trọng') ? '#b91c1c' : '#0369a1' }}>
                   {activeGroup}
                 </div>
                 <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
-                  {getCriteriaByGroup(activeGroup).length} tiêu chí
+                  {getCriteriaByGroup(activeGroup, criteriaList).length} tiêu chí
                 </div>
               </div>
 
               {/* Criteria list items */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', maxHeight: '480px', overflowY: 'auto', paddingRight: '0.2rem', width: '100%', minWidth: 0 }}>
-                {getCriteriaByGroup(activeGroup).map(item => {
+                {getCriteriaByGroup(activeGroup, criteriaList).map(item => {
                   const count = selectedViolations[item.id] || 0;
+                  const title = item.label || item.name;
+                  const codeOrId = item.code || `#${item.id}`;
                   return (
                     <div key={item.id} style={{
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -647,10 +690,10 @@ export default function Evaluation({ students = [], onRefresh }) {
                     }}>
                       <div style={{ flex: '1 1 auto', minWidth: 0, paddingRight: '0.5rem' }}>
                         <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#111827', lineHeight: 1.38, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-                          #{item.id}. {item.label}
+                          {codeOrId}. {title}
                         </div>
                         <span style={{ fontSize: '0.74rem', color: item.isBonus ? '#15803d' : '#b91c1c', fontWeight: 800, marginTop: '0.15rem', display: 'inline-block' }}>
-                          {item.points > 0 ? `+${item.points}` : item.points} điểm / {item.unit}
+                          {item.points > 0 ? `+${item.points}` : item.points} điểm / {item.unit || 'lần'}
                         </span>
                       </div>
 

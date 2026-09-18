@@ -1,8 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useClassSettings } from '../../context/ClassSettingsContext';
 import { api } from '../../lib/api';
 import ConfirmModal from '../ui/ConfirmModal';
+import { 
+  THI_DUA_CRITERIA, 
+  getStoredCriteria, 
+  saveStoredCriteria, 
+  resetStoredCriteria, 
+  getCriteriaGroups, 
+  CRITERIA_GROUPS 
+} from '../../data/thiDuaCriteria';
+
+const QUICK_POSITIONS = [
+  { label: '👑 Lớp trưởng', pos: 'Lớp trưởng', role: 'monitor' },
+  { label: '📚 Lớp phó học tập', pos: 'Lớp phó học tập', role: 'room_leader' },
+  { label: '⚡ Lớp phó lao động', pos: 'Lớp phó lao động', role: 'member' },
+  { label: '🎨 Lớp phó văn thể', pos: 'Lớp phó văn thể mỹ', role: 'member' },
+  { label: '⭐ Tổ trưởng', pos: 'Tổ trưởng', role: 'group_leader' },
+  { label: '🏠 Trưởng phòng', pos: 'Trưởng phòng', role: 'room_leader' },
+  { label: '💰 Thủ quỹ', pos: 'Thủ quỹ', role: 'member' },
+  { label: '👨‍🎓 Thành viên', pos: 'Thành viên', role: 'member' },
+];
 
 export default function CmsAdminPanel({ students = [], finance = [], announcements = [], onRefresh }) {
   const { settings, updateSettings } = useClassSettings();
@@ -11,56 +30,112 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
   // Class Info form
   const [classForm, setClassForm] = useState({ ...settings });
 
-  // Student CRUD state
+  // Student CRUD state (Hỗ trợ Position & Role)
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
   const [studentForm, setStudentForm] = useState({
-    name: '', gender: 'Nữ', group: 'Tổ 1', dormRoom: 'A1-07', phone: '', motherPhone: '', fatherPhone: '', position: '', isPoor: false
+    name: '', gender: 'Nữ', group: 'Tổ 1', dormRoom: 'A1-07', phone: '', motherPhone: '', fatherPhone: '', position: 'Thành viên', role: 'member', isPoor: false
   });
   const [deleteStudentTarget, setDeleteStudentTarget] = useState(null);
 
-  // Criteria CRUD state
-  const [criteriaList, setCriteriaList] = useState([
-    { id: '1', code: 'TC01', name: 'Đi học muộn (sau 07:00 / 13:30)', points: -2, category: 'Nề nếp' },
-    { id: '2', code: 'TC02', name: 'Vắng học không phép', points: -5, category: 'Điểm danh' },
-    { id: '3', code: 'TC03', name: 'Không thuộc bài cũ', points: -3, category: 'Học tập' },
-    { id: '4', code: 'TC04', name: 'KTX 21:30 không tắt đèn', points: -4, category: 'KTX Nội trú' },
-    { id: '5', code: 'TC05', name: 'Sử dụng điện thoại trong giờ', points: -3, category: 'Nề nếp' },
-    { id: '6', code: 'TC06', name: 'Không mặc đồng phục quy định', points: -2, category: 'Nề nếp' },
-    { id: '7', code: 'TC07', name: 'Đạt điểm 10 kiểm tra / Đạt giải', points: 5, category: 'Khen thưởng' },
-  ]);
+  // Criteria CRUD state (Đồng bộ 47 tiêu chí chuẩn từ thiDuaCriteria)
+  const [criteriaList, setCriteriaList] = useState(() => getStoredCriteria());
+  const [selectedGroup, setSelectedGroup] = useState('ALL');
+  const [criteriaSearch, setCriteriaSearch] = useState('');
   const [showCriteriaModal, setShowCriteriaModal] = useState(false);
   const [editingCriteria, setEditingCriteria] = useState(null);
-  const [criteriaForm, setCriteriaForm] = useState({ code: '', name: '', points: -2, category: 'Nề nếp' });
+  const [criteriaForm, setCriteriaForm] = useState({ 
+    code: '', 
+    name: '', 
+    points: -5, 
+    category: '1. Chuyên cần',
+    unit: 'lần',
+    severe: false
+  });
+
+  // Tự động đồng bộ tiêu chí từ Server nếu có
+  useEffect(() => {
+    const fetchRemoteCriteria = async () => {
+      try {
+        const res = await api.getCriteria();
+        if (res && res.success && Array.isArray(res.criteria) && res.criteria.length > 0) {
+          setCriteriaList(res.criteria);
+          saveStoredCriteria(res.criteria);
+        }
+      } catch {}
+    };
+    fetchRemoteCriteria();
+  }, []);
 
   // ── Student CRUD Handlers ──────────────────────────────────────────────────
   const handleOpenStudentModal = (student = null) => {
     if (student) {
       setEditingStudent(student);
-      setStudentForm({ ...student });
+      setStudentForm({ 
+        ...student,
+        position: student.position || 'Thành viên',
+        role: student.role || 'member'
+      });
     } else {
       setEditingStudent(null);
       setStudentForm({
         id: students.length + 1,
-        name: '', gender: 'Nữ', group: 'Tổ 1', dormRoom: 'A1-07', phone: '', motherPhone: '', fatherPhone: '', position: 'Thành viên', isPoor: false
+        name: '', gender: 'Nữ', group: 'Tổ 1', dormRoom: 'A1-07', phone: '', motherPhone: '', fatherPhone: '', position: 'Thành viên', role: 'member', isPoor: false
       });
     }
     setShowStudentModal(true);
+  };
+
+  const handleQuickSelectPosition = (item) => {
+    if (item.pos === 'Thành viên') {
+      setStudentForm(prev => ({ ...prev, position: 'Thành viên', role: 'member' }));
+      return;
+    }
+    setStudentForm(prev => {
+      const currentPos = prev.position && prev.position !== 'Thành viên' ? prev.position : '';
+      let newPos = currentPos;
+      if (!currentPos) {
+        newPos = item.pos;
+      } else if (!currentPos.includes(item.pos)) {
+        newPos = `${currentPos}, ${item.pos}`;
+      }
+      
+      let newRole = prev.role;
+      if (newPos.includes('Lớp trưởng')) newRole = 'monitor';
+      else if (newPos.includes('Tổ trưởng')) newRole = 'group_leader';
+      else if (newPos.includes('Trưởng phòng') && newRole !== 'monitor' && newRole !== 'group_leader') newRole = 'room_leader';
+      else if (item.role) newRole = item.role;
+
+      return { ...prev, position: newPos, role: newRole };
+    });
   };
 
   const handleSaveStudent = async (e) => {
     e.preventDefault();
     if (!studentForm.name.trim()) { toast.error('Vui lòng nhập họ tên!'); return; }
 
+    // Tự động chuẩn hóa vai trò kỹ thuật
+    let finalRole = studentForm.role || 'member';
+    const pos = studentForm.position || '';
+    if (pos.includes('Lớp trưởng')) finalRole = 'monitor';
+    else if (pos.includes('Tổ trưởng')) finalRole = 'group_leader';
+    else if (pos.includes('Trưởng phòng') && finalRole !== 'monitor' && finalRole !== 'group_leader') finalRole = 'room_leader';
+
+    const finalStudentData = { ...studentForm, role: finalRole };
+
     let updated = [];
     if (editingStudent) {
-      updated = students.map(s => s.id === editingStudent.id ? { ...s, ...studentForm } : s);
+      updated = students.map(s => s.id === editingStudent.id ? { ...s, ...finalStudentData } : s);
     } else {
-      updated = [...students, { ...studentForm, id: students.length > 0 ? Math.max(...students.map(s => s.id)) + 1 : 1 }];
+      updated = [...students, { ...finalStudentData, id: students.length > 0 ? Math.max(...students.map(s => s.id)) + 1 : 1 }];
     }
 
+    try {
+      localStorage.setItem('qlcn_custom_students', JSON.stringify(updated));
+    } catch {}
+
     await api.updateStudents(updated);
-    toast.success(editingStudent ? 'Đã cập nhật học sinh!' : 'Đã thêm học sinh mới thành công!');
+    toast.success(editingStudent ? 'Đã cập nhật học sinh và chức vụ!' : 'Đã thêm học sinh mới thành công!');
     setShowStudentModal(false);
     onRefresh();
   };
@@ -68,6 +143,9 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
   const handleDeleteStudent = async () => {
     if (!deleteStudentTarget) return;
     const updated = students.filter(s => s.id !== deleteStudentTarget.id);
+    try {
+      localStorage.setItem('qlcn_custom_students', JSON.stringify(updated));
+    } catch {}
     await api.updateStudents(updated);
     toast.success(`Đã xóa học sinh ${deleteStudentTarget.name}!`);
     setDeleteStudentTarget(null);
@@ -75,24 +153,78 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
   };
 
   // ── Criteria CRUD Handlers ────────────────────────────────────────────────
-  const handleSaveCriteria = (e) => {
+  const handleSaveCriteria = async (e) => {
     e.preventDefault();
-    if (!criteriaForm.name.trim()) { toast.error('Vui lòng nhập tên tiêu chí!'); return; }
+    const name = (criteriaForm.name || criteriaForm.label || '').trim();
+    if (!name) { toast.error('Vui lòng nhập tên tiêu chí!'); return; }
 
+    let updatedList = [];
     if (editingCriteria) {
-      setCriteriaList(prev => prev.map(c => c.id === editingCriteria.id ? { ...c, ...criteriaForm } : c));
-      toast.success('Đã cập nhật tiêu chí!');
+      updatedList = criteriaList.map(c => {
+        if (c.id === editingCriteria.id) {
+          return {
+            ...c,
+            ...criteriaForm,
+            name: name,
+            label: name,
+            group: criteriaForm.category || criteriaForm.group,
+            category: criteriaForm.category || criteriaForm.group,
+            points: Number(criteriaForm.points),
+            unit: criteriaForm.unit || 'lần',
+            severe: Boolean(criteriaForm.severe),
+            isBonus: Number(criteriaForm.points) > 0,
+          };
+        }
+        return c;
+      });
+      toast.success('Đã cập nhật tiêu chí thi đua!');
     } else {
-      const newCriteria = { ...criteriaForm, id: String(Date.now()), code: criteriaForm.code || `TC${String(criteriaList.length + 1).padStart(2, '0')}` };
-      setCriteriaList(prev => [...prev, newCriteria]);
+      const nextId = criteriaList.length > 0 ? Math.max(...criteriaList.map(c => Number(c.id) || 0)) + 1 : 1;
+      const code = criteriaForm.code || `TC${String(nextId).padStart(2, '0')}`;
+      const newCrit = {
+        id: nextId,
+        code: code,
+        name: name,
+        label: name,
+        group: criteriaForm.category || criteriaForm.group || '1. Chuyên cần',
+        category: criteriaForm.category || criteriaForm.group || '1. Chuyên cần',
+        points: Number(criteriaForm.points),
+        unit: criteriaForm.unit || 'lần',
+        severe: Boolean(criteriaForm.severe),
+        isBonus: Number(criteriaForm.points) > 0,
+        autoLink: null,
+      };
+      updatedList = [...criteriaList, newCrit];
       toast.success('Đã thêm tiêu chí thi đua mới!');
     }
+
+    setCriteriaList(updatedList);
+    saveStoredCriteria(updatedList);
+    try {
+      await api.updateCriteria(updatedList);
+    } catch {}
     setShowCriteriaModal(false);
   };
 
-  const handleDeleteCriteria = (id) => {
-    setCriteriaList(prev => prev.filter(c => c.id !== id));
-    toast.success('Đã xóa tiêu chí!');
+  const handleDeleteCriteria = async (id) => {
+    const updatedList = criteriaList.filter(c => c.id !== id);
+    setCriteriaList(updatedList);
+    saveStoredCriteria(updatedList);
+    try {
+      await api.updateCriteria(updatedList);
+    } catch {}
+    toast.success('Đã xóa tiêu chí khỏi danh mục!');
+  };
+
+  const handleResetToDefaultCriteria = async () => {
+    if (window.confirm('Bạn có chắc chắn muốn khôi phục lại 47 tiêu chí chuẩn ban đầu của lớp?')) {
+      resetStoredCriteria();
+      setCriteriaList([...THI_DUA_CRITERIA]);
+      try {
+        await api.updateCriteria(THI_DUA_CRITERIA);
+      } catch {}
+      toast.success('🎉 Đã khôi phục 47 tiêu chí thi đua chuẩn!');
+    }
   };
 
   // ── Backup / Restore Handlers ─────────────────────────────────────────────
@@ -249,7 +381,49 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
                     <td style={{ padding: '0.75rem', fontSize: '0.85rem', fontWeight: 600 }}>{s.group}</td>
                     <td style={{ padding: '0.75rem', fontSize: '0.85rem' }}>{s.dormRoom}</td>
                     <td style={{ padding: '0.75rem', fontSize: '0.85rem', color: '#2563eb' }}>{s.phone || '—'}</td>
-                    <td style={{ padding: '0.75rem', fontSize: '0.82rem' }}>{s.position || 'Thành viên'}</td>
+                    <td style={{ padding: '0.75rem', fontSize: '0.82rem' }}>
+                      {(() => {
+                        const pos = s.position || 'Thành viên';
+                        const isMonitor = pos.includes('Lớp trưởng') || s.role === 'monitor';
+                        const isGroupLeader = pos.includes('Tổ trưởng') || s.role === 'group_leader';
+                        const isRoomLeader = pos.includes('Trưởng phòng') || s.role === 'room_leader';
+                        const isVice = pos.includes('Lớp phó');
+                        const isTreasurer = pos.includes('Thủ quỹ');
+
+                        let bg = '#f1f5f9';
+                        let color = '#475569';
+                        let border = '#cbd5e1';
+
+                        if (isMonitor) {
+                          bg = '#fef3c7'; color = '#92400e'; border = '#fde68a';
+                        } else if (isGroupLeader) {
+                          bg = '#e0f2fe'; color = '#0369a1'; border = '#bae6fd';
+                        } else if (isRoomLeader) {
+                          bg = '#ecfdf5'; color = '#047857'; border = '#a7f3d0';
+                        } else if (isVice) {
+                          bg = '#ede9fe'; color = '#5b21b6'; border = '#ddd6fe';
+                        } else if (isTreasurer) {
+                          bg = '#fef9c3'; color = '#854d0e'; border = '#fef08a';
+                        }
+
+                        return (
+                          <span style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                            padding: '0.25rem 0.65rem', borderRadius: '9999px',
+                            background: bg, color: color, border: `1px solid ${border}`,
+                            fontWeight: isMonitor || isGroupLeader || isRoomLeader || isVice ? 800 : 600,
+                            fontSize: '0.75rem', whiteSpace: 'nowrap'
+                          }}>
+                            {isMonitor && '👑 '}
+                            {isGroupLeader && '⭐ '}
+                            {isRoomLeader && '🏠 '}
+                            {isVice && '📚 '}
+                            {isTreasurer && '💰 '}
+                            {pos}
+                          </span>
+                        );
+                      })()}
+                    </td>
                     <td style={{ padding: '0.75rem', textAlign: 'center' }}>
                       <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
                         <button onClick={() => handleOpenStudentModal(s)} style={{ padding: '0.3rem 0.6rem', borderRadius: '0.375rem', background: '#e0f2fe', color: '#0369a1', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.75rem' }}>
@@ -273,39 +447,213 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
         <div className="glass-panel" style={{ padding: '2rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
             <div>
-              <h3 style={{ margin: 0 }}>📊 Danh Mục 47 Tiêu Chí Thi Đua Nề Nếp</h3>
+              <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span>📊</span>
+                <span>Danh Mục 47 Tiêu Chí Thi Đua Nề Nếp</span>
+                <span style={{ fontSize: '0.78rem', background: '#dcfce7', color: '#15803d', padding: '0.15rem 0.6rem', borderRadius: '9999px', fontWeight: 800 }}>
+                  {criteriaList.length} tiêu chí
+                </span>
+              </h3>
               <p style={{ fontSize: '0.82rem', color: '#6b7280', marginTop: '0.2rem' }}>
-                Thêm mới, điều chỉnh mức phạt/cộng điểm hoặc xóa các tiêu chí nề nếp
+                Đồng bộ 2 chiều trực tiếp với giao diện Tự đánh giá & Điểm thi đua của Học sinh, Tổ trưởng và GVCN.
               </p>
             </div>
-            <button className="btn-primary" onClick={() => { setEditingCriteria(null); setCriteriaForm({ code: `TC${String(criteriaList.length + 1).padStart(2, '0')}`, name: '', points: -2, category: 'Nề nếp' }); setShowCriteriaModal(true); }} style={{ background: '#16a34a' }}>
-              ➕ Thêm Tiêu Chí Mới
-            </button>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button 
+                type="button" 
+                onClick={handleResetToDefaultCriteria}
+                style={{ 
+                  padding: '0.65rem 1rem', borderRadius: '0.75rem', border: '1.5px solid #d97706',
+                  background: '#fffbeb', color: '#b45309', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' 
+                }}
+                title="Khôi phục danh sách về 47 tiêu chí gốc ban đầu của lớp"
+              >
+                🔄 Khôi Phục 47 Gốc
+              </button>
+              <button 
+                className="btn-primary" 
+                onClick={() => { 
+                  setEditingCriteria(null); 
+                  setCriteriaForm({ 
+                    code: `TC${String(criteriaList.length + 1).padStart(2, '0')}`, 
+                    name: '', 
+                    points: -5, 
+                    category: selectedGroup === 'ALL' ? '1. Chuyên cần' : selectedGroup,
+                    unit: 'lần',
+                    severe: false
+                  }); 
+                  setShowCriteriaModal(true); 
+                }} 
+                style={{ background: '#16a34a', padding: '0.65rem 1.25rem' }}
+              >
+                ➕ Thêm Tiêu Chí Mới
+              </button>
+            </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
-            {criteriaList.map(tc => (
-              <div key={tc.id} style={{ background: 'white', border: '1.5px solid #e2e8f0', borderRadius: '0.875rem', padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <span style={{ fontSize: '0.7rem', background: '#f1f5f9', color: '#475569', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: 700 }}>
-                    {tc.code} • {tc.category}
-                  </span>
-                  <h4 style={{ margin: '0.4rem 0 0.2rem 0', fontSize: '0.95rem' }}>{tc.name}</h4>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 800, color: tc.points > 0 ? '#16a34a' : '#dc2626' }}>
-                    {tc.points > 0 ? `+${tc.points} điểm (Khen thưởng)` : `${tc.points} điểm (Trừ thi đua)`}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                  <button onClick={() => { setEditingCriteria(tc); setCriteriaForm({ ...tc }); setShowCriteriaModal(true); }} style={{ padding: '0.3rem 0.6rem', borderRadius: '0.375rem', background: '#e0f2fe', color: '#0369a1', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.75rem' }}>
-                    ✏️ Sửa
+          {/* 8 Nhóm tiêu chí Filter Bar & Tìm kiếm */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', gap: '0.4rem', overflowX: 'auto', paddingBottom: '0.35rem', scrollbarWidth: 'none' }}>
+              <button
+                type="button"
+                onClick={() => setSelectedGroup('ALL')}
+                style={{
+                  padding: '0.4rem 0.85rem', borderRadius: '9999px',
+                  border: selectedGroup === 'ALL' ? '1px solid var(--color-primary-brand)' : '1px solid #e2e8f0',
+                  fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
+                  background: selectedGroup === 'ALL' ? 'var(--color-primary-brand)' : 'white',
+                  color: selectedGroup === 'ALL' ? 'white' : '#475569',
+                  boxShadow: selectedGroup === 'ALL' ? '0 2px 8px rgba(114, 155, 18, 0.25)' : 'none',
+                }}
+              >
+                📋 Tất cả ({criteriaList.length})
+              </button>
+              {CRITERIA_GROUPS.map(grp => {
+                const countInGrp = criteriaList.filter(c => (c.group || c.category) === grp).length;
+                const isSelected = selectedGroup === grp;
+                return (
+                  <button
+                    key={grp}
+                    type="button"
+                    onClick={() => setSelectedGroup(grp)}
+                    style={{
+                      padding: '0.4rem 0.85rem', borderRadius: '9999px',
+                      border: isSelected ? '1px solid var(--color-primary-brand)' : '1px solid #e2e8f0',
+                      fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
+                      background: isSelected ? 'var(--color-primary-brand)' : 'white',
+                      color: isSelected ? 'white' : '#475569',
+                      boxShadow: isSelected ? '0 2px 8px rgba(114, 155, 18, 0.25)' : 'none',
+                    }}
+                  >
+                    {grp} ({countInGrp})
                   </button>
-                  <button onClick={() => handleDeleteCriteria(tc.id)} style={{ padding: '0.3rem 0.6rem', borderRadius: '0.375rem', background: '#fee2e2', color: '#991b1b', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.75rem' }}>
-                    🗑️ Xóa
-                  </button>
-                </div>
-              </div>
-            ))}
+                );
+              })}
+            </div>
+
+            <div style={{ position: 'relative' }}>
+              <span style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.95rem' }}>🔍</span>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Tìm kiếm theo tên tiêu chí, mã số hoặc số điểm..."
+                style={{ width: '100%', paddingLeft: '2.4rem', borderRadius: '0.75rem' }}
+                value={criteriaSearch}
+                onChange={e => setCriteriaSearch(e.target.value)}
+              />
+            </div>
           </div>
+
+          {/* Danh sách tiêu chí Cards */}
+          {(() => {
+            const filteredCriteria = criteriaList.filter(c => {
+              const grp = c.group || c.category;
+              const matchGroup = selectedGroup === 'ALL' || grp === selectedGroup;
+              if (!matchGroup) return false;
+              if (!criteriaSearch.trim()) return true;
+              const term = criteriaSearch.toLowerCase();
+              const name = (c.label || c.name || '').toLowerCase();
+              const code = (c.code || '').toLowerCase();
+              const pointsStr = String(c.points || '');
+              return name.includes(term) || code.includes(term) || pointsStr.includes(term);
+            });
+
+            if (filteredCriteria.length === 0) {
+              return (
+                <div style={{ textAlign: 'center', padding: '3rem 1rem', background: '#f8fafc', borderRadius: '1rem', color: '#64748b' }}>
+                  <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>🔎</span>
+                  Không tìm thấy tiêu chí nào phù hợp với bộ lọc.
+                </div>
+              );
+            }
+
+            return (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(310px, 1fr))', gap: '1rem' }}>
+                {filteredCriteria.map(tc => {
+                  const title = tc.label || tc.name;
+                  const groupName = tc.group || tc.category || 'Tiêu chí';
+                  const isBonus = Number(tc.points) > 0;
+                  const isSevere = Boolean(tc.severe);
+
+                  return (
+                    <div 
+                      key={tc.id} 
+                      style={{ 
+                        background: 'white', 
+                        border: isSevere ? '1.5px solid #fca5a5' : '1.5px solid #e2e8f0', 
+                        borderRadius: '0.875rem', 
+                        padding: '1.2rem', 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'flex-start',
+                        gap: '0.75rem',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                        transition: 'transform 0.15s ease'
+                      }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.4rem' }}>
+                          <span style={{ fontSize: '0.7rem', background: '#f1f5f9', color: '#334155', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: 800 }}>
+                            {tc.code ? `${tc.code}` : `#${tc.id}`}
+                          </span>
+                          <span style={{ fontSize: '0.7rem', background: '#e0f2fe', color: '#0369a1', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: 700 }}>
+                            {groupName}
+                          </span>
+                          {isSevere && (
+                            <span style={{ fontSize: '0.68rem', background: '#fee2e2', color: '#991b1b', padding: '0.15rem 0.45rem', borderRadius: '4px', fontWeight: 800 }}>
+                              🚨 Nghiêm trọng
+                            </span>
+                          )}
+                        </div>
+
+                        <h4 style={{ margin: '0.2rem 0 0.4rem 0', fontSize: '0.92rem', fontWeight: 800, color: '#1e293b', wordBreak: 'break-word', lineHeight: 1.4 }}>
+                          {title}
+                        </h4>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span style={{ fontSize: '0.84rem', fontWeight: 900, color: isBonus ? '#16a34a' : '#dc2626' }}>
+                            {isBonus ? `+${tc.points}` : `${tc.points}`} điểm
+                          </span>
+                          <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                            / {tc.unit || 'lần'}
+                          </span>
+                          <span style={{ fontSize: '0.72rem', color: isBonus ? '#15803d' : '#991b1b', fontWeight: 600 }}>
+                            ({isBonus ? 'Khen thưởng' : 'Trừ thi đua'})
+                          </span>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', flexShrink: 0 }}>
+                        <button 
+                          onClick={() => { 
+                            setEditingCriteria(tc); 
+                            setCriteriaForm({ 
+                              ...tc,
+                              name: tc.label || tc.name,
+                              category: tc.group || tc.category,
+                              points: tc.points,
+                              unit: tc.unit || 'lần',
+                              severe: Boolean(tc.severe),
+                            }); 
+                            setShowCriteriaModal(true); 
+                          }} 
+                          style={{ padding: '0.35rem 0.7rem', borderRadius: '0.375rem', background: '#e0f2fe', color: '#0369a1', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.75rem' }}
+                        >
+                          ✏️ Sửa
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteCriteria(tc.id)} 
+                          style={{ padding: '0.35rem 0.7rem', borderRadius: '0.375rem', background: '#fee2e2', color: '#991b1b', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.75rem' }}
+                        >
+                          🗑️ Xóa
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -420,6 +768,89 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
                   <input type="text" className="form-input" style={{ width: '100%' }} value={studentForm.fatherPhone} onChange={e => setStudentForm({ ...studentForm, fatherPhone: e.target.value })} />
                 </div>
               </div>
+
+              {/* Chức vụ & Vai trò học sinh */}
+              <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '0.85rem', border: '1.5px solid #e2e8f0' }}>
+                <label style={{ fontSize: '0.8rem', fontWeight: 800, display: 'block', marginBottom: '0.4rem', color: '#1e293b' }}>
+                  🎖️ Chức Vụ Học Sinh (Chọn nhanh hoặc tự nhập)
+                </label>
+                
+                {/* Quick Select Buttons */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.6rem' }}>
+                  {QUICK_POSITIONS.map(item => {
+                    const isSelected = (studentForm.position || '').includes(item.pos);
+                    return (
+                      <button
+                        key={item.pos}
+                        type="button"
+                        onClick={() => handleQuickSelectPosition(item)}
+                        style={{
+                          padding: '0.25rem 0.6rem',
+                          borderRadius: '9999px',
+                          border: isSelected ? '1.5px solid var(--color-primary-brand)' : '1px solid #cbd5e1',
+                          background: isSelected ? '#ecfccb' : 'white',
+                          color: isSelected ? '#3f6212' : '#334155',
+                          fontSize: '0.72rem',
+                          fontWeight: isSelected ? 800 : 600,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <input
+                  type="text"
+                  className="form-input"
+                  style={{ width: '100%', marginBottom: '0.75rem', fontSize: '0.85rem' }}
+                  value={studentForm.position}
+                  onChange={e => {
+                    const val = e.target.value;
+                    let r = studentForm.role;
+                    if (val.includes('Lớp trưởng')) r = 'monitor';
+                    else if (val.includes('Tổ trưởng')) r = 'group_leader';
+                    else if (val.includes('Trưởng phòng') && r !== 'monitor' && r !== 'group_leader') r = 'room_leader';
+                    setStudentForm({ ...studentForm, position: val, role: r });
+                  }}
+                  placeholder="VD: Lớp phó học tập, Trưởng phòng..."
+                />
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 700, display: 'block', marginBottom: '0.25rem', color: '#475569' }}>
+                      Vai Trò Kỹ Thuật (Role)
+                    </label>
+                    <select
+                      className="form-input"
+                      style={{ width: '100%', fontSize: '0.8rem' }}
+                      value={studentForm.role || 'member'}
+                      onChange={e => setStudentForm({ ...studentForm, role: e.target.value })}
+                    >
+                      <option value="member">👨‍🎓 member (Học sinh/Thành viên)</option>
+                      <option value="monitor">👑 monitor (Lớp trưởng)</option>
+                      <option value="group_leader">⭐ group_leader (Tổ trưởng)</option>
+                      <option value="room_leader">🏠 room_leader (Trưởng phòng)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 700, display: 'block', marginBottom: '0.25rem', color: '#475569' }}>
+                      Hoàn Cảnh Gia Đình
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', marginTop: '0.4rem', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={Boolean(studentForm.isPoor)}
+                        onChange={e => setStudentForm({ ...studentForm, isPoor: e.target.checked })}
+                      />
+                      <span>Gia đình diện cận nghèo</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
                 <button type="button" onClick={() => setShowStudentModal(false)} style={{ flex: 1, padding: '0.65rem', borderRadius: '9999px', border: '1.5px solid #d1d5db', background: 'white', cursor: 'pointer', fontWeight: 600 }}>Hủy</button>
                 <button type="submit" className="btn-primary" style={{ flex: 2, padding: '0.65rem' }}>💾 Lưu thông tin</button>
@@ -432,23 +863,75 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
       {/* ── Modal Thêm / Sửa Tiêu Chí ──────────────────────────────────────── */}
       {showCriteriaModal && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 250, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-          <div style={{ background: 'white', borderRadius: '1.5rem', padding: '2rem', width: '100%', maxWidth: '460px', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <div style={{ background: 'white', borderRadius: '1.5rem', padding: '2rem', width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <h3 style={{ margin: 0 }}>{editingCriteria ? '✏️ Sửa Tiêu Chí Thi Đua' : '➕ Thêm Tiêu Chí Thi Đua Mới'}</h3>
             <form onSubmit={handleSaveCriteria} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem' }}>Tên Tiêu Chí (*)</label>
-                <input type="text" className="form-input" style={{ width: '100%' }} value={criteriaForm.name} onChange={e => setCriteriaForm({ ...criteriaForm, name: e.target.value })} placeholder="VD: Đi học muộn..." required />
+                <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem' }}>Nhóm Tiêu Chí (*)</label>
+                <select 
+                  className="form-input" 
+                  style={{ width: '100%' }} 
+                  value={criteriaForm.category || criteriaForm.group || '1. Chuyên cần'} 
+                  onChange={e => setCriteriaForm({ ...criteriaForm, category: e.target.value, group: e.target.value })}
+                >
+                  {CRITERIA_GROUPS.map(grp => (
+                    <option key={grp} value={grp}>{grp}</option>
+                  ))}
+                </select>
               </div>
+
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem' }}>Tên Tiêu Chí (*)</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  style={{ width: '100%' }} 
+                  value={criteriaForm.name || criteriaForm.label || ''} 
+                  onChange={e => setCriteriaForm({ ...criteriaForm, name: e.target.value, label: e.target.value })} 
+                  placeholder="VD: Đi học trễ, Không làm bài tập..." 
+                  required 
+                />
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
                 <div>
                   <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem' }}>Mã Tiêu chí</label>
-                  <input type="text" className="form-input" style={{ width: '100%' }} value={criteriaForm.code} onChange={e => setCriteriaForm({ ...criteriaForm, code: e.target.value })} placeholder="TC08" />
+                  <input type="text" className="form-input" style={{ width: '100%' }} value={criteriaForm.code || ''} onChange={e => setCriteriaForm({ ...criteriaForm, code: e.target.value })} placeholder="TC08" />
                 </div>
                 <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem' }}>Số điểm (+/-)</label>
-                  <input type="number" className="form-input" style={{ width: '100%' }} value={criteriaForm.points} onChange={e => setCriteriaForm({ ...criteriaForm, points: parseInt(e.target.value, 10) || 0 })} />
+                  <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem' }}>Số điểm (+ cộng / - trừ)</label>
+                  <input type="number" className="form-input" style={{ width: '100%' }} value={criteriaForm.points} onChange={e => setCriteriaForm({ ...criteriaForm, points: parseInt(e.target.value, 10) || 0 })} placeholder="-5, +5..." required />
                 </div>
               </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
+                <div>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem' }}>Đơn vị tính</label>
+                  <select 
+                    className="form-input" 
+                    style={{ width: '100%' }} 
+                    value={criteriaForm.unit || 'lần'} 
+                    onChange={e => setCriteriaForm({ ...criteriaForm, unit: e.target.value })}
+                  >
+                    <option value="lần">lần</option>
+                    <option value="buổi">buổi</option>
+                    <option value="tiết">tiết</option>
+                    <option value="tuần">tuần</option>
+                    <option value="trường hợp">trường hợp</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', paddingTop: '1.2rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', fontWeight: 700, color: '#dc2626', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={Boolean(criteriaForm.severe)} 
+                      onChange={e => setCriteriaForm({ ...criteriaForm, severe: e.target.checked })} 
+                    />
+                    <span>🚨 Vi phạm nghiêm trọng (-50đ)</span>
+                  </label>
+                </div>
+              </div>
+
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
                 <button type="button" onClick={() => setShowCriteriaModal(false)} style={{ flex: 1, padding: '0.65rem', borderRadius: '9999px', border: '1.5px solid #d1d5db', background: 'white', cursor: 'pointer', fontWeight: 600 }}>Hủy</button>
                 <button type="submit" className="btn-primary" style={{ flex: 2, padding: '0.65rem' }}>💾 Lưu tiêu chí</button>

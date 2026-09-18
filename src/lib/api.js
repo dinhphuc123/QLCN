@@ -125,6 +125,10 @@ export const api = {
   // ── File Upload Dynamic API ────────────────────────────────────────────
   uploadFile: (formData) => upload('/api/upload', formData),
 
+  // ── Criteria CRUD Dynamic API (47 Tiêu chí thi đua) ─────────────────────
+  getCriteria:    ()         => request('/api/criteria'),
+  updateCriteria: (criteria) => request('/api/criteria', { method: 'PUT', body: JSON.stringify({ criteria }) }),
+
   // ── Confessions Dynamic API ────────────────────────────────────────────
   createConfession: (conf) => request('/api/confessions', { method: 'POST', body: JSON.stringify(conf) }),
   replyConfession:  (id, reply) => request(`/api/confessions/${id}/reply`, { method: 'PUT', body: JSON.stringify({ reply }) }),

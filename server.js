@@ -7,6 +7,7 @@ import multer from 'multer';
 import jwt from 'jsonwebtoken';
 import { createClient } from '@supabase/supabase-js';
 import { INITIAL_STUDENTS } from './src/data/initialStudents.js';
+import { THI_DUA_CRITERIA } from './src/data/thiDuaCriteria.js';
 
 dotenv.config();
 
@@ -79,11 +80,13 @@ function readDB() {
     if (!Array.isArray(inMemoryDB.activities)) inMemoryDB.activities = [];
     if (!Array.isArray(inMemoryDB.finance)) inMemoryDB.finance = [];
     if (!Array.isArray(inMemoryDB.auditLogs)) inMemoryDB.auditLogs = [];
+    if (!Array.isArray(inMemoryDB.criteria) || inMemoryDB.criteria.length === 0) inMemoryDB.criteria = [...THI_DUA_CRITERIA];
     return inMemoryDB;
   }
   
   let data = {
     students: [...INITIAL_STUDENTS],
+    criteria: [...THI_DUA_CRITERIA],
     timetableImage: '',
     timetableData: {
       'Thứ 2': { morning: ['', '', '', '', ''], afternoon: ['', '', ''] },
@@ -974,6 +977,24 @@ function getAttendanceAutoFill(db, studentId, weekId) {
   }
   return { absent_permit, absent_no_permit, absent_self_study, late_sleep };
 }
+
+// ── Criteria CRUD API (Đồng bộ 47 tiêu chí thi đua) ──────────────────────
+app.get('/api/criteria', (req, res) => {
+  const db = readDB();
+  res.json({ success: true, criteria: db.criteria || THI_DUA_CRITERIA });
+});
+
+app.put('/api/criteria', (req, res) => {
+  const { criteria } = req.body;
+  if (!Array.isArray(criteria)) {
+    return res.status(400).json({ success: false, error: 'Danh sách tiêu chí không hợp lệ' });
+  }
+  const db = readDB();
+  db.criteria = criteria;
+  writeDB(db);
+  addAuditLog(req.user, 'update', 'criteria', `Cập nhật danh mục ${criteria.length} tiêu chí thi đua`);
+  res.json({ success: true, criteria: db.criteria });
+});
 
 // GET /api/competition?week=tuan_XX → full week data (backward compat)
 app.get('/api/competition', (req, res) => {

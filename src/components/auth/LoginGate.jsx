@@ -22,20 +22,32 @@ export default function LoginGate() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const officers = INITIAL_STUDENTS.filter(s => {
+  // Lấy danh sách học sinh từ localStorage hoặc INITIAL_STUDENTS
+  let studentList = INITIAL_STUDENTS;
+  try {
+    const customRaw = localStorage.getItem('qlcn_custom_students');
+    if (customRaw) {
+      const parsed = JSON.parse(customRaw);
+      if (Array.isArray(parsed) && parsed.length > 0) studentList = parsed;
+    }
+  } catch {}
+
+  const officers = studentList.filter(s => {
     const pos = (s.position || '').toLowerCase();
+    const role = (s.role || '').toLowerCase();
     return (
-      s.role === 'group_leader' ||
-      s.role === 'monitor' ||
-      s.role === 'room_leader' ||
+      role === 'group_leader' ||
+      role === 'monitor' ||
+      role === 'room_leader' ||
       pos.includes('tổ trưởng') ||
       pos.includes('lớp trưởng') ||
       pos.includes('lớp phó') ||
-      pos.includes('trưởng phòng')
+      pos.includes('trưởng phòng') ||
+      pos.includes('thủ quỹ')
     );
   });
 
-  const listToShow = (portal === 'officer' ? officers : INITIAL_STUDENTS).filter(s => {
+  const listToShow = (portal === 'officer' ? officers : studentList).filter(s => {
     if (!searchTerm.trim()) return true;
     const term = searchTerm.toLowerCase();
     return (
