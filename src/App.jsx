@@ -18,7 +18,6 @@ import Finance from './components/finance/Finance';
 import Evaluation from './components/evaluation/Evaluation';
 import Confessions from './components/confessions/Confessions';
 import Reports from './components/reports/Reports';
-import AiAssistant from './components/ai/AiAssistant';
 import ParentPortal from './components/parent/ParentPortal';
 import CmsAdminPanel from './components/admin/CmsAdminPanel';
 import ExploreHub from './components/explore/ExploreHub';
@@ -614,7 +613,6 @@ export default function App() {
       case 'activities':    return <Activities activities={data.activities} onRefresh={fetchData} />;
       case 'finance':       return <Finance finance={data.finance} onRefresh={fetchData} />;
       case 'evaluation':    return <Evaluation {...props} />;
-      case 'ai_assistant':  return isTeacher ? <AiAssistant students={data.students} /> : <AccessDeniedCard onLogin={() => setShowAuth(true)} title="AI Trợ Lý GVCN" />;
       case 'parent_portal': return <ParentPortal />;
       case 'confessions':   return <Confessions confessions={data.confessions} isTeacher={isTeacher} onRefresh={fetchData} />;
       case 'reports':       return isTeacher ? <Reports {...props} /> : <AccessDeniedCard onLogin={() => setShowAuth(true)} title="Biểu Mẫu & Excel" />;

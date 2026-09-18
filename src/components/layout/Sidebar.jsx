@@ -11,7 +11,6 @@ const NAV_ITEMS = [
   { id: 'activities',    icon: '📸', label: 'Hoạt động',        roles: ['teacher', 'group_leader', 'monitor', 'room_leader', 'student', 'member'] },
   { id: 'finance',       icon: '💰', label: 'Quỹ lớp',          roles: ['teacher', 'group_leader', 'monitor'] },
   { id: 'evaluation',    icon: '📈', label: 'Thi đua',          roles: ['teacher', 'group_leader', 'monitor', 'room_leader', 'student', 'member'] },
-  { id: 'ai_assistant',  icon: '🤖', label: 'Trợ lý AI',        roles: ['teacher'] },
   { id: 'parent_portal', icon: '📱', label: 'Sổ Liên Lạc',   roles: ['teacher', 'group_leader', 'monitor', 'room_leader', 'student', 'member'] },
   { id: 'confessions',   icon: '🤫', label: 'Tâm sự',           roles: ['teacher', 'room_leader', 'student', 'member'] },
   { id: 'reports',       icon: '📋', label: 'Biểu mẫu',         roles: ['teacher'] },
