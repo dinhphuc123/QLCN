@@ -148,7 +148,7 @@ export default function Requests({ leaveRequests, students, isTeacher, isOfficer
     <div className="glass-panel" style={{ padding: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div>
-          <h3 style={{ margin: 0 }}>📬 Đơn xin phép điện tử (KTX & Nghỉ học)</h3>
+          <h3 style={{ margin: 0 }}>📬 Đơn Xin Phép</h3>
           {pendingCount > 0 && (
             <span style={{ fontSize: '0.8rem', color: '#92400e', background: '#fef3c7', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontWeight: 700, display: 'inline-block', marginTop: '0.4rem' }}>
               ⏳ {pendingCount} đơn chờ duyệt
@@ -156,7 +156,7 @@ export default function Requests({ leaveRequests, students, isTeacher, isOfficer
           )}
         </div>
         <button className="btn-primary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.85rem' }} onClick={() => setShowCreateModal(true)}>
-          ✉️ Tạo đơn mới
+          ✉️ Tạo Đơn
         </button>
       </div>
 

@@ -42,9 +42,9 @@ export default function Confessions({ confessions, isTeacher, onRefresh }) {
 
   return (
     <div className="glass-panel" style={{ padding: '2rem' }}>
-      <h3 style={{ marginBottom: '0.5rem' }}>💌 Hòm thư tâm sự & Ẩn danh</h3>
-      <p style={{ fontSize: '0.85rem', color: 'gray', marginBottom: '2rem' }}>
-        Kênh kết nối an toàn — học sinh nội trú chia sẻ áp lực ôn thi và tâm tư đời sống với GVCN.
+      <h3 style={{ marginBottom: '0.35rem' }}>💌 Hòm Thư Tâm Sự</h3>
+      <p style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: '1.5rem' }}>
+        Kênh kết nối riêng tư giữa học sinh và GVCN.
       </p>
 
       {/* Send form (Only visible for Students / non-Teacher) */}

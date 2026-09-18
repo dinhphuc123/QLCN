@@ -429,19 +429,19 @@ export default function Students({ students, attendance, onRefresh, handleExcelU
       <div className="glass-panel" style={{ padding: '1.5rem 2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <h3 style={{ margin: 0 }}>Hồ sơ Danh sách Học sinh & KTX — Lớp 12.7</h3>
+            <h3 style={{ margin: 0 }}>Danh Sách Học Sinh — Lớp 12.7</h3>
             <p style={{ fontSize: '0.82rem', color: '#6b7280', marginTop: '0.3rem' }}>
-              Sĩ số: <strong>{students.length}</strong> học sinh (<strong>{femaleCount}</strong> Nữ, <strong>{maleCount}</strong> Nam) | Cận nghèo: <strong>{poorCount}</strong> HS
+              Sĩ số: <strong>{students.length}</strong> ({femaleCount} Nữ, {maleCount} Nam) • Cận nghèo: <strong>{poorCount}</strong>
             </p>
           </div>
           {isTeacher && (
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <label className="btn-primary" style={{ padding: '0.55rem 1rem', cursor: 'pointer', fontSize: '0.85rem' }}>
-                📥 Nạp file Excel danh sách lớp
+              <label className="btn-primary" style={{ padding: '0.5rem 0.95rem', cursor: 'pointer', fontSize: '0.82rem' }}>
+                📥 Nạp Excel
                 <input type="file" accept=".xlsx,.xls" style={{ display: 'none' }} onChange={handleExcelUpload} />
               </label>
-              <button className="btn-primary" style={{ padding: '0.55rem 1rem', fontSize: '0.85rem', background: 'var(--color-accent-green)' }} onClick={() => setShowAddModal(true)}>
-                ➕ Thêm học sinh
+              <button className="btn-primary" style={{ padding: '0.5rem 0.95rem', fontSize: '0.82rem', background: 'var(--color-accent-green)' }} onClick={() => setShowAddModal(true)}>
+                ➕ Thêm Học Sinh
               </button>
             </div>
           )}

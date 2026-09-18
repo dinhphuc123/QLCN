@@ -142,23 +142,23 @@ export default function Reports({ students = [], attendance = {}, dormAttendance
       <div className="glass-panel" style={{ padding: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
           <div>
-            <h3 style={{ margin: 0 }}>📋 Tổng Kết & Xuất Báo Cáo Định Kỳ Excel (3 Sheet)</h3>
+            <h3 style={{ margin: 0 }}>📋 Báo Cáo & Xuất Dữ Liệu</h3>
             <p style={{ fontSize: '0.82rem', color: 'gray', marginTop: '0.25rem' }}>
-              Xuất dữ liệu chuẩn cho nhà trường, ban giám hiệu và phụ huynh học sinh
+              Xuất dữ liệu tổng hợp phục vụ công tác quản lý và báo cáo
             </p>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <button className="btn-primary" onClick={handleExportMultiSheetExcel} style={{ padding: '0.55rem 1.25rem', fontSize: '0.85rem', background: '#15803d' }}>
-              📥 Xuất Excel 3 Sheet (.xlsx)
+              📥 Xuất Excel
             </button>
             {isTeacher && (
               <button className="btn-primary" style={{ padding: '0.55rem 1.1rem', fontSize: '0.85rem', background: '#7c3aed' }} onClick={() => setShowBulkModal(true)}>
-                📝 Nhập văn bản
+                📝 Nhập DS
               </button>
             )}
             {isTeacher && (
               <button className="btn-primary" style={{ padding: '0.55rem 1.1rem', fontSize: '0.85rem', background: '#dc2626' }} onClick={() => setShowResetModal(true)}>
-                ⚙️ Reset toàn bộ
+                ⚙️ Đặt Lại
               </button>
             )}
           </div>

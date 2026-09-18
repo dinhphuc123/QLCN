@@ -466,7 +466,7 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
               boxShadow: activeSubTab === 'attendance5' ? undefined : 'none',
             }}
           >
-            📝 Điểm Danh Phân Quyền 5 Buổi
+            📝 Điểm Danh 5 Buổi
           </button>
           <button
             onClick={() => setActiveSubTab('home_requests')}
@@ -477,13 +477,13 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
               boxShadow: activeSubTab === 'home_requests' ? undefined : 'none',
             }}
           >
-            🏠 Đăng Ký Về Nhà Cuối Tuần
+            🏠 Đăng Ký Về Nhà
           </button>
         </div>
 
         {activeSubTab === 'home_requests' && (
           <button className="btn-primary" style={{ background: '#059669' }} onClick={() => setShowHomeModal(true)}>
-            ➕ Đăng ký về nhà
+            ➕ Đăng ký
           </button>
         )}
       </div>
@@ -506,7 +506,7 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
             <span style={{ fontSize: '1.6rem' }}>🚨</span>
             <div>
               <h4 style={{ margin: 0, color: '#991b1b', fontSize: '0.95rem' }}>
-                CẢNH BÁO NỀ NẾP: {frequentAbsentees.length} Học Sinh Vắng Không Phép ≥ 2 Lần!
+                CẢNH BÁO: {frequentAbsentees.length} Học Sinh Vắng Không Phép ≥ 2 Lần
               </h4>
               <div style={{ fontSize: '0.8rem', color: '#7f1d1d', marginTop: '0.2rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                 {frequentAbsentees.map(s => (
@@ -518,7 +518,7 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
             </div>
           </div>
           <span style={{ fontSize: '0.75rem', background: '#991b1b', color: 'white', padding: '0.3rem 0.75rem', borderRadius: '9999px', fontWeight: 700 }}>
-            GVCN Cần Nhắc Nhở
+            Cần Nhắc Nhở
           </span>
         </div>
       )}
@@ -529,7 +529,7 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
           {/* Section Controls: Date picker & Export PDF */}
           <div className="glass-panel" style={{ padding: '1rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>📅 Chọn Ngày:</label>
+              <label style={{ fontSize: '0.85rem', fontWeight: 700 }}>📅 Ngày:</label>
               <input
                 type="date"
                 className="form-input"
@@ -547,7 +547,7 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
                   background: '#0284c7', color: 'white', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem'
                 }}
               >
-                📄 Xuất Báo Cáo Sĩ Số PDF
+                📄 Xuất PDF Sĩ Số
               </button>
             )}
           </div>
@@ -556,7 +556,7 @@ export default function Attendance({ students = [], attendance = {}, homeRequest
           <div className="glass-panel" style={{ padding: '1.25rem 1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#1B4D53', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                ⏱️ Chọn Buổi Học & Sinh Hoạt Nội Trú ({sessions.length} Buổi):
+                ⏱️ Buổi Điểm Danh ({sessions.length} Buổi):
               </div>
 
               {/* Student Daily 5/5 Check-in Tracker */}

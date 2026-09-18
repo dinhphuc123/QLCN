@@ -223,19 +223,19 @@ export default function Notifications({ announcements = [], students = [], onRef
     <div className="glass-panel" style={{ padding: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div>
-          <h3 style={{ margin: 0 }}>📢 Kênh Thông Báo & Kế Hoạch Lớp 12.7</h3>
+          <h3 style={{ margin: 0 }}>📢 Thông Báo Lớp 12.7</h3>
           <p style={{ fontSize: '0.82rem', color: '#6b7280', marginTop: '0.2rem' }}>
             Tổng số: <strong>{announcements.length}</strong> thông báo
             {unreadCount > 0 && (
               <span style={{ marginLeft: '0.5rem', background: '#fee2e2', color: '#dc2626', padding: '0.15rem 0.55rem', borderRadius: '9999px', fontWeight: 700, fontSize: '0.75rem' }}>
-                🔔 {unreadCount} thông báo chưa đọc
+                🔔 {unreadCount} chưa đọc
               </span>
             )}
           </p>
         </div>
         {isTeacher && (
           <button className="btn-primary" style={{ padding: '0.55rem 1.25rem', fontSize: '0.85rem' }} onClick={() => setShowModal(true)}>
-            ➕ Đăng thông báo / Kế hoạch
+            ➕ Đăng Thông Báo
           </button>
         )}
       </div>

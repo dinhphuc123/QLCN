@@ -299,19 +299,19 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
               ⚙️ QUẢN TRỊ DỮ LIỆU ĐẦU VÀO
             </div>
             <h2 style={{ fontFamily: 'var(--font-serif)', margin: 0, color: 'white', fontSize: '1.35rem', fontWeight: 800 }}>
-              Quản Trị CMS — Lớp {settings.className}
+              Quản Trị — Lớp {settings.className}
             </h2>
             <p style={{ fontSize: '0.8rem', color: '#c7d2fe', marginTop: '0.25rem', margin: 0 }}>
-              Quản lý sĩ số học sinh, 47 tiêu chí thi đua 8 nhóm, cấu hình lớp và sao lưu an toàn.
+              Quản lý sĩ số, 47 tiêu chí thi đua, thông tin lớp và sao lưu.
             </p>
           </div>
 
           <div className="cms-banner-actions" style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
             <button className="btn-primary" onClick={handleResetDemoData} style={{ background: '#ef4444', padding: '0.5rem 1rem', fontSize: '0.8rem', boxShadow: '0 2px 10px rgba(239,68,68,0.3)' }}>
-              🧹 Xóa Demo & Làm Mới
+              🧹 Xóa Demo
             </button>
             <button className="btn-primary" onClick={handleExportBackup} style={{ background: '#10b981', padding: '0.5rem 1rem', fontSize: '0.8rem', boxShadow: '0 2px 10px rgba(16,185,129,0.3)' }}>
-              💾 Sao lưu Dữ liệu
+              💾 Sao Lưu
             </button>
           </div>
         </div>
@@ -320,10 +320,10 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
       {/* Sub Tabs — Segmented Control bo tròn hiện đại */}
       <div className="cms-tab-bar" role="tablist">
         {[
-          { id: 'students_crud', label: 'Quản Lý Học Sinh', icon: '👨‍🎓' },
-          { id: 'criteria_crud', label: '47 Tiêu Chí Thi Đua', icon: '📊' },
-          { id: 'class_info', label: 'Cấu Hình Lớp & GVCN', icon: '🏫' },
-          { id: 'backup', label: 'Sao Lưu & An Toàn', icon: '🛡️' },
+          { id: 'students_crud', label: 'Học Sinh', icon: '👨‍🎓' },
+          { id: 'criteria_crud', label: 'Tiêu Chí Thi Đua', icon: '📊' },
+          { id: 'class_info', label: 'Cấu Hình Lớp', icon: '🏫' },
+          { id: 'backup', label: 'Sao Lưu & Khôi Phục', icon: '🛡️' },
         ].map(tab => {
           const isActive = activeTab === tab.id;
           return (
@@ -348,16 +348,16 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
 
       {/* ── TAB 1: Student CRUD ────────────────────────────────────────────── */}
       {activeTab === 'students_crud' && (
-        <div className="glass-panel" style={{ padding: '2rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div className="glass-panel" style={{ padding: '1.5rem 1.75rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
             <div>
-              <h3 style={{ margin: 0 }}>👨‍🎓 Danh Sách Sĩ Số Học Sinh ({students.length} em)</h3>
-              <p style={{ fontSize: '0.82rem', color: '#6b7280', marginTop: '0.2rem' }}>
-                Thêm mới học sinh, cập nhật SĐT/KTX/Tổ hoặc xóa học sinh chuyển lớp
+              <h3 style={{ margin: 0 }}>👨‍🎓 Danh Sách Học Sinh ({students.length} em)</h3>
+              <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.15rem' }}>
+                Cập nhật thông tin, chức vụ, tổ và phòng KTX
               </p>
             </div>
             <button className="btn-primary" onClick={() => handleOpenStudentModal(null)} style={{ background: '#16a34a' }}>
-              ➕ Thêm Học Sinh Mới
+              ➕ Thêm Học Sinh
             </button>
           </div>
 
@@ -548,31 +548,31 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
 
       {/* ── TAB 2: Criteria CRUD ────────────────────────────────────────────── */}
       {activeTab === 'criteria_crud' && (
-        <div className="glass-panel" style={{ padding: '2rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div className="glass-panel" style={{ padding: '1.5rem 1.75rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
             <div>
               <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span>📊</span>
-                <span>Danh Mục 47 Tiêu Chí Thi Đua Nề Nếp</span>
-                <span style={{ fontSize: '0.78rem', background: '#dcfce7', color: '#15803d', padding: '0.15rem 0.6rem', borderRadius: '9999px', fontWeight: 800 }}>
+                <span>47 Tiêu Chí Thi Đua</span>
+                <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', padding: '0.15rem 0.55rem', borderRadius: '9999px', fontWeight: 800 }}>
                   {criteriaList.length} tiêu chí
                 </span>
               </h3>
-              <p style={{ fontSize: '0.82rem', color: '#6b7280', marginTop: '0.2rem' }}>
-                Đồng bộ 2 chiều trực tiếp với giao diện Tự đánh giá & Điểm thi đua của Học sinh, Tổ trưởng và GVCN.
+              <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.15rem' }}>
+                Đồng bộ 2 chiều với hệ thống tự chấm và thi đua tuần
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
               <button 
                 type="button" 
                 onClick={handleResetToDefaultCriteria}
                 style={{ 
-                  padding: '0.65rem 1rem', borderRadius: '0.75rem', border: '1.5px solid #d97706',
-                  background: '#fffbeb', color: '#b45309', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' 
+                  padding: '0.5rem 0.85rem', borderRadius: '0.75rem', border: '1.5px solid #d97706',
+                  background: '#fffbeb', color: '#b45309', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' 
                 }}
-                title="Khôi phục danh sách về 47 tiêu chí gốc ban đầu của lớp"
+                title="Khôi phục danh sách về 47 tiêu chí gốc ban đầu"
               >
-                🔄 Khôi Phục 47 Gốc
+                🔄 Khôi Phục Gốc
               </button>
               <button 
                 className="btn-primary" 
@@ -588,9 +588,9 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
                   }); 
                   setShowCriteriaModal(true); 
                 }} 
-                style={{ background: '#16a34a', padding: '0.65rem 1.25rem' }}
+                style={{ background: '#16a34a', padding: '0.5rem 1rem', fontSize: '0.8rem' }}
               >
-                ➕ Thêm Tiêu Chí Mới
+                ➕ Thêm Tiêu Chí
               </button>
             </div>
           </div>
@@ -763,11 +763,11 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
 
       {/* ── TAB 3: Class Info ──────────────────────────────────────────────── */}
       {activeTab === 'class_info' && (
-        <div className="glass-panel" style={{ padding: '2rem' }}>
-          <h3 style={{ marginBottom: '1.5rem' }}>🏫 Cấu Hình Chi Tiết Thông Tin Lớp & Niên Khóa</h3>
+        <div className="glass-panel" style={{ padding: '1.5rem 1.75rem' }}>
+          <h3 style={{ marginBottom: '1.25rem' }}>🏫 Cấu Hình Lớp</h3>
           <form onSubmit={e => { e.preventDefault(); updateSettings(classForm); toast.success('Đã lưu cấu hình!'); }} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
             <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block', marginBottom: '0.35rem' }}>Tên Lớp Chủ Nhiệm</label>
+              <label style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block', marginBottom: '0.35rem' }}>Tên Lớp</label>
               <input type="text" className="form-input" style={{ width: '100%' }} value={classForm.className} onChange={e => setClassForm({ ...classForm, className: e.target.value })} />
             </div>
             <div>
@@ -788,15 +788,15 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
               </select>
             </div>
             <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block', marginBottom: '0.35rem' }}>Họ tên GVCN</label>
+              <label style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block', marginBottom: '0.35rem' }}>Họ Tên GVCN</label>
               <input type="text" className="form-input" style={{ width: '100%' }} value={classForm.teacherName} onChange={e => setClassForm({ ...classForm, teacherName: e.target.value })} />
             </div>
             <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block', marginBottom: '0.35rem' }}>Trường THPT</label>
+              <label style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block', marginBottom: '0.35rem' }}>Trường Học</label>
               <input type="text" className="form-input" style={{ width: '100%' }} value={classForm.schoolName} onChange={e => setClassForm({ ...classForm, schoolName: e.target.value })} />
             </div>
             <div style={{ gridColumn: 'span 2', marginTop: '1rem' }}>
-              <button type="submit" className="btn-primary" style={{ padding: '0.75rem 2rem' }}>💾 Lưu Cấu Hình</button>
+              <button type="submit" className="btn-primary" style={{ padding: '0.65rem 1.75rem' }}>💾 Lưu Cấu Hình</button>
             </div>
           </form>
         </div>
@@ -804,19 +804,19 @@ export default function CmsAdminPanel({ students = [], finance = [], announcemen
 
       {/* ── TAB 4: Backup ─────────────────────────────────────────────────── */}
       {activeTab === 'backup' && (
-        <div className="glass-panel" style={{ padding: '2rem' }}>
-          <h3 style={{ marginBottom: '1rem' }}>🛡️ Sao Lưu & An Toàn Dữ Liệu Hệ Thống</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-            <div style={{ border: '1.5px solid #bbf7d0', background: '#f0fdf4', padding: '1.5rem', borderRadius: '1rem' }}>
-              <h4 style={{ color: '#166534', margin: '0 0 0.5rem 0' }}>📦 Sao Lưu Dữ Liệu (Backup)</h4>
-              <p style={{ fontSize: '0.82rem', color: '#15803d', marginBottom: '1rem' }}>Tải file sao lưu JSON an toàn trên máy tính.</p>
-              <button className="btn-primary" onClick={handleExportBackup} style={{ background: '#16a34a' }}>📥 Tải File Backup (.json)</button>
+        <div className="glass-panel" style={{ padding: '1.5rem 1.75rem' }}>
+          <h3 style={{ marginBottom: '1rem' }}>🛡️ Sao Lưu & Khôi Phục</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+            <div style={{ border: '1.5px solid #bbf7d0', background: '#f0fdf4', padding: '1.25rem', borderRadius: '1rem' }}>
+              <h4 style={{ color: '#166534', margin: '0 0 0.4rem 0' }}>📦 Sao Lưu Dữ Liệu</h4>
+              <p style={{ fontSize: '0.8rem', color: '#15803d', marginBottom: '0.85rem' }}>Tải file JSON lưu trữ an toàn trên thiết bị.</p>
+              <button className="btn-primary" onClick={handleExportBackup} style={{ background: '#16a34a', padding: '0.5rem 1.25rem', fontSize: '0.82rem' }}>📥 Tải Bản Sao Lưu</button>
             </div>
-            <div style={{ border: '1.5px solid #bfdbfe', background: '#eff6ff', padding: '1.5rem', borderRadius: '1rem' }}>
-              <h4 style={{ color: '#1e40af', margin: '0 0 0.5rem 0' }}>🔄 Phục Hồi Dữ Liệu (Restore)</h4>
-              <p style={{ fontSize: '0.82rem', color: '#1d4ed8', marginBottom: '1rem' }}>Tải lên file JSON sao lưu để phục hồi.</p>
-              <label className="btn-primary" style={{ background: '#2563eb', cursor: 'pointer', display: 'inline-block' }}>
-                📂 Chọn File Restore (.json)
+            <div style={{ border: '1.5px solid #bfdbfe', background: '#eff6ff', padding: '1.25rem', borderRadius: '1rem' }}>
+              <h4 style={{ color: '#1e40af', margin: '0 0 0.4rem 0' }}>🔄 Khôi Phục Dữ Liệu</h4>
+              <p style={{ fontSize: '0.8rem', color: '#1d4ed8', marginBottom: '0.85rem' }}>Chọn file JSON sao lưu để phục hồi hệ thống.</p>
+              <label className="btn-primary" style={{ background: '#2563eb', cursor: 'pointer', display: 'inline-block', padding: '0.5rem 1.25rem', fontSize: '0.82rem' }}>
+                📂 Chọn File Khôi Phục
                 <input type="file" accept=".json" style={{ display: 'none' }} onChange={handleImportBackup} />
               </label>
             </div>

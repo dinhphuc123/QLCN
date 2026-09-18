@@ -242,7 +242,7 @@ export default function StudentDashboard({ timetableImage = '', timetableData = 
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ fontSize: '0.78rem', color: '#e0f2fe', fontWeight: 600 }}>
-              👋 Chào mừng trở lại, {user?.position || 'Học sinh Nội Trú'}!
+              👋 Xin chào, {user?.position || 'Học sinh'}!
             </div>
             <h2 className="student-hero-name" style={{
               margin: '0.15rem 0', fontSize: '1.35rem', fontWeight: 900,
@@ -279,7 +279,7 @@ export default function StudentDashboard({ timetableImage = '', timetableData = 
                 }}
                 title="Bấm để vào trang Điểm Danh / Check-in"
               >
-                {isCheckedInToday ? '✅ Đã Check-in ↗' : '⏳ Chưa Check-in ↗'}
+                {isCheckedInToday ? '✅ Đã Điểm Danh ↗' : '⏳ Chưa Điểm Danh ↗'}
               </button>
             </div>
           </div>
@@ -295,7 +295,7 @@ export default function StudentDashboard({ timetableImage = '', timetableData = 
           <div style={{ fontSize: '0.95rem', fontWeight: 900, margin: '0.15rem 0', color: '#fef08a', textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>
             🌟 Gương Tự Lập
           </div>
-          <div style={{ fontSize: '0.7rem', color: '#ffffff', opacity: 0.95 }}>Học sinh KTX Xuất Sắc</div>
+          <div style={{ fontSize: '0.7rem', color: '#ffffff', opacity: 0.95 }}>Học sinh Xuất Sắc</div>
         </div>
       </div>
 
@@ -311,7 +311,7 @@ export default function StudentDashboard({ timetableImage = '', timetableData = 
                   📢 Thông Báo Mới
                 </h3>
                 <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, marginTop: '0.15rem' }}>
-                  ⚡ Đã đồng bộ trực tiếp từ GVCN Lớp 12.7
+                  ⚡ Đồng bộ trực tiếp từ GVCN
                 </div>
               </div>
               <span style={{ fontSize: '0.72rem', background: '#dbeafe', color: '#1e40af', padding: '0.18rem 0.6rem', borderRadius: '9999px', fontWeight: 800 }}>

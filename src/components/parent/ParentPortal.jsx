@@ -153,13 +153,13 @@ export default function ParentPortal({ students = INITIAL_STUDENTS, attendance =
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <span style={{ background: 'rgba(255,255,255,0.2)', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.04em' }}>
-              📱 SỔ LIÊN LẠC ĐIỆN TỬ DÀNH CHO PHỤ HUYNH
+              📱 SỔ LIÊN LẠC ĐIỆN TỬ
             </span>
-            <h3 style={{ margin: '0.4rem 0 0 0', fontSize: '1.5rem', color: 'white', fontWeight: 900 }}>
-              Trang Tra Cứu Kết Quả Học Tập & Nề Nếp Con Em — Lớp {settings.className}
+            <h3 style={{ margin: '0.35rem 0 0 0', fontSize: '1.4rem', color: 'white', fontWeight: 900 }}>
+              Sổ Liên Lạc Học Sinh — Lớp {settings.className}
             </h3>
-            <p style={{ fontSize: '0.85rem', color: '#dbeafe', marginTop: '0.3rem', margin: 0 }}>
-              GVCN: Cô {settings.teacherName} | Hotline liên hệ: <strong>0987.654.321</strong>
+            <p style={{ fontSize: '0.82rem', color: '#dbeafe', marginTop: '0.25rem', margin: 0 }}>
+              GVCN: Cô {settings.teacherName} • Hotline: <strong>0987.654.321</strong>
             </p>
           </div>
 

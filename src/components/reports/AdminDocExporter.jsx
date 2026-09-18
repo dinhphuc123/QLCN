@@ -212,9 +212,9 @@ export default function AdminDocExporter({ students = [], settings = {} }) {
   return (
     <div className="glass-panel" style={{ padding: '2rem' }}>
       <div style={{ marginBottom: '1.5rem' }}>
-        <h3 style={{ margin: 0 }}>📄 Xuất Biểu Mẫu Hành Chính GVCN (Chuẩn NĐ 30/2020/NĐ-CP)</h3>
+        <h3 style={{ margin: 0 }}>📄 Biểu Mẫu Hành Chính (NĐ 30/2020)</h3>
         <p style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.3rem' }}>
-          Tự động xuất văn bản Word (.docx) chuẩn thể thức chính phủ gửi Ban Giám Hiệu, Đoàn Trường và Họp Phụ Huynh
+          Tạo văn bản Word (.docx) chuẩn thể thức gửi BGH và họp PHHS
         </p>
       </div>
 
@@ -225,23 +225,23 @@ export default function AdminDocExporter({ students = [], settings = {} }) {
           value={docType}
           onChange={e => setDocType(e.target.value)}
         >
-          <option value="so_ket">📑 Báo cáo Sơ kết Nề nếp & Học tập</option>
-          <option value="bien_ban">📝 Biên bản Họp Phụ Huynh Học Sinh</option>
-          <option value="thi_dua_bgh">🏆 Báo cáo Nề nếp & Thi đua gửi BGH</option>
+          <option value="so_ket">📑 Báo cáo sơ kết nề nếp & học tập</option>
+          <option value="bien_ban">📝 Biên bản họp cha mẹ học sinh</option>
+          <option value="thi_dua_bgh">🏆 Báo cáo thi đua gửi BGH</option>
         </select>
 
         <button className="btn-primary" onClick={generateDoc} style={{ padding: '0.6rem 1.5rem' }}>
-          ✨ Tạo Văn Bản Chuẩn
+          ✨ Tạo Văn Bản
         </button>
 
         {docHTML && (
           <>
             <button className="btn-primary" onClick={handleDownloadDocx} style={{ background: '#0284c7', padding: '0.6rem 1.5rem' }}>
-              📄 Tải File Word (.docx)
+              📄 Tải File Word
             </button>
 
             <button className="btn-primary" onClick={handlePrint} style={{ background: '#16a34a', padding: '0.6rem 1.5rem' }}>
-              🖨️ In / Tải PDF
+              🖨️ In / PDF
             </button>
           </>
         )}

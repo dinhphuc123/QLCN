@@ -13,11 +13,11 @@ const TAB_LABELS = {
   activities:    'Hoạt động',
   finance:       'Quỹ lớp',
   evaluation:    'Thi đua',
-  parent_portal: 'Sổ Liên Lạc Điện Tử',
-  confessions:   'Hòm tâm sự',
-  reports:       'Biểu mẫu & Excel',
-  cms_admin:     'Quản trị CMS',
-  explore:       'Khám Phá & Tiện Ích',
+  parent_portal: 'Sổ liên lạc',
+  confessions:   'Tâm sự',
+  reports:       'Báo cáo',
+  cms_admin:     'Quản trị',
+  explore:       'Khám phá',
 };
 
 function ChangeTeacherPasswordModal({ onClose }) {
