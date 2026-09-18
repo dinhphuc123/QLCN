@@ -5,7 +5,7 @@ import { INITIAL_STUDENTS } from '../../data/initialStudents';
 import { useClassSettings } from '../../context/ClassSettingsContext';
 
 const PORTALS = [
-  { id: 'teacher', label: 'Cổng GVCN',     icon: '👑', color: '#7c3aed', bg: 'linear-gradient(135deg,#7c3aed,#6d28d9)', desc: 'Xác thực Mật khẩu GVCN Nội Bổ' },
+  { id: 'teacher', label: 'Cổng GVCN',     icon: '👑', color: '#7c3aed', bg: 'linear-gradient(135deg,#7c3aed,#6d28d9)', desc: 'Xác thực Mật khẩu GVCN Nội Bộ' },
   { id: 'officer', label: 'Cán Bộ Lớp',    icon: '⭐', color: '#0369a1', bg: 'linear-gradient(135deg,#0284c7,#0369a1)', desc: 'Tên đăng nhập & Mã PIN' },
   { id: 'student', label: 'Học Sinh',       icon: '🎓', color: '#d97706', bg: 'linear-gradient(135deg,#d97706,#b45309)', desc: 'Tên đăng nhập & Mã PIN' },
 ];
