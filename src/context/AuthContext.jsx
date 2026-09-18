@@ -197,12 +197,15 @@ export function AuthProvider({ children }) {
     persistSession(null);
   }, []);
 
+  const isOfficer = user?.role === 'teacher' || user?.role === 'monitor' || user?.role === 'group_leader' || user?.role === 'room_leader';
+
   return (
     <AuthContext.Provider value={{
       user,
       isTeacher: user?.role === 'teacher',
       isMonitor: user?.role === 'monitor',
       isGroupLeader: user?.role === 'group_leader',
+      isOfficer,
       isStudent: !!user && user.role !== 'teacher',
       loginTeacher,
       loginStudent,

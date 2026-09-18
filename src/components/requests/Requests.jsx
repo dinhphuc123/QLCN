@@ -65,7 +65,11 @@ function CreateRequestModal({ students, onClose, onSave }) {
   );
 }
 
-export default function Requests({ leaveRequests, students, isTeacher, isOfficer, onRefresh }) {
+export default function Requests({ leaveRequests, students, isTeacher: propIsTeacher, isOfficer: propIsOfficer, onRefresh }) {
+  const auth = useAuth();
+  const isTeacher = propIsTeacher !== undefined ? propIsTeacher : auth?.isTeacher;
+  const isOfficer = propIsOfficer !== undefined ? propIsOfficer : auth?.isOfficer;
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
 

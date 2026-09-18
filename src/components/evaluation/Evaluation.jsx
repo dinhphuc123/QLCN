@@ -254,33 +254,49 @@ export default function Evaluation({ students = [], onRefresh }) {
     }
   };
 
-  // Vòng 3: GVCN Chốt / Yêu cầu sửa
-  const handleTeacherAction = async (action = 'approve') => {
+  // Vòng 3: GVCN Chốt / Yêu cầu sửa (Hỗ trợ Duyệt riêng hoặc Duyệt toàn lớp)
+  const handleTeacherAction = async (action = 'approve', scope = 'single') => {
     setSaving(true);
-    const changes = students.map(s => {
-      const record = competitionData[s.id] || {};
-      const isCurrent = String(s.id) === selectedStudentId;
-      const violations = isCurrent 
-        ? Object.entries(selectedViolations).map(([id, count]) => ({ criteriaId: parseInt(id, 10), count }))
-        : (record.violations || []);
+    const sid = parseInt(selectedStudentId, 10);
+    const currStudentName = currentStudent?.name || `HS #${selectedStudentId}`;
 
-      return {
-        studentId: s.id,
+    let changes = [];
+    if (scope === 'single') {
+      const record = competitionData[sid] || {};
+      const violations = Object.entries(selectedViolations).map(([id, count]) => ({ criteriaId: parseInt(id, 10), count }));
+      changes = [{
+        studentId: sid,
         violations,
-        teacherNote: teacherNotes[s.id] || record.teacherNote || '',
-        action: isCurrent ? action : 'approve'
-      };
-    });
+        teacherNote: teacherNotes[sid] || record.teacherNote || '',
+        action
+      }];
+    } else {
+      // Duyệt toàn bộ lớp
+      changes = students.map(s => {
+        const record = competitionData[s.id] || {};
+        const isCurrent = String(s.id) === selectedStudentId;
+        const violations = isCurrent
+          ? Object.entries(selectedViolations).map(([id, count]) => ({ criteriaId: parseInt(id, 10), count }))
+          : (record.violations || []);
+
+        return {
+          studentId: s.id,
+          violations,
+          teacherNote: teacherNotes[s.id] || record.teacherNote || '',
+          action: 'approve'
+        };
+      });
+    }
 
     // Optimistic local state update
     setCompetitionData(prev => {
       const updated = { ...prev };
       changes.forEach(ch => {
-        const sid = ch.studentId;
-        const act = ch.action || 'approve';
-        updated[sid] = {
-          ...(updated[sid] || {}),
-          studentId: sid,
+        const sId = ch.studentId;
+        const act = ch.action || action;
+        updated[sId] = {
+          ...(updated[sId] || {}),
+          studentId: sId,
           violations: ch.violations,
           teacherNote: ch.teacherNote,
           approvedBy: user?.name || 'GVCN',
@@ -291,7 +307,11 @@ export default function Evaluation({ students = [], onRefresh }) {
       return updated;
     });
 
-    toast.success(action === 'approve' ? '🚀 GVCN đã phê duyệt chốt điểm thi đua tuần!' : 'Đã yêu cầu làm lại phiếu!');
+    if (scope === 'single') {
+      toast.success(action === 'approve' ? `✅ Đã phê duyệt chốt điểm cho em ${currStudentName}!` : `💬 Đã yêu cầu em ${currStudentName} làm lại phiếu!`);
+    } else {
+      toast.success(`🚀 GVCN đã phê duyệt chốt điểm đồng loạt cho toàn bộ ${students.length} học sinh!`);
+    }
     setSaving(false);
 
     try {
@@ -811,11 +831,14 @@ export default function Evaluation({ students = [], onRefresh }) {
                   {/* Vòng 3: GVCN Chốt */}
                   {isTeacher && (
                     <>
-                      <button className="btn-primary" style={{ background: '#dc2626', padding: '0.55rem 1rem', fontSize: '0.84rem' }} onClick={() => handleTeacherAction('reject')} disabled={saving}>
+                      <button className="btn-primary" style={{ background: '#dc2626', padding: '0.55rem 0.9rem', fontSize: '0.82rem' }} onClick={() => handleTeacherAction('reject', 'single')} disabled={saving}>
                         💬 Yêu cầu sửa
                       </button>
-                      <button className="btn-primary" style={{ background: '#059669', padding: '0.55rem 1rem', fontSize: '0.84rem' }} onClick={() => handleTeacherAction('approve')} disabled={saving}>
-                        🚀 Phê duyệt & Chốt điểm
+                      <button className="btn-primary" style={{ background: '#0284c7', padding: '0.55rem 0.95rem', fontSize: '0.82rem' }} onClick={() => handleTeacherAction('approve', 'single')} disabled={saving}>
+                        ✅ Duyệt em này
+                      </button>
+                      <button className="btn-primary" style={{ background: '#059669', padding: '0.55rem 1rem', fontSize: '0.82rem' }} onClick={() => handleTeacherAction('approve', 'all')} disabled={saving}>
+                        🚀 Duyệt toàn bộ lớp
                       </button>
                     </>
                   )}
