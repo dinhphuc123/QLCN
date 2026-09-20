@@ -135,3 +135,163 @@ export async function verifyTeacherSupabase(password) {
   }
   return null;
 }
+
+// ── Competition Records Helpers (Thi Đua 3 Tầng) ─────────────────────────
+
+function packSupabaseRecord(weekId, studentId, record) {
+  return {
+    week_id: weekId,
+    student_id: parseInt(studentId, 10),
+    violations: {
+      items: record.violations || [],
+      meta: {
+        status: record.status || 'draft',
+        submittedAt: record.submittedAt || null,
+        reviewNote: record.reviewNote || '',
+        reviewedBy: record.reviewedBy || null,
+        reviewedAt: record.reviewedAt || null,
+        monitorApprovedBy: record.monitorApprovedBy || null,
+        monitorApprovedAt: record.monitorApprovedAt || null,
+        teacherNote: record.teacherNote || '',
+        approvedBy: record.approvedBy || null,
+        approvedAt: record.approvedAt || null,
+        updatedAt: new Date().toISOString()
+      }
+    },
+    status: record.status || 'draft',
+    updated_at: new Date().toISOString()
+  };
+}
+
+function unpackSupabaseRecord(row) {
+  let violations = [];
+  let meta = {};
+  if (Array.isArray(row.violations)) {
+    violations = row.violations;
+  } else if (row.violations && typeof row.violations === 'object') {
+    violations = row.violations.items || row.violations.violations || [];
+    meta = row.violations.meta || {};
+  }
+  return {
+    studentId: row.student_id,
+    violations,
+    status: row.status || meta.status || 'draft',
+    submittedAt: meta.submittedAt || null,
+    reviewNote: meta.reviewNote || '',
+    reviewedBy: meta.reviewedBy || null,
+    reviewedAt: meta.reviewedAt || null,
+    monitorApprovedBy: meta.monitorApprovedBy || null,
+    monitorApprovedAt: meta.monitorApprovedAt || null,
+    teacherNote: meta.teacherNote || '',
+    approvedBy: meta.approvedBy || null,
+    approvedAt: meta.approvedAt || null,
+    updatedAt: row.updated_at || meta.updatedAt || new Date().toISOString()
+  };
+}
+
+/**
+ * Lấy toàn bộ bản ghi thi đua theo tuần từ Supabase
+ */
+export async function fetchCompetitionFromSupabase(weekId) {
+  if (!isSupabaseConfigured) return null;
+  try {
+    const { data, error } = await supabase
+      .from('competition_records')
+      .select('*')
+      .eq('week_id', weekId);
+
+    if (error) throw error;
+    if (!data) return {};
+
+    const result = {};
+    data.forEach(row => {
+      result[row.student_id] = unpackSupabaseRecord(row);
+    });
+    return result;
+  } catch (err) {
+    console.warn('fetchCompetitionFromSupabase error:', err.message);
+    return null;
+  }
+}
+
+/**
+ * Lưu/cập nhật 1 bản ghi thi đua của học sinh lên Supabase
+ */
+export async function saveCompetitionRecordToSupabase(weekId, studentId, record) {
+  if (!isSupabaseConfigured) return null;
+  try {
+    const sId = parseInt(studentId, 10);
+    const row = packSupabaseRecord(weekId, sId, record);
+    const { data: existing } = await supabase
+      .from('competition_records')
+      .select('id')
+      .eq('week_id', weekId)
+      .eq('student_id', sId)
+      .limit(1);
+
+    if (existing && existing.length > 0) {
+      const { data, error } = await supabase
+        .from('competition_records')
+        .update(row)
+        .eq('id', existing[0].id)
+        .select();
+      if (error) throw error;
+      return data;
+    } else {
+      const { data, error } = await supabase
+        .from('competition_records')
+        .insert([row])
+        .select();
+      if (error) throw error;
+      return data;
+    }
+  } catch (err) {
+    console.warn('saveCompetitionRecordToSupabase failed:', err.message);
+    return null;
+  }
+}
+
+/**
+ * Lưu hàng loạt bản ghi thi đua lên Supabase (phục vụ duyệt toàn bộ lớp)
+ */
+export async function bulkSaveCompetitionToSupabase(weekId, recordsMap) {
+  if (!isSupabaseConfigured) return null;
+  try {
+    const entries = Object.entries(recordsMap || {});
+    if (entries.length === 0) return true;
+
+    const { data: existingList } = await supabase
+      .from('competition_records')
+      .select('id, student_id')
+      .eq('week_id', weekId);
+
+    const existingMap = {};
+    (existingList || []).forEach(item => {
+      existingMap[item.student_id] = item.id;
+    });
+
+    const updates = [];
+    const inserts = [];
+
+    entries.forEach(([sid, record]) => {
+      const sId = parseInt(sid, 10);
+      const row = packSupabaseRecord(weekId, sId, record);
+      if (existingMap[sId]) {
+        updates.push({ ...row, id: existingMap[sId] });
+      } else {
+        inserts.push(row);
+      }
+    });
+
+    if (inserts.length > 0) {
+      await supabase.from('competition_records').insert(inserts);
+    }
+    for (const u of updates) {
+      await supabase.from('competition_records').update(u).eq('id', u.id);
+    }
+    return true;
+  } catch (err) {
+    console.warn('bulkSaveCompetitionToSupabase failed:', err.message);
+    return false;
+  }
+}

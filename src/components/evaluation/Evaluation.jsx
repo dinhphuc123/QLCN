@@ -3,6 +3,12 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import toast from 'react-hot-toast';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
+import { useClassSettings } from '../../context/ClassSettingsContext';
+import {
+  fetchCompetitionFromSupabase,
+  saveCompetitionRecordToSupabase,
+  bulkSaveCompetitionToSupabase
+} from '../../lib/supabase';
 import { 
   THI_DUA_CRITERIA, 
   CRITERIA_GROUPS, 
@@ -17,11 +23,93 @@ import EvaluationHistoryModal from './EvaluationHistoryModal';
 
 const COLORS = ['#16a34a', '#2563eb', '#d97706', '#dc2626'];
 
+// ── LocalStorage Fail-Safe Storage Helpers ─────────────────────────────────────
+const STORAGE_KEY = 'qlcn_competition_records';
+
+const STATUS_WEIGHT = {
+  approved: 5,
+  rejected: 4,
+  monitor_approved: 3,
+  reviewed: 2,
+  submitted: 1,
+  draft: 0
+};
+
+function getLocalCompetitionStore() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function getLocalWeekRecords(weekId) {
+  const store = getLocalCompetitionStore();
+  return store[weekId] || {};
+}
+
+function saveLocalWeekRecords(weekId, weekData) {
+  try {
+    const store = getLocalCompetitionStore();
+    store[weekId] = { ...(store[weekId] || {}), ...weekData };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+  } catch (e) {
+    console.warn('Lỗi lưu localStorage competition:', e);
+  }
+}
+
+function saveSingleLocalRecord(weekId, studentId, record) {
+  try {
+    const store = getLocalCompetitionStore();
+    if (!store[weekId]) store[weekId] = {};
+    store[weekId][studentId] = {
+      ...(store[weekId][studentId] || {}),
+      ...record,
+      updatedAt: new Date().toISOString()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+  } catch (e) {
+    console.warn('Lỗi lưu localStorage competition single:', e);
+  }
+}
+
+function mergeRecords(sourceA = {}, sourceB = {}) {
+  const merged = { ...sourceA };
+  for (const [sid, recB] of Object.entries(sourceB || {})) {
+    const recA = merged[sid];
+    if (!recA) {
+      merged[sid] = recB;
+      continue;
+    }
+    const weightA = STATUS_WEIGHT[recA.status] || 0;
+    const weightB = STATUS_WEIGHT[recB.status] || 0;
+    if (weightB > weightA) {
+      merged[sid] = { ...recA, ...recB };
+    } else if (weightB === weightA) {
+      const timeA = recA.updatedAt || recA.submittedAt || '';
+      const timeB = recB.updatedAt || recB.submittedAt || '';
+      if (timeB && timeB >= timeA) {
+        merged[sid] = { ...recA, ...recB };
+      }
+    }
+  }
+  return merged;
+}
+
 export default function Evaluation({ students = [], onRefresh }) {
   const { user, isTeacher, isGroupLeader, isMonitor, canApproveCompetition } = useAuth();
+  const { settings } = useClassSettings() || {};
   const tabsRef = useRef(null);
   
-  const [selectedWeek, setSelectedWeek] = useState('tuan_01');
+  // Tự động đồng bộ tuần theo Cấu hình lớp (ví dụ: "Tuần 01" -> "tuan_01")
+  const defaultWeekId = useMemo(() => {
+    if (!settings?.currentWeek) return 'tuan_01';
+    const m = settings.currentWeek.match(/\d+/);
+    return m ? `tuan_${m[0].padStart(2, '0')}` : 'tuan_01';
+  }, [settings?.currentWeek]);
+
+  const [selectedWeek, setSelectedWeek] = useState(defaultWeekId);
   const [selectedStudentId, setSelectedStudentId] = useState(
     user?.id ? String(user.id) : (students[0] ? String(students[0].id) : '1')
   );
@@ -34,7 +122,7 @@ export default function Evaluation({ students = [], onRefresh }) {
   }, [user, isTeacher, isGroupLeader, isMonitor]);
   
   const [selectedViolations, setSelectedViolations] = useState({});
-  const [competitionData, setCompetitionData] = useState({}); // studentId -> record
+  const [competitionData, setCompetitionData] = useState(() => getLocalWeekRecords(defaultWeekId)); // studentId -> record
 
   // Danh mục tiêu chí thi đua động (đồng bộ 2 chiều với Trang Quản trị CMS)
   const [criteriaList, setCriteriaList] = useState(() => getStoredCriteria());
@@ -73,13 +161,31 @@ export default function Evaluation({ students = [], onRefresh }) {
   const [reviewNotes, setReviewNotes] = useState({}); // studentId -> note
   const [teacherNotes, setTeacherNotes] = useState({}); // studentId -> note
 
-  // Load competition data for week
+  // Tải dữ liệu thi đua 3 tầng: LocalStorage (0ms) -> Supabase Cloud -> Express API
   const fetchWeekData = async () => {
+    // 1. Tải tức thì từ LocalStorage để không delay
+    const localRecords = getLocalWeekRecords(selectedWeek);
+    if (Object.keys(localRecords).length > 0) {
+      setCompetitionData(localRecords);
+    }
+
+    // 2. Tải đồng thời từ Supabase Cloud và Express API
     try {
-      const data = await api.getCompetition(selectedWeek);
-      setCompetitionData(data || {});
-    } catch {
-      setCompetitionData({});
+      const [sbResult, apiResult] = await Promise.allSettled([
+        fetchCompetitionFromSupabase(selectedWeek),
+        api.getCompetition(selectedWeek)
+      ]);
+
+      const sbData = sbResult.status === 'fulfilled' && sbResult.value ? sbResult.value : {};
+      const apiData = apiResult.status === 'fulfilled' && apiResult.value ? apiResult.value : {};
+
+      // Merge thông minh 3 nguồn: Local -> API -> Supabase
+      const merged = mergeRecords(mergeRecords(localRecords, apiData), sbData);
+
+      setCompetitionData(merged);
+      saveLocalWeekRecords(selectedWeek, merged);
+    } catch (err) {
+      console.warn('Lỗi đồng bộ thi đua nền:', err);
     }
   };
 
@@ -87,7 +193,7 @@ export default function Evaluation({ students = [], onRefresh }) {
     fetchWeekData();
   }, [selectedWeek]);
 
-  // Sync current student's selected violations from server data
+  // Đồng bộ tiêu chí của học sinh đang chọn từ bản ghi thi đua
   useEffect(() => {
     const studentRecord = competitionData[selectedStudentId];
     if (studentRecord && studentRecord.violations) {
@@ -104,18 +210,18 @@ export default function Evaluation({ students = [], onRefresh }) {
   const currentStudent = students.find(s => s.id === parseInt(selectedStudentId, 10));
   const currentRecord = competitionData[selectedStudentId] || {};
 
+  // Điều chỉnh tiêu chí (+ / -)
   const handleToggleCriterion = (criteriaId, delta = 1) => {
-    if (isTeacher) {
-      toast('Chế độ GVCN chỉ xem & xét duyệt. Vui lòng nhập ghi chú yêu cầu thay đổi bên dưới nếu cần!', { icon: '👁️' });
-      return;
-    }
-    if (currentRecord.status === 'approved' && !isTeacher) {
-      toast.error('Phiếu đã được GVCN duyệt chính thức, không thể sửa!');
-      return;
-    }
-    if (currentRecord.status === 'reviewed' && !isTeacher && !isGroupLeader) {
-      toast.error('Phiếu đang chờ GVCN duyệt!');
-      return;
+    // Q1 Phương án A: GVCN có toàn quyền trực tiếp điều chỉnh lỗi/điểm thưởng cho học sinh khi xét duyệt
+    if (!isTeacher) {
+      if (currentRecord.status === 'approved') {
+        toast.error('Phiếu đã được GVCN duyệt chính thức, không thể sửa!');
+        return;
+      }
+      if ((currentRecord.status === 'reviewed' || currentRecord.status === 'monitor_approved') && !isGroupLeader && !isMonitor) {
+        toast.error('Phiếu đang trong quy trình xét duyệt, không thể tự chỉnh sửa!');
+        return;
+      }
     }
 
     setSelectedViolations(prev => {
@@ -128,7 +234,7 @@ export default function Evaluation({ students = [], onRefresh }) {
     });
   };
 
-  // Nộp phiếu tự đánh giá (Học sinh)
+  // Nộp phiếu tự đánh giá (Học sinh) — Lưu 3 tầng
   const handleStudentSubmit = async () => {
     setSaving(true);
     const sid = parseInt(selectedStudentId, 10);
@@ -137,26 +243,35 @@ export default function Evaluation({ students = [], onRefresh }) {
       count
     }));
 
-    // Local optimistic update
+    const newRecord = {
+      ...(competitionData[selectedStudentId] || {}),
+      studentId: sid,
+      violations: violationsList,
+      status: 'submitted',
+      submittedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // 1. Cập nhật state tức thì
     setCompetitionData(prev => ({
       ...prev,
-      [selectedStudentId]: {
-        ...(prev[selectedStudentId] || {}),
-        studentId: sid,
-        violations: violationsList,
-        status: 'submitted',
-        submittedAt: new Date().toISOString()
-      }
+      [selectedStudentId]: newRecord
     }));
+
+    // 2. Lưu ngay vào LocalStorage (fail-safe vĩnh viễn không mất dữ liệu)
+    saveSingleLocalRecord(selectedWeek, selectedStudentId, newRecord);
 
     toast.success('Đã nộp phiếu tự đánh giá thành công!');
     setSaving(false);
 
+    // 3. Đồng bộ song song Cloud Supabase + Express API
     try {
-      await api.selfReport(selectedWeek, sid, violationsList);
-      fetchWeekData();
+      await Promise.allSettled([
+        saveCompetitionRecordToSupabase(selectedWeek, selectedStudentId, newRecord),
+        api.selfReport(selectedWeek, sid, violationsList)
+      ]);
     } catch (err) {
-      console.warn('selfReport API background sync error (preserved locally):', err.message);
+      console.warn('selfReport API background sync (đã bảo toàn trên máy cá nhân & Supabase):', err.message);
     }
   };
 
@@ -166,146 +281,167 @@ export default function Evaluation({ students = [], onRefresh }) {
     const grp = user?.groupLeaderOf || user?.group || 'Tổ 1';
     const groupStudents = students.filter(s => s.group === grp);
 
-    const changes = groupStudents.map(s => {
-      const record = competitionData[s.id] || {};
+    const updatedData = { ...competitionData };
+    const changes = [];
+
+    groupStudents.forEach(s => {
+      const record = updatedData[s.id] || {};
       const isCurrent = String(s.id) === selectedStudentId;
       const violations = isCurrent 
         ? Object.entries(selectedViolations).map(([id, count]) => ({ criteriaId: parseInt(id, 10), count }))
         : (record.violations || []);
 
-      return {
+      const rec = {
+        ...record,
         studentId: s.id,
         violations,
-        note: reviewNotes[s.id] || record.reviewNote || ''
+        reviewNote: reviewNotes[s.id] || record.reviewNote || '',
+        reviewedBy: user?.name || 'Tổ trưởng',
+        reviewedAt: new Date().toISOString(),
+        status: 'reviewed',
+        updatedAt: new Date().toISOString()
       };
-    });
 
-    // Optimistic local state update
-    setCompetitionData(prev => {
-      const updated = { ...prev };
-      changes.forEach(ch => {
-        const sid = ch.studentId;
-        updated[sid] = {
-          ...(updated[sid] || {}),
-          studentId: sid,
-          violations: ch.violations,
-          reviewNote: ch.note,
-          reviewedBy: user?.name || 'Tổ trưởng',
-          reviewedAt: new Date().toISOString(),
-          status: 'reviewed',
-        };
+      updatedData[s.id] = rec;
+      changes.push({
+        studentId: s.id,
+        violations,
+        note: rec.reviewNote,
+        role: 'group_leader'
       });
-      return updated;
     });
 
-    toast.success(`Đã duyệt thi đua Vòng 1 cho ${groupStudents.length} học sinh ${grp}!`);
+    // 1. Cập nhật state & 2. Lưu LocalStorage
+    setCompetitionData(updatedData);
+    saveLocalWeekRecords(selectedWeek, updatedData);
+
+    toast.success(`⭐ Đã duyệt thi đua Vòng 1 cho ${groupStudents.length} học sinh ${grp}!`);
     setSaving(false);
 
+    // 3. Lưu song song Cloud Supabase + Express API
     try {
-      await api.reviewCompetition(selectedWeek, changes);
-      fetchWeekData();
+      await Promise.allSettled([
+        bulkSaveCompetitionToSupabase(selectedWeek, updatedData),
+        api.reviewCompetition(selectedWeek, changes)
+      ]);
     } catch (err) {
-      console.warn('reviewCompetition API sync failover (saved locally):', err.message);
+      console.warn('reviewCompetition API sync (đã bảo toàn trên máy & Supabase):', err.message);
     }
   };
 
   // Vòng 2: Lớp trưởng Duyệt cho Toàn lớp sau khi các Tổ trưởng duyệt
   const handleMonitorReview = async () => {
     setSaving(true);
-    const changes = students.map(s => {
-      const record = competitionData[s.id] || {};
+    const updatedData = { ...competitionData };
+    const changes = [];
+
+    students.forEach(s => {
+      const record = updatedData[s.id] || {};
       const isCurrent = String(s.id) === selectedStudentId;
       const violations = isCurrent 
         ? Object.entries(selectedViolations).map(([id, count]) => ({ criteriaId: parseInt(id, 10), count }))
         : (record.violations || []);
 
-      return {
+      const rec = {
+        ...record,
         studentId: s.id,
         violations,
-        note: reviewNotes[s.id] || record.reviewNote || ''
+        reviewNote: reviewNotes[s.id] || record.reviewNote || '',
+        monitorApprovedBy: user?.name || 'Lớp trưởng',
+        monitorApprovedAt: new Date().toISOString(),
+        status: 'monitor_approved',
+        updatedAt: new Date().toISOString()
       };
+
+      updatedData[s.id] = rec;
+      changes.push({
+        studentId: s.id,
+        violations,
+        note: rec.reviewNote,
+        role: 'monitor'
+      });
     });
 
-    // Optimistic local state update
-    setCompetitionData(prev => {
-      const updated = { ...prev };
-      changes.forEach(ch => {
-        const sid = ch.studentId;
-        updated[sid] = {
-          ...(updated[sid] || {}),
-          studentId: sid,
-          violations: ch.violations,
-          monitorApprovedBy: user?.name || 'Lớp trưởng',
-          monitorApprovedAt: new Date().toISOString(),
-          status: 'monitor_approved',
-        };
-      });
-      return updated;
-    });
+    // 1. Cập nhật state & 2. Lưu LocalStorage
+    setCompetitionData(updatedData);
+    saveLocalWeekRecords(selectedWeek, updatedData);
 
     toast.success(`👑 Lớp trưởng đã duyệt thi đua Vòng 2 cho toàn bộ ${students.length} học sinh!`);
     setSaving(false);
 
+    // 3. Lưu song song Cloud Supabase + Express API
     try {
-      await api.reviewCompetition(selectedWeek, changes);
-      fetchWeekData();
+      await Promise.allSettled([
+        bulkSaveCompetitionToSupabase(selectedWeek, updatedData),
+        api.reviewCompetition(selectedWeek, changes)
+      ]);
     } catch (err) {
-      console.warn('monitorReview API sync failover (saved locally):', err.message);
+      console.warn('monitorReview API sync (đã bảo toàn trên máy & Supabase):', err.message);
     }
   };
 
-  // Vòng 3: GVCN Chốt / Yêu cầu sửa (Hỗ trợ Duyệt riêng hoặc Duyệt toàn lớp)
+  // Vòng 3: GVCN Chốt / Yêu cầu sửa (Phương án 1A, 2A, 3A: Hỗ trợ Duyệt riêng hoặc Duyệt toàn lớp)
   const handleTeacherAction = async (action = 'approve', scope = 'single') => {
     setSaving(true);
     const sid = parseInt(selectedStudentId, 10);
     const currStudentName = currentStudent?.name || `HS #${selectedStudentId}`;
+    const updatedData = { ...competitionData };
+    const changes = [];
 
-    let changes = [];
     if (scope === 'single') {
-      const record = competitionData[sid] || {};
+      const record = updatedData[sid] || {};
       const violations = Object.entries(selectedViolations).map(([id, count]) => ({ criteriaId: parseInt(id, 10), count }));
-      changes = [{
+      const rec = {
+        ...record,
         studentId: sid,
         violations,
         teacherNote: teacherNotes[sid] || record.teacherNote || '',
+        teacherOverride: true,
+        approvedBy: user?.name || 'GVCN',
+        approvedAt: new Date().toISOString(),
+        status: action === 'reject' ? 'rejected' : 'approved',
+        updatedAt: new Date().toISOString()
+      };
+      updatedData[sid] = rec;
+      changes.push({
+        studentId: sid,
+        violations,
+        teacherNote: rec.teacherNote,
         action
-      }];
+      });
     } else {
-      // Duyệt toàn bộ lớp
-      changes = students.map(s => {
-        const record = competitionData[s.id] || {};
+      // Q2 Phương án A: Duyệt toàn bộ lớp -> Học sinh chưa nộp tính 0 vi phạm (100đ) và duyệt luôn!
+      students.forEach(s => {
+        const record = updatedData[s.id] || {};
         const isCurrent = String(s.id) === selectedStudentId;
         const violations = isCurrent
           ? Object.entries(selectedViolations).map(([id, count]) => ({ criteriaId: parseInt(id, 10), count }))
           : (record.violations || []);
 
-        return {
+        const rec = {
+          ...record,
           studentId: s.id,
           violations,
           teacherNote: teacherNotes[s.id] || record.teacherNote || '',
-          action: 'approve'
+          teacherOverride: isCurrent,
+          approvedBy: user?.name || 'GVCN',
+          approvedAt: new Date().toISOString(),
+          status: 'approved',
+          updatedAt: new Date().toISOString()
         };
+        updatedData[s.id] = rec;
+        changes.push({
+          studentId: s.id,
+          violations,
+          teacherNote: rec.teacherNote,
+          action: 'approve'
+        });
       });
     }
 
-    // Optimistic local state update
-    setCompetitionData(prev => {
-      const updated = { ...prev };
-      changes.forEach(ch => {
-        const sId = ch.studentId;
-        const act = ch.action || action;
-        updated[sId] = {
-          ...(updated[sId] || {}),
-          studentId: sId,
-          violations: ch.violations,
-          teacherNote: ch.teacherNote,
-          approvedBy: user?.name || 'GVCN',
-          approvedAt: new Date().toISOString(),
-          status: act === 'reject' ? 'rejected' : 'approved',
-        };
-      });
-      return updated;
-    });
+    // 1. Cập nhật state & 2. Lưu LocalStorage
+    setCompetitionData(updatedData);
+    saveLocalWeekRecords(selectedWeek, updatedData);
 
     if (scope === 'single') {
       toast.success(action === 'approve' ? `✅ Đã phê duyệt chốt điểm cho em ${currStudentName}!` : `💬 Đã yêu cầu em ${currStudentName} làm lại phiếu!`);
@@ -314,13 +450,17 @@ export default function Evaluation({ students = [], onRefresh }) {
     }
     setSaving(false);
 
+    // 3. Lưu song song Cloud Supabase + Express API
     try {
-      await api.finalApprove(selectedWeek, changes);
-      fetchWeekData();
+      await Promise.allSettled([
+        bulkSaveCompetitionToSupabase(selectedWeek, updatedData),
+        api.finalApprove(selectedWeek, changes)
+      ]);
     } catch (err) {
-      console.warn('finalApprove API sync failover (saved locally):', err.message);
+      console.warn('finalApprove API sync (đã bảo toàn trên máy & Supabase):', err.message);
     }
   };
+
 
   // Convert selectedViolations object to violations array for score calc
   const currentViolationsArray = Object.entries(selectedViolations).map(([id, count]) => ({
@@ -624,7 +764,7 @@ export default function Evaluation({ students = [], onRefresh }) {
               </div>
 
               {/* Submit button right on top for instant access */}
-              {(!user || user.role === 'student' || user.role === 'member' || String(user.id) === selectedStudentId) && currentRecord.status !== 'approved' && (
+              {!isTeacher && currentRecord.status !== 'approved' && (
                 <button
                   className="btn-primary touch-scale"
                   onClick={handleStudentSubmit}
@@ -721,11 +861,11 @@ export default function Evaluation({ students = [], onRefresh }) {
                         <button
                           className="criteria-btn touch-scale"
                           onClick={() => handleToggleCriterion(item.id, -1)}
-                          disabled={isTeacher || count === 0}
-                          title={isTeacher ? "Chế độ GVCN chỉ xét duyệt" : "Trừ 1"}
+                          disabled={count === 0}
+                          title={count === 0 ? "Chưa có vi phạm" : "Trừ 1"}
                           style={{
                             width: '44px', height: '44px', borderRadius: '50%', border: '1.5px solid #d1d5db',
-                            background: 'white', cursor: (isTeacher || count === 0) ? 'not-allowed' : 'pointer', opacity: (isTeacher || count === 0) ? 0.35 : 1,
+                            background: 'white', cursor: count === 0 ? 'not-allowed' : 'pointer', opacity: count === 0 ? 0.35 : 1,
                             fontWeight: 800, fontSize: '1.15rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
                           }}
                         >
@@ -737,14 +877,13 @@ export default function Evaluation({ students = [], onRefresh }) {
                         <button
                           className="criteria-btn touch-scale"
                           onClick={() => handleToggleCriterion(item.id, 1)}
-                          disabled={isTeacher}
-                          title={isTeacher ? "Chế độ GVCN chỉ xét duyệt" : "Cộng 1"}
+                          title="Cộng 1"
                           style={{
                             width: '44px', height: '44px', borderRadius: '50%', border: 'none',
-                            background: isTeacher ? '#94a3b8' : (item.isBonus ? '#16a34a' : 'var(--color-primary-dark)'),
-                            color: 'white', cursor: isTeacher ? 'not-allowed' : 'pointer', opacity: isTeacher ? 0.45 : 1,
+                            background: item.isBonus ? '#16a34a' : 'var(--color-primary-dark)',
+                            color: 'white', cursor: 'pointer', opacity: 1,
                             fontWeight: 800, fontSize: '1.15rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: isTeacher ? 'none' : '0 2px 8px rgba(0,0,0,0.18)'
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.18)'
                           }}
                         >
                           +
@@ -760,16 +899,16 @@ export default function Evaluation({ students = [], onRefresh }) {
                 <div style={{ background: '#f8fafc', borderRadius: '0.875rem', padding: '1.1rem', border: '1.5px solid #e2e8f0', marginTop: '0.5rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
                     <h4 style={{ margin: 0, color: 'var(--color-primary-dark)', fontSize: '0.92rem', fontWeight: 800 }}>
-                      ⚖️ GVCN Phê Duyệt & Yêu Cầu Thay Đổi (Nếu Có)
+                      ⚖️ GVCN Phê Duyệt & Điều Chỉnh Điểm Trực Tiếp
                     </h4>
-                    <span style={{ fontSize: '0.72rem', background: '#dbeafe', color: '#1e40af', padding: '0.15rem 0.5rem', borderRadius: '9999px', fontWeight: 800 }}>
-                      👁️ Chế độ Xét Duyệt
+                    <span style={{ fontSize: '0.72rem', background: '#dcfce7', color: '#15803d', padding: '0.15rem 0.55rem', borderRadius: '9999px', fontWeight: 800 }}>
+                      ✏️ Có quyền sửa điểm bằng nút +/-
                     </span>
                   </div>
                   <textarea
                     className="form-input"
                     style={{ width: '100%', minHeight: '65px', fontSize: '0.82rem', marginBottom: '0.75rem', resize: 'vertical' }}
-                    placeholder={`Nhập nhận xét hoặc yêu cầu điều chỉnh đặc biệt cho ${currentStudent?.name || 'học sinh'} (ví dụ: Khen thưởng đột xuất, Nhắc nhở quy định...)...`}
+                    placeholder={`Nhập nhận xét hoặc ghi chú điều chỉnh cho ${currentStudent?.name || 'học sinh'}...`}
                     value={teacherNotes[selectedStudentId] || currentRecord.teacherNote || ''}
                     onChange={e => setTeacherNotes({ ...teacherNotes, [selectedStudentId]: e.target.value })}
                   />
@@ -787,11 +926,12 @@ export default function Evaluation({ students = [], onRefresh }) {
                   {currentRecord.monitorApprovedBy && <div>👑 Lớp trưởng đã duyệt: <strong>{currentRecord.monitorApprovedBy}</strong></div>}
                   {currentRecord.approvedBy && <div>🚀 GVCN đã chốt điểm: <strong>{currentRecord.approvedBy}</strong></div>}
                   {currentRecord.status === 'submitted' && !currentRecord.reviewedBy && <div>📩 Đã nộp phiếu, đang chờ tổ trưởng duyệt.</div>}
+                  {currentRecord.status === 'rejected' && <div style={{ color: '#dc2626', fontWeight: 700 }}>❌ Phiếu bị yêu cầu sửa lại. Vui lòng cập nhật và nộp lại.</div>}
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   {/* HS Nộp */}
-                  {(!user || user.role === 'student' || user.role === 'member' || String(user.id) === selectedStudentId) && currentRecord.status !== 'approved' && (
+                  {!isTeacher && currentRecord.status !== 'approved' && (
                     <button
                       className="btn-primary touch-scale"
                       onClick={handleStudentSubmit}
@@ -845,6 +985,7 @@ export default function Evaluation({ students = [], onRefresh }) {
                 </div>
               </div>
 
+
             </div>
           </div>
         </div>
@@ -882,8 +1023,9 @@ export default function Evaluation({ students = [], onRefresh }) {
                       <div key={s.id} onClick={() => setSelectedStudentId(String(s.id))} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.35rem 0.6rem', borderRadius: '0.4rem', background: selectedStudentId === String(s.id) ? '#e0f2fe' : '#f9fafb', cursor: 'pointer' }}>
                         <span style={{ fontWeight: 600 }}>{String(s.id).padStart(2, '0')}. {s.name}</span>
                         <span>
-                          {st === 'approved' && '✅'}
-                          {st === 'reviewed' && '⏳ (Chờ GVCN)'}
+                          {st === 'approved' && '✅ (Đã duyệt)'}
+                          {st === 'monitor_approved' && '👑 (Chờ GVCN)'}
+                          {st === 'reviewed' && '⏳ (Chờ Lớp trưởng)'}
                           {st === 'submitted' && '📩 (Chờ Tổ)'}
                           {st === 'rejected' && '❌ (Làm lại)'}
                           {st === 'draft' && '📝 (Chưa nộp)'}

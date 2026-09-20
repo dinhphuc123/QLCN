@@ -1075,8 +1075,8 @@ app.post('/api/competition/:week/self-report', (req, res) => {
     if (!db.competitionRecords[week]) db.competitionRecords[week] = {};
     const existing = db.competitionRecords[week][sid] || {};
 
-    // Nếu đã approved và người nộp là học sinh thì chặn
-    if (existing.status === 'approved' && user.role === 'student') {
+    // Chỉ chặn nếu phiếu đã approved và không phải GVCN
+    if (existing.status === 'approved' && user.role !== 'teacher') {
       return res.status(400).json({ error: 'Phiếu đã được GVCN duyệt, không thể sửa!' });
     }
 
@@ -1110,7 +1110,7 @@ app.post('/api/competition/:week/self-report', (req, res) => {
 app.post('/api/competition/:week/review', (req, res) => {
   try {
     const { week } = req.params;
-    const { changes } = req.body; // [{ studentId, violations, note }]
+    const { changes } = req.body; // [{ studentId, violations, note, role }]
     const user = req.user || { name: 'Cán bộ lớp', role: 'group_leader' };
 
     const db = readDB();
@@ -1119,14 +1119,18 @@ app.post('/api/competition/:week/review', (req, res) => {
     (changes || []).forEach(item => {
       const sid = parseInt(item.studentId, 10);
       const existing = db.competitionRecords[week][sid] || {};
+      const isMonitor = (user && user.role === 'monitor') || item.role === 'monitor';
+
       db.competitionRecords[week][sid] = {
         ...existing,
         studentId: sid,
         violations: item.violations || existing.violations || [],
-        reviewNote: item.note || '',
-        reviewedBy: user.name || user.role || 'Tổ trưởng',
-        reviewedAt: new Date().toISOString(),
-        status: 'reviewed',
+        reviewNote: item.note || existing.reviewNote || '',
+        reviewedBy: isMonitor ? (existing.reviewedBy || 'Tổ trưởng') : (user.name || 'Tổ trưởng'),
+        reviewedAt: isMonitor ? (existing.reviewedAt || new Date().toISOString()) : new Date().toISOString(),
+        monitorApprovedBy: isMonitor ? (user.name || 'Lớp trưởng') : (existing.monitorApprovedBy || null),
+        monitorApprovedAt: isMonitor ? new Date().toISOString() : (existing.monitorApprovedAt || null),
+        status: isMonitor ? 'monitor_approved' : 'reviewed',
       };
     });
 
@@ -1137,6 +1141,7 @@ app.post('/api/competition/:week/review', (req, res) => {
     return res.status(200).json({ success: true });
   }
 });
+
 
 // POST /api/competition/:week/final-approve → GVCN chốt (toàn quyền)
 app.post('/api/competition/:week/final-approve', (req, res) => {
