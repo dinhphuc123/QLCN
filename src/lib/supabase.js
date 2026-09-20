@@ -295,3 +295,40 @@ export async function bulkSaveCompetitionToSupabase(weekId, recordsMap) {
     return false;
   }
 }
+
+/**
+ * Đăng ký lắng nghe thay đổi thời gian thực cho bảng competition_records theo tuần
+ */
+export function subscribeToCompetitionChanges(weekId, onRecordChange) {
+  if (!isSupabaseConfigured) return null;
+  try {
+    const channelName = `competition-${weekId}-${Date.now()}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'competition_records', filter: `week_id=eq.${weekId}` },
+        (payload) => {
+          if (payload.new && typeof onRecordChange === 'function') {
+            const unpacked = unpackSupabaseRecord(payload.new);
+            onRecordChange({
+              eventType: payload.eventType,
+              record: unpacked,
+              raw: payload.new
+            });
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log(`✅ [Supabase Realtime] Đã kết nối theo dõi thi đua tuần ${weekId}`);
+        }
+      });
+
+    return channel;
+  } catch (err) {
+    console.warn('subscribeToCompetitionChanges error:', err.message);
+    return null;
+  }
+}
+

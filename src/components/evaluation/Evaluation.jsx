@@ -7,7 +7,8 @@ import { useClassSettings } from '../../context/ClassSettingsContext';
 import {
   fetchCompetitionFromSupabase,
   saveCompetitionRecordToSupabase,
-  bulkSaveCompetitionToSupabase
+  bulkSaveCompetitionToSupabase,
+  subscribeToCompetitionChanges
 } from '../../lib/supabase';
 import { 
   THI_DUA_CRITERIA, 
@@ -95,6 +96,17 @@ function mergeRecords(sourceA = {}, sourceB = {}) {
     }
   }
   return merged;
+}
+
+// Phát thông điệp tức thì giữa các tab trình duyệt
+function broadcastLocalChange(weekId, record, source = 'local') {
+  try {
+    if (typeof BroadcastChannel !== 'undefined') {
+      const bc = new BroadcastChannel('qlcn_competition_sync');
+      bc.postMessage({ weekId, record, source });
+      bc.close();
+    }
+  } catch {}
 }
 
 export default function Evaluation({ students = [], onRefresh }) {
@@ -193,6 +205,107 @@ export default function Evaluation({ students = [], onRefresh }) {
     fetchWeekData();
   }, [selectedWeek]);
 
+  // Xử lý bản ghi thi đua gửi về thời gian thực (Supabase Realtime WebSocket & Cross-Tab)
+  const handleIncomingRecord = (newRec) => {
+    if (!newRec || !newRec.studentId) return;
+    const sid = parseInt(newRec.studentId, 10);
+    const targetStudent = students.find(s => s.id === sid);
+    const studentName = targetStudent?.name || `HS #${sid}`;
+
+    const isSelfAction = user?.id && String(user.id) === String(sid) && newRec.status === 'submitted';
+
+    setCompetitionData(prev => {
+      const currentRec = prev[sid] || {};
+      const currentWeight = STATUS_WEIGHT[currentRec.status] || 0;
+      const incomingWeight = STATUS_WEIGHT[newRec.status] || 0;
+
+      // Q2 Phương án A: Bảo vệ học sinh đang được xem/sửa nếu người dùng đang trực tiếp thao tác
+      const isCurrentlyInspecting = String(selectedStudentId) === String(sid);
+      if (isCurrentlyInspecting && incomingWeight < currentWeight) {
+        return prev;
+      }
+
+      const merged = {
+        ...currentRec,
+        ...newRec,
+        updatedAt: new Date().toISOString()
+      };
+      saveSingleLocalRecord(selectedWeek, sid, merged);
+      return {
+        ...prev,
+        [sid]: merged
+      };
+    });
+
+    // Q1 Phương án A: Hiển thị thông báo Toast tức thì cho HS / Cán sự / GVCN
+    if (!isSelfAction) {
+      if (newRec.status === 'submitted') {
+        toast(`⚡ Em ${studentName} vừa nộp phiếu tự đánh giá!`, { icon: '📩', duration: 4000 });
+      } else if (newRec.status === 'reviewed') {
+        toast(`⭐ Tổ trưởng đã duyệt Vòng 1 cho em ${studentName}!`, { icon: '⭐', duration: 4000 });
+      } else if (newRec.status === 'monitor_approved') {
+        toast(`👑 Lớp trưởng đã duyệt Vòng 2 cho em ${studentName}!`, { icon: '👑', duration: 4000 });
+      } else if (newRec.status === 'approved') {
+        toast(`✅ GVCN đã phê duyệt chốt điểm cho em ${studentName}!`, { icon: '✅', duration: 4000 });
+      } else if (newRec.status === 'rejected') {
+        toast(`💬 GVCN yêu cầu em ${studentName} điều chỉnh lại phiếu!`, { icon: '💬', duration: 4000 });
+      }
+    }
+  };
+
+  // Đăng ký kết nối Realtime WebSocket (Supabase) + BroadcastChannel (Cross-tab)
+  useEffect(() => {
+    // 1. Cross-tab instant communication
+    let bc = null;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        bc = new BroadcastChannel('qlcn_competition_sync');
+        bc.onmessage = (event) => {
+          if (event.data && event.data.weekId === selectedWeek && event.data.record) {
+            handleIncomingRecord(event.data.record);
+          }
+        };
+      }
+    } catch {}
+
+    // 2. Supabase Realtime WebSocket (HS <-> Cán sự <-> GVCN tức thì trên mọi thiết bị)
+    const channel = subscribeToCompetitionChanges(selectedWeek, ({ record }) => {
+      if (record) {
+        handleIncomingRecord(record);
+      }
+    });
+
+    // 3. Fallback StorageEvent
+    const handleStorageChange = (e) => {
+      if (e.key === STORAGE_KEY) {
+        const localRecords = getLocalWeekRecords(selectedWeek);
+        setCompetitionData(prev => mergeRecords(prev, localRecords));
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // 4. Khi người dùng focus quay lại tab
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchWeekData();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // 5. Polling dự phòng nhẹ nhàng mỗi 25 giây
+    const interval = setInterval(() => {
+      fetchWeekData();
+    }, 25000);
+
+    return () => {
+      if (bc) bc.close();
+      if (channel) channel.unsubscribe();
+      window.removeEventListener('storage', handleStorageChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(interval);
+    };
+  }, [selectedWeek, selectedStudentId, user]);
+
   // Đồng bộ tiêu chí của học sinh đang chọn từ bản ghi thi đua
   useEffect(() => {
     const studentRecord = competitionData[selectedStudentId];
@@ -209,6 +322,7 @@ export default function Evaluation({ students = [], onRefresh }) {
 
   const currentStudent = students.find(s => s.id === parseInt(selectedStudentId, 10));
   const currentRecord = competitionData[selectedStudentId] || {};
+
 
   // Điều chỉnh tiêu chí (+ / -)
   const handleToggleCriterion = (criteriaId, delta = 1) => {
@@ -260,6 +374,7 @@ export default function Evaluation({ students = [], onRefresh }) {
 
     // 2. Lưu ngay vào LocalStorage (fail-safe vĩnh viễn không mất dữ liệu)
     saveSingleLocalRecord(selectedWeek, selectedStudentId, newRecord);
+    broadcastLocalChange(selectedWeek, newRecord, 'student_submit');
 
     toast.success('Đã nộp phiếu tự đánh giá thành công!');
     setSaving(false);
@@ -311,9 +426,10 @@ export default function Evaluation({ students = [], onRefresh }) {
       });
     });
 
-    // 1. Cập nhật state & 2. Lưu LocalStorage
+    // 1. Cập nhật state & 2. Lưu LocalStorage & Broadcast tức thì
     setCompetitionData(updatedData);
     saveLocalWeekRecords(selectedWeek, updatedData);
+    groupStudents.forEach(s => broadcastLocalChange(selectedWeek, updatedData[s.id], 'group_review'));
 
     toast.success(`⭐ Đã duyệt thi đua Vòng 1 cho ${groupStudents.length} học sinh ${grp}!`);
     setSaving(false);
@@ -362,9 +478,10 @@ export default function Evaluation({ students = [], onRefresh }) {
       });
     });
 
-    // 1. Cập nhật state & 2. Lưu LocalStorage
+    // 1. Cập nhật state & 2. Lưu LocalStorage & Broadcast tức thì
     setCompetitionData(updatedData);
     saveLocalWeekRecords(selectedWeek, updatedData);
+    students.forEach(s => broadcastLocalChange(selectedWeek, updatedData[s.id], 'monitor_review'));
 
     toast.success(`👑 Lớp trưởng đã duyệt thi đua Vòng 2 cho toàn bộ ${students.length} học sinh!`);
     setSaving(false);
@@ -439,9 +556,14 @@ export default function Evaluation({ students = [], onRefresh }) {
       });
     }
 
-    // 1. Cập nhật state & 2. Lưu LocalStorage
+    // 1. Cập nhật state & 2. Lưu LocalStorage & Broadcast tức thì
     setCompetitionData(updatedData);
     saveLocalWeekRecords(selectedWeek, updatedData);
+    if (scope === 'single') {
+      broadcastLocalChange(selectedWeek, updatedData[sid], 'teacher_action');
+    } else {
+      students.forEach(s => broadcastLocalChange(selectedWeek, updatedData[s.id], 'teacher_action'));
+    }
 
     if (scope === 'single') {
       toast.success(action === 'approve' ? `✅ Đã phê duyệt chốt điểm cho em ${currStudentName}!` : `💬 Đã yêu cầu em ${currStudentName} làm lại phiếu!`);
@@ -460,6 +582,7 @@ export default function Evaluation({ students = [], onRefresh }) {
       console.warn('finalApprove API sync (đã bảo toàn trên máy & Supabase):', err.message);
     }
   };
+
 
 
   // Convert selectedViolations object to violations array for score calc
